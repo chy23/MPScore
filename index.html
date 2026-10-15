@@ -673,11 +673,11 @@
                 </label>
                 <label class="flex items-center gap-2 bg-indigo-50/50 px-2.5 py-2 rounded-xl border border-indigo-200 cursor-pointer hover:bg-indigo-50 transition">
                   <input type="checkbox" id="webOptPrCurve" checked onchange="updatePrintCards()" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4">
-                  <span class="font-black text-indigo-950">🔔 常態 PR 落點曲線圖</span>
+                  <span class="font-black text-indigo-950">🔔 單科成績落點與分佈曲線</span>
                 </label>
                 <label class="flex items-center gap-2 bg-indigo-50/50 px-2.5 py-2 rounded-xl border border-indigo-200 cursor-pointer hover:bg-indigo-50 transition">
                   <input type="checkbox" id="webOptDiagnosis" checked onchange="updatePrintCards()" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4">
-                  <span class="font-black text-indigo-950">💡 專家學習診斷處方</span>
+                  <span class="font-black text-indigo-950">🌱 學習成長小錦囊 (適性建議)</span>
                 </label>
               </div>
             </div>
@@ -756,11 +756,11 @@
             </label>
             <label class="inline-flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 shadow-2xs cursor-pointer hover:bg-slate-50 select-none">
               <input type="checkbox" id="syncOptPrCurve" checked onchange="syncWebCheckbox('webOptPrCurve', this.checked)" class="rounded text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5">
-              <span class="font-bold text-slate-700">🔔 常態 PR 曲線</span>
+              <span class="font-bold text-slate-700">🔔 單科成績分佈曲線</span>
             </label>
             <label class="inline-flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 shadow-2xs cursor-pointer hover:bg-slate-50 select-none">
               <input type="checkbox" id="syncOptDiagnosis" checked onchange="syncWebCheckbox('webOptDiagnosis', this.checked)" class="rounded text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5">
-              <span class="font-bold text-slate-700">💡 學習診斷處方</span>
+              <span class="font-bold text-slate-700">🌱 學習成長錦囊</span>
             </label>
             <label class="inline-flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 shadow-2xs cursor-pointer hover:bg-slate-50 select-none">
               <input type="checkbox" id="syncOptAvg" checked onchange="syncWebCheckbox('webOptAvg', this.checked)" class="rounded text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5">
@@ -885,16 +885,18 @@
                 <div id="sbBoxplotZones" class="grid grid-cols-2 gap-1.5 text-[10px]"></div>
               </div>
 
-              <!-- 🔔 常態 PR 落點曲線圖 -->
+              <!-- 🔔 單科成績落點與分佈曲線 -->
               <div id="sbPrCurveCard" class="bg-white p-4 rounded-3xl shadow-sm border border-slate-200/80 space-y-2">
                 <div class="flex items-center justify-between border-b pb-1.5">
                   <div class="font-black text-[11px] text-slate-900 flex items-center gap-1">
                     <span>🔔</span>
-                    <span>常態 PR 落點曲線圖</span>
+                    <span>單科成績落點與分佈曲線</span>
                   </div>
-                  <span id="sbPrCurveBadge" class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">總均 PR</span>
+                  <span id="sbPrCurveBadge" class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">--</span>
                 </div>
-                <div class="text-[10px] text-slate-400">常態鐘形分佈 ‧ 總平均與各科常模相對落點</div>
+                <div class="text-[10px] text-slate-400">呈現選取科目的班級成績真實分佈 ‧ 學生個人得分落點</div>
+                <!-- 科目頁籤 -->
+                <div id="sbPrCurveTabs" class="flex flex-wrap gap-1 bg-slate-100/80 p-1 rounded-2xl"></div>
                 <!-- SVG 曲線圖容器 -->
                 <div id="sbPrCurveContainer"></div>
               </div>
@@ -1104,18 +1106,21 @@
           <div id="pBoxplotZoneCards" class="grid grid-cols-2 gap-2 text-[11px]"></div>
         </div>
 
-        <!-- 🔔 常態 PR 落點曲線圖 (常模相對位置) -->
+        <!-- 🔔 單科成績落點與班級分佈曲線 -->
         <div id="pPrCurveCard" class="bg-white/90 backdrop-blur-md rounded-3xl shadow-sm border border-slate-200/80 p-5 space-y-3">
           <div class="flex items-center justify-between border-b border-slate-100 pb-2">
             <div>
               <div class="font-black text-xs text-slate-900 flex items-center gap-1.5">
                 <span class="text-base">🔔</span>
-                <span>常態 PR 落點曲線圖 (常模相對位置)</span>
+                <span>單科成績落點與班級分佈曲線</span>
               </div>
-              <div class="text-[10px] text-slate-400 mt-0.5">常態鐘形常模分佈 ‧ 總平均與各科 PR 相對落點</div>
+              <div class="text-[10px] text-slate-400 mt-0.5">呈現當次選取科目的班級成績真實分佈 ‧ 學生個人得分落點</div>
             </div>
-            <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200" id="pPrCurveBadge">總均 PR</span>
+            <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200" id="pPrCurveBadge">--</span>
           </div>
+          <!-- 科目頁籤 -->
+          <div id="pPrCurveTabs" class="flex flex-wrap gap-1.5 bg-slate-100/80 p-1 rounded-2xl"></div>
+          <!-- SVG 曲線圖容器 -->
           <div id="pPrCurveContainer"></div>
         </div>
 
@@ -2387,6 +2392,7 @@
             q3: q3,
             min: min,
             max: max,
+            allScores: sortedS,
             zone: zone,
             zoneStatus: zoneStatus,
             advice: pick
@@ -3109,12 +3115,66 @@
       }
     }
 
+    let parentPrCurveSubIdx = 0;
+    let sbPrCurveSubIdx = 0;
+
+    function getSubjectScoreSamples(sub) {
+      if (sub.allScores && Array.isArray(sub.allScores) && sub.allScores.length > 0) {
+        return sub.allScores;
+      }
+      const min = sub.min !== undefined ? sub.min : 40;
+      const q1 = sub.q1 !== undefined ? sub.q1 : 65;
+      const med = sub.median !== undefined ? sub.median : 76;
+      const q3 = sub.q3 !== undefined ? sub.q3 : 86;
+      const max = sub.max !== undefined ? sub.max : 98;
+      const avg = sub.classAverage !== undefined ? sub.classAverage : 75;
+      return [
+        min,
+        min + (q1 - min) * 0.35, min + (q1 - min) * 0.7,
+        q1,
+        q1 + (med - q1) * 0.25, q1 + (med - q1) * 0.5, q1 + (med - q1) * 0.75,
+        med,
+        med + (q3 - med) * 0.25, med + (q3 - med) * 0.5, med + (q3 - med) * 0.75,
+        q3,
+        q3 + (max - q3) * 0.35, q3 + (max - q3) * 0.7,
+        max,
+        avg, avg - 1.5, avg + 1.5, (q1 + med)/2, (med + q3)/2
+      ];
+    }
+
+    function computeScoreKDE(samples) {
+      const n = samples.length;
+      const mean = samples.reduce((a, b) => a + b, 0) / n;
+      const variance = samples.reduce((acc, v) => acc + Math.pow(v - mean, 2), 0) / (n - 1 || 1);
+      const sd = Math.sqrt(variance) || 12;
+      const h = Math.max(5, Math.min(10, 1.06 * sd * Math.pow(n, -0.2)));
+      
+      const points = [];
+      let maxDensity = 0;
+      let modeScore = Math.round(mean);
+      
+      for (let s = 0; s <= 100; s += 1) {
+        let sum = 0;
+        for (let i = 0; i < n; i++) {
+          const u = (s - samples[i]) / h;
+          sum += Math.exp(-0.5 * u * u);
+        }
+        const d = sum / (n * h * Math.sqrt(2 * Math.PI));
+        if (d > maxDensity) {
+          maxDensity = d;
+          modeScore = s;
+        }
+        points.push({ score: s, density: d });
+      }
+      return { points, maxDensity: maxDensity || 1, modeScore };
+    }
+
     function renderPrCurveView(curExam, prefix) {
       const isSb = prefix === 'sb';
       const cardEl = document.getElementById(isSb ? 'sbPrCurveCard' : 'pPrCurveCard');
       if (!cardEl) return;
       const cfg = getActiveVisibilityConfig();
-      if (!cfg.showPrCurve || !curExam) {
+      if (!cfg.showPrCurve || !curExam || !curExam.subjects || curExam.subjects.length === 0) {
         cardEl.classList.add('hidden');
         return;
       }
@@ -3123,111 +3183,158 @@
       const container = document.getElementById(isSb ? 'sbPrCurveContainer' : 'pPrCurveContainer');
       if (!container) return;
 
-      const stAvgPr = curExam.studentAveragePr !== undefined ? curExam.studentAveragePr : 50;
-      const subs = curExam.subjects || [];
-
-      const getX = pr => 20 + (Math.max(0, Math.min(100, pr)) / 100) * 560;
-      const getY = pr => {
-        const diff = (pr - 50) / 22;
-        return 160 - 130 * Math.exp(-0.5 * diff * diff);
-      };
-
-      let pathD = 'M 20 160';
-      for (let p = 0; p <= 100; p += 2) {
-        pathD += ` L ${getX(p).toFixed(1)} ${getY(p).toFixed(1)}`;
+      const subs = curExam.subjects;
+      let activeIdx = isSb ? sbPrCurveSubIdx : parentPrCurveSubIdx;
+      if (activeIdx >= subs.length) {
+        activeIdx = 0;
+        if (isSb) sbPrCurveSubIdx = 0; else parentPrCurveSubIdx = 0;
       }
-      pathD += ' L 580 160 Z';
 
-      const avgX = getX(stAvgPr);
-      const avgY = getY(stAvgPr);
+      // 1. 科目切換頁籤
+      const tabsContainer = document.getElementById(isSb ? 'sbPrCurveTabs' : 'pPrCurveTabs');
+      if (tabsContainer) {
+        tabsContainer.innerHTML = '';
+        subs.forEach((sub, idx) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.onclick = () => {
+            if (isSb) sbPrCurveSubIdx = idx; else parentPrCurveSubIdx = idx;
+            renderPrCurveView(curExam, prefix);
+          };
+          const isActive = idx === activeIdx;
+          btn.className = isActive
+            ? `px-2.5 py-1 rounded-xl font-black ${isSb ? 'text-[10px]' : 'text-xs'} bg-indigo-600 text-white shadow-xs transition`
+            : `px-2.5 py-1 rounded-xl font-bold ${isSb ? 'text-[10px]' : 'text-xs'} bg-slate-100 text-slate-600 hover:bg-slate-200 transition`;
+          btn.innerText = `${sub.name} (${sub.score}分)`;
+          tabsContainer.appendChild(btn);
+        });
+      }
 
-      const subColors = ['#4f46e5', '#06b6d4', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6'];
+      const activeSub = subs[activeIdx];
+      const badgeEl = document.getElementById(isSb ? 'sbPrCurveBadge' : 'pPrCurveBadge');
+      if (badgeEl) {
+        badgeEl.innerText = `${activeSub.name}：${activeSub.score}分 (PR ${activeSub.pr})`;
+      }
 
-      const subjectDotsSvg = subs.map((s, idx) => {
-        const sx = getX(s.pr);
-        const sy = getY(s.pr);
-        const col = subColors[idx % subColors.length];
-        return `
-          <g class="subject-marker">
-            <circle cx="${sx}" cy="${sy}" r="4.5" fill="${col}" stroke="#ffffff" stroke-width="2" />
-            <text x="${sx}" y="${sy - 8}" font-size="9" font-weight="bold" fill="${col}" text-anchor="middle">${s.name} ${s.pr}</text>
-          </g>
-        `;
-      }).join('');
+      // 2. 計算該科實際班級成績分佈核密度 (KDE)
+      const samples = getSubjectScoreSamples(activeSub);
+      const { points, maxDensity, modeScore } = computeScoreKDE(samples);
 
-      const gradCurveId = isSb ? 'sbCurveGradient' : 'pCurveGradient';
-      const gradStrokeId = isSb ? 'sbStrokeGradient' : 'pStrokeGradient';
+      // 3. SVG 座標映射：X 軸為分數 0 ~ 100 分，Y 軸為分佈密度
+      const getX = score => 35 + (Math.max(0, Math.min(100, score)) / 100) * 530;
+      const getY = density => 160 - (density / maxDensity) * 120;
+
+      let pathD = `M ${getX(0).toFixed(1)} 160`;
+      for (let s = 0; s <= 100; s += 1) {
+        pathD += ` L ${getX(s).toFixed(1)} ${getY(points[s].density).toFixed(1)}`;
+      }
+      pathD += ` L ${getX(100).toFixed(1)} 160 Z`;
+
+      const score = activeSub.score !== undefined ? activeSub.score : 0;
+      const cAvg = activeSub.classAverage !== undefined ? activeSub.classAverage : 75;
+      const med = activeSub.median !== undefined ? activeSub.median : cAvg;
+      const pr = activeSub.pr !== undefined ? activeSub.pr : 50;
+
+      // 學生得分落點座標
+      const stX = getX(score);
+      const stDensity = points[Math.round(score)] ? points[Math.round(score)].density : (maxDensity * 0.5);
+      const stY = getY(stDensity);
+
+      // 班級平均座標
+      const avgX = getX(cAvg);
+      const avgDensity = points[Math.round(cAvg)] ? points[Math.round(cAvg)].density : (maxDensity * 0.7);
+      const avgY = getY(avgDensity);
+
+      const gradCurveId = isSb ? 'sbDistCurveGradient' : 'pDistCurveGradient';
+      const gradStrokeId = isSb ? 'sbDistStrokeGradient' : 'pDistStrokeGradient';
 
       container.innerHTML = `
         <div class="relative w-full">
-          <svg viewBox="0 0 600 200" class="w-full h-auto drop-shadow-sm select-none">
+          <svg viewBox="0 0 600 205" class="w-full h-auto drop-shadow-sm select-none">
             <defs>
               <linearGradient id="${gradCurveId}" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stop-color="#f43f5e" stop-opacity="0.18" />
-                <stop offset="25%" stop-color="#f59e0b" stop-opacity="0.22" />
-                <stop offset="50%" stop-color="#3b82f6" stop-opacity="0.25" />
-                <stop offset="75%" stop-color="#10b981" stop-opacity="0.28" />
-                <stop offset="100%" stop-color="#10b981" stop-opacity="0.32" />
+                <stop offset="0%" stop-color="#f43f5e" stop-opacity="0.15" />
+                <stop offset="35%" stop-color="#f59e0b" stop-opacity="0.22" />
+                <stop offset="70%" stop-color="#3b82f6" stop-opacity="0.26" />
+                <stop offset="100%" stop-color="#10b981" stop-opacity="0.30" />
               </linearGradient>
               <linearGradient id="${gradStrokeId}" x1="0%" y1="0%" x2="100%" y2="0%">
                 <stop offset="0%" stop-color="#f43f5e" />
-                <stop offset="25%" stop-color="#f59e0b" />
-                <stop offset="50%" stop-color="#3b82f6" />
-                <stop offset="75%" stop-color="#10b981" />
+                <stop offset="35%" stop-color="#f59e0b" />
+                <stop offset="70%" stop-color="#3b82f6" />
                 <stop offset="100%" stop-color="#10b981" />
               </linearGradient>
             </defs>
 
+            <!-- 垂直參考格線與及格線 (60 分) -->
+            ${[0, 20, 40, 60, 80, 100].map(v => `
+              <line x1="${getX(v)}" y1="30" x2="${getX(v)}" y2="160" stroke="${v === 60 ? '#f59e0b' : '#e2e8f0'}" stroke-width="${v === 60 ? '1.5' : '1'}" stroke-dasharray="${v === 60 ? '3,3' : '2,2'}" />
+            `).join('')}
+
+            <!-- 班級成績分佈曲線本體 (KDE 面積與曲線) -->
             <path d="${pathD}" fill="url(#${gradCurveId})" stroke="url(#${gradStrokeId})" stroke-width="3" stroke-linecap="round" />
 
-            <line x1="${getX(25)}" y1="${getY(25)}" x2="${getX(25)}" y2="160" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="3,3" />
-            <line x1="${getX(50)}" y1="${getY(50)}" x2="${getX(50)}" y2="160" stroke="#94a3b8" stroke-width="2" stroke-dasharray="3,3" />
-            <line x1="${getX(75)}" y1="${getY(75)}" x2="${getX(75)}" y2="160" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="3,3" />
+            <!-- 分數基準軸 (X 軸) -->
+            <line x1="25" y1="160" x2="575" y2="160" stroke="#64748b" stroke-width="1.5" />
 
-            <line x1="15" y1="160" x2="585" y2="160" stroke="#64748b" stroke-width="1.5" />
+            <!-- 分數刻度文字 -->
+            <text x="${getX(0)}" y="176" font-size="9" fill="#94a3b8" text-anchor="middle" font-weight="bold">0 分</text>
+            <text x="${getX(20)}" y="176" font-size="9" fill="#94a3b8" text-anchor="middle" font-weight="bold">20 分</text>
+            <text x="${getX(40)}" y="176" font-size="9" fill="#94a3b8" text-anchor="middle" font-weight="bold">40 分</text>
+            <text x="${getX(60)}" y="176" font-size="9" fill="#d97706" text-anchor="middle" font-black">及格 60</text>
+            <text x="${getX(80)}" y="176" font-size="9" fill="#94a3b8" text-anchor="middle" font-weight="bold">80 分</text>
+            <text x="${getX(100)}" y="176" font-size="9" fill="#059669" text-anchor="middle" font-black">100 分</text>
 
-            <text x="${getX(0)}" y="176" font-size="9" fill="#94a3b8" text-anchor="middle" font-weight="bold">PR 0</text>
-            <text x="${getX(25)}" y="176" font-size="9" fill="#94a3b8" text-anchor="middle" font-weight="bold">PR 25 (Q1)</text>
-            <text x="${getX(50)}" y="176" font-size="10" fill="#475569" text-anchor="middle" font-black">PR 50 (中位數)</text>
-            <text x="${getX(75)}" y="176" font-size="9" fill="#94a3b8" text-anchor="middle" font-weight="bold">PR 75 (Q3)</text>
-            <text x="${getX(100)}" y="176" font-size="9" fill="#94a3b8" text-anchor="middle" font-weight="bold">PR 99</text>
+            <!-- 班級平均垂直標示線與標記 -->
+            <line x1="${avgX}" y1="${avgY}" x2="${avgX}" y2="160" stroke="#64748b" stroke-width="1.8" stroke-dasharray="3,3" />
+            <circle cx="${avgX}" cy="${avgY}" r="4.5" fill="#ffffff" stroke="#64748b" stroke-width="2" />
+            <text x="${avgX}" y="${Math.min(150, avgY + 14)}" font-size="9" fill="#475569" font-weight="bold" text-anchor="middle">班均 ${cAvg}</text>
 
-            <text x="${(getX(0) + getX(25)) / 2}" y="152" font-size="9" fill="#e11d48" font-weight="bold" text-anchor="middle">🌱 紮根啟航</text>
-            <text x="${(getX(25) + getX(50)) / 2}" y="152" font-size="9" fill="#d97706" font-weight="bold" text-anchor="middle">💪 潛力蓄力</text>
-            <text x="${(getX(50) + getX(75)) / 2}" y="152" font-size="9" fill="#2563eb" font-weight="bold" text-anchor="middle">🌿 穩健發揮</text>
-            <text x="${(getX(75) + getX(100)) / 2}" y="152" font-size="9" fill="#059669" font-weight="bold" text-anchor="middle">🌟 卓越精熟</text>
+            <!-- 學生個人得分落點垂直引線與定位圖釘 -->
+            <line x1="${stX}" y1="${stY}" x2="${stX}" y2="160" stroke="#4f46e5" stroke-width="2.5" />
+            <circle cx="${stX}" cy="${stY}" r="7" fill="#fbbf24" stroke="#4f46e5" stroke-width="3" />
+            <circle cx="${stX}" cy="${stY}" r="2.5" fill="#4f46e5" />
 
-            ${subjectDotsSvg}
-
-            <line x1="${avgX}" y1="${avgY}" x2="${avgX}" y2="160" stroke="#4f46e5" stroke-width="2" stroke-dasharray="2,2" />
-            <circle cx="${avgX}" cy="${avgY}" r="7" fill="#fbbf24" stroke="#4f46e5" stroke-width="3" />
-            
-            <g transform="translate(${Math.max(60, Math.min(540, avgX))}, ${Math.max(20, avgY - 14)})">
-              <rect x="-48" y="-16" width="96" height="20" rx="10" fill="#4f46e5" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.15))" />
-              <text x="0" y="-3" font-size="10" font-weight="900" fill="#ffffff" text-anchor="middle">🌟 總均 PR ${stAvgPr}</text>
+            <!-- 學生得分懸浮氣泡徽章 -->
+            <g transform="translate(${Math.max(65, Math.min(535, stX))}, ${Math.max(20, stY - 14)})">
+              <rect x="-56" y="-16" width="112" height="22" rx="11" fill="#4f46e5" filter="drop-shadow(0 2px 5px rgba(79,70,229,0.3))" />
+              <text x="0" y="-1" font-size="10" font-weight="900" fill="#ffffff" text-anchor="middle">📍 個人得分 ${score}分</text>
             </g>
           </svg>
         </div>
 
+        <!-- 關鍵統計數據膠囊列 -->
         <div class="flex flex-wrap items-center justify-center gap-1.5 pt-1">
-          <span class="text-[10px] font-black text-indigo-900 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-full shadow-2xs">
-            🌟 總平均 PR ${stAvgPr}
+          <span class="text-[10px] font-black text-indigo-900 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-full shadow-2xs">
+            📍 個人得分 ${score} 分
           </span>
-          ${subs.map((s, i) => `
-            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border bg-white text-slate-700 shadow-2xs" style="border-color: ${subColors[i % subColors.length]};">
-              <span class="inline-block w-1.5 h-1.5 rounded-full mr-1" style="background-color: ${subColors[i % subColors.length]};"></span>
-              ${s.name} PR ${s.pr}
-            </span>
-          `).join('')}
+          <span class="text-[10px] font-bold text-slate-700 bg-white border border-slate-200 px-2.5 py-1 rounded-full shadow-2xs">
+            👥 班級平均 ${cAvg} 分
+          </span>
+          <span class="text-[10px] font-bold text-slate-700 bg-white border border-slate-200 px-2.5 py-1 rounded-full shadow-2xs">
+            📊 中位數 ${med} 分
+          </span>
+          <span class="text-[10px] font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full shadow-2xs">
+            🌟 該科落點 PR ${pr}
+          </span>
+          <span class="text-[10px] font-bold ${activeSub.diff >= 0 ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-rose-700 bg-rose-50 border-rose-200'} border px-2.5 py-1 rounded-full shadow-2xs">
+            ${activeSub.diff >= 0 ? `與班均差距 +${activeSub.diff}` : `與班均差距 ${activeSub.diff}`} 分
+          </span>
         </div>
 
-        <div class="p-2.5 bg-gradient-to-r from-amber-50/80 via-white to-indigo-50/70 rounded-xl border border-amber-200/60 text-[10px] text-slate-700 leading-relaxed">
-          <div class="font-bold text-slate-800 mb-0.5 flex items-center gap-1">
-            <span>🌱</span> 什麼是常態 PR 值 (百分位數)？
+        <!-- 該科當次分佈正向成長解讀卡 -->
+        <div class="p-3 bg-gradient-to-r from-amber-50/80 via-white to-indigo-50/70 rounded-2xl border border-amber-200/60 text-[11px] text-slate-700 leading-relaxed space-y-1">
+          <div class="font-bold text-slate-800 flex items-center justify-between">
+            <span class="flex items-center gap-1.5"><span class="text-sm">🌱</span> 【${activeSub.name}】當次班級成績分佈解讀</span>
+            <span class="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200/60">
+              全班最高 ${activeSub.max || 100} 分 ‧ 最低 ${activeSub.min || 0} 分
+            </span>
           </div>
           <div class="text-slate-600">
-            PR 範圍 0~99。例如 <b>PR ${stAvgPr}</b> 代表成績超越約 <b>${stAvgPr}%</b> 同學。以正向鼓勵看見強項，陪伴孩子建立自信！
+            曲線呈現當次全班同學在<b>【${activeSub.name}】</b>的真實分數分佈走勢（多數同學落在約 <b>${modeScore} 分</b> 區間）。
+            孩子本次得分 <b>${score} 分</b>，在全班同儕中相對超越約 <b>${pr}%</b> 的同學，處於<b>「${activeSub.zoneStatus || (activeSub.zone + '區間')}」</b>。
           </div>
+          ${activeSub.advice ? `<div class="text-[10px] text-indigo-900 bg-indigo-50/80 p-2 rounded-xl border border-indigo-100 mt-1 font-medium">💡 適性引導：${activeSub.advice}</div>` : ''}
         </div>
       `;
     }

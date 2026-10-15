@@ -236,21 +236,24 @@
         <div id="pBoxplotZoneCards" class="grid grid-cols-2 gap-2 text-[11px]"></div>
       </div>
 
-      <!-- 🔔 常態 PR 落點曲線圖 (常模相對位置，依教師權限動態隱藏/顯示) -->
+      <!-- 🔔 當次單科成績分佈曲線圖 (依教師權限動態隱藏/顯示) -->
       <div id="pPrCurveCard" class="apple-glass rounded-3xl p-5 space-y-3">
         <div class="flex items-center justify-between border-b border-slate-100 pb-2">
           <div>
             <div class="font-black text-xs text-slate-900 flex items-center gap-1.5">
               <span class="text-base">🔔</span>
-              <span>常態 PR 落點曲線圖 (常模相對位置)</span>
+              <span>單科成績落點與班級分佈曲線</span>
             </div>
-            <div class="text-[10px] text-slate-400 mt-0.5">常態鐘形常模分佈 ‧ 總平均與各科 PR 相對落點</div>
+            <div class="text-[10px] text-slate-400 mt-0.5">呈現當次選取科目的班級成績真實分佈 ‧ 學生個人得分落點</div>
           </div>
-          <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200" id="pPrCurveBadge">總均 PR</span>
+          <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200" id="pPrCurveBadge">--</span>
         </div>
 
+        <!-- 科目切換頁籤 (Apple Segmented Control) -->
+        <div id="pPrCurveTabs" class="flex flex-wrap gap-1.5 bg-slate-100/80 p-1 rounded-2xl"></div>
+
         <!-- SVG 曲線圖容器 -->
-        <div id="pPrCurveContainer"></div>
+        <div id="pPrCurveContainer" class="bg-slate-100/80 rounded-2xl p-4 border border-slate-200/80 space-y-3"></div>
       </div>
 
       <!-- 📋 各科成績與成長常模明細 -->
@@ -303,14 +306,55 @@
   </footer>
 
   <script>
-    // 預設示範學生
-    const DEMO_STUDENTS = [
-      { className: '605', seatNumber: '01', name: '陳小明', token: 'DEMO01', studentId: '605-01' },
-      { className: '605', seatNumber: '02', name: '陳小華', token: 'DEMO02', studentId: '605-02' },
-      { className: '605', seatNumber: '03', name: '陳大美', token: 'DEMO03', studentId: '605-03' },
-      { className: '605', seatNumber: '04', name: '陳志豪', token: 'DEMO04', studentId: '605-04' },
-      { className: '605', seatNumber: '05', name: '黃小琪', token: 'DEMO05', studentId: '605-05' }
+    // 示範 24 人真實原始成績 (第 1 次考試: 114學年度第2學期期中考)
+    const DEMO_RAW_EXAM1 = [
+      { seat: '01', name: '陳小明', scores: { '國語': 88, '數學': 70, '社會': 77, '英文': 100, '自然': 57 } },
+      { seat: '02', name: '陳小華', scores: { '國語': 86, '數學': 74, '社會': 81, '英文': 79, '自然': 69 } },
+      { seat: '03', name: '陳大美', scores: { '國語': 84, '數學': 90, '社會': 81, '英文': 86, '自然': 90 } },
+      { seat: '04', name: '陳志豪', scores: { '國語': 62, '數學': 80, '社會': 55, '英文': 55, '自然': 43 } },
+      { seat: '06', name: '黃小琪', scores: { '國語': 77, '數學': 76, '社會': 70, '英文': 92, '自然': 52 } },
+      { seat: '07', name: '李大偉', scores: { '國語': 92, '數學': 96, '社會': 96, '英文': 79, '自然': 89 } },
+      { seat: '08', name: '林子涵', scores: { '國語': 96, '數學': 96, '社會': 96, '英文': 98, '自然': 97 } },
+      { seat: '09', name: '凌雅婷', scores: { '國語': 72, '數學': 70, '社會': 80, '英文': 70, '自然': 58 } },
+      { seat: '10', name: '劉建銘', scores: { '國語': 69, '數學': 82, '社會': 79, '英文': 86, '自然': 79 } },
+      { seat: '11', name: '王冠宇', scores: { '國語': 47, '數學': 36, '社會': 45, '英文': 43, '自然': 30 } },
+      { seat: '12', name: '吳宗憲', scores: { '國語': 77, '數學': 76, '社會': 98, '英文': 56, '自然': 68 } },
+      { seat: '13', name: '嚴立婷', scores: { '國語': 89, '數學': 100, '社會': 94, '英文': 90, '自然': 85 } },
+      { seat: '14', name: '余承恩', scores: { '國語': 73, '數學': 64, '社會': 58, '英文': 64, '自然': 44 } },
+      { seat: '15', name: '嚴佳慧', scores: { '國語': 88, '數學': 90, '社會': 91, '英文': 97, '自然': 91 } },
+      { seat: '16', name: '羅品安', scores: { '國語': 97, '數學': 92, '社會': 94, '英文': 96, '自然': 80 } },
+      { seat: '17', name: '羅廷宇', scores: { '國語': 52, '數學': 56, '社會': 34, '英文': 41, '自然': 44 } },
+      { seat: '18', name: '蕭雅云', scores: { '國語': 90, '數學': 90, '社會': 95, '英文': 89, '自然': 94 } },
+      { seat: '19', name: '張凱傑', scores: { '國語': 76, '數學': 68, '社會': 65, '英文': 77, '自然': 54 } },
+      { seat: '20', name: '茅文傑', scores: { '國語': 88, '數學': 84, '社會': 92, '英文': 95, '自然': 83 } },
+      { seat: '21', name: '洪宇成', scores: { '國語': 69, '數學': 62, '社會': 66, '英文': 80, '自然': 57 } },
+      { seat: '22', name: '林郁潔', scores: { '國語': 87, '數學': 88, '社會': 92, '英文': 89, '自然': 89 } },
+      { seat: '23', name: '周奕翔', scores: { '國語': 100, '數學': 80, '社會': 92, '英文': 98, '自然': 89 } },
+      { seat: '24', name: '吳秉翰', scores: { '國語': 80, '數學': 70, '社會': 78, '英文': 31, '自然': 63 } },
+      { seat: '25', name: '李勝吉', scores: { '國語': 54, '數學': 36, '社會': 32, '英文': 35, '自然': 41 } }
     ];
+
+    // 依據全班 24 人動態產出包含每位學生專屬代碼 (DEMO01 ~ DEMO25) 的名冊
+    const DEMO_STUDENTS = DEMO_RAW_EXAM1.map(st => ({
+      className: '701',
+      seatNumber: st.seat,
+      name: st.name,
+      token: 'DEMO' + st.seat,
+      studentId: '701-' + st.seat
+    }));
+
+    // 示範第 2 次考試 (114學年度第2學期期末考)
+    const DEMO_RAW_EXAM2 = DEMO_RAW_EXAM1.map(st => ({
+      seat: st.seat,
+      name: st.name,
+      scores: {
+        '國語': Math.min(100, st.scores['國語'] + (st.seat === '01' ? 4 : (st.seat === '04' ? 8 : -2))),
+        '數學': Math.min(100, st.scores['數學'] + (st.seat === '01' ? 8 : 2)),
+        '社會': Math.min(100, st.scores['社會'] + (st.seat === '01' ? 5 : 0)),
+        '英文': Math.min(100, st.scores['英文'] + (st.seat === '01' ? -2 : 3)),
+        '自然': Math.min(100, st.scores['自然'] + (st.seat === '01' ? 11 : 4))
+      }
+    }));
 
     const GRADE_INTERPR_ADVICE = {
       '國語': {
@@ -1010,112 +1054,209 @@
       `;
     }
 
+    let parentPrCurveSubIdx = 0;
+
+    function getSubjectScoreSamples(sub) {
+      if (sub.allScores && Array.isArray(sub.allScores) && sub.allScores.length > 0) {
+        return sub.allScores;
+      }
+      const min = sub.min !== undefined ? sub.min : 40;
+      const q1 = sub.q1 !== undefined ? sub.q1 : 65;
+      const med = sub.median !== undefined ? sub.median : 76;
+      const q3 = sub.q3 !== undefined ? sub.q3 : 86;
+      const max = sub.max !== undefined ? sub.max : 98;
+      const avg = sub.classAverage !== undefined ? sub.classAverage : 75;
+      return [
+        min,
+        min + (q1 - min) * 0.35, min + (q1 - min) * 0.7,
+        q1,
+        q1 + (med - q1) * 0.25, q1 + (med - q1) * 0.5, q1 + (med - q1) * 0.75,
+        med,
+        med + (q3 - med) * 0.25, med + (q3 - med) * 0.5, med + (q3 - med) * 0.75,
+        q3,
+        q3 + (max - q3) * 0.35, q3 + (max - q3) * 0.7,
+        max,
+        avg, avg - 1.5, avg + 1.5, (q1 + med)/2, (med + q3)/2
+      ];
+    }
+
+    function computeScoreKDE(samples) {
+      const n = samples.length;
+      const mean = samples.reduce((a, b) => a + b, 0) / n;
+      const variance = samples.reduce((acc, v) => acc + Math.pow(v - mean, 2), 0) / (n - 1 || 1);
+      const sd = Math.sqrt(variance) || 12;
+      const h = Math.max(5, Math.min(10, 1.06 * sd * Math.pow(n, -0.2)));
+      
+      const points = [];
+      let maxDensity = 0;
+      let modeScore = Math.round(mean);
+      
+      for (let s = 0; s <= 100; s += 1) {
+        let sum = 0;
+        for (let i = 0; i < n; i++) {
+          const u = (s - samples[i]) / h;
+          sum += Math.exp(-0.5 * u * u);
+        }
+        const d = sum / (n * h * Math.sqrt(2 * Math.PI));
+        if (d > maxDensity) {
+          maxDensity = d;
+          modeScore = s;
+        }
+        points.push({ score: s, density: d });
+      }
+      return { points, maxDensity: maxDensity || 1, modeScore };
+    }
+
     function renderParentPrCurve(curExam) {
       const container = document.getElementById('pPrCurveContainer');
       if (!container || !curExam) return;
 
-      const stAvgPr = curExam.studentAveragePr !== undefined ? curExam.studentAveragePr : 50;
       const subs = curExam.subjects || [];
+      if (subs.length === 0) return;
+      if (parentPrCurveSubIdx >= subs.length) parentPrCurveSubIdx = 0;
 
-      const getX = pr => 20 + (Math.max(0, Math.min(100, pr)) / 100) * 560;
-      const getY = pr => {
-        const diff = (pr - 50) / 22;
-        return 160 - 130 * Math.exp(-0.5 * diff * diff);
-      };
-
-      let pathD = 'M 20 160';
-      for (let p = 0; p <= 100; p += 2) {
-        pathD += ` L ${getX(p).toFixed(1)} ${getY(p).toFixed(1)}`;
+      // 1. 科目切換頁籤 (Segmented Tabs)
+      const tabsContainer = document.getElementById('pPrCurveTabs');
+      if (tabsContainer) {
+        tabsContainer.innerHTML = '';
+        subs.forEach((sub, idx) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.onclick = () => {
+            parentPrCurveSubIdx = idx;
+            renderParentPrCurve(curExam);
+          };
+          const isActive = idx === parentPrCurveSubIdx;
+          btn.className = isActive
+            ? 'px-3 py-1.5 rounded-xl font-black text-xs bg-indigo-600 text-white shadow-xs transition'
+            : 'px-3 py-1.5 rounded-xl font-bold text-xs bg-slate-100 text-slate-600 hover:bg-slate-200 transition';
+          btn.innerText = `${sub.name} (${sub.score}分)`;
+          tabsContainer.appendChild(btn);
+        });
       }
-      pathD += ' L 580 160 Z';
 
-      const avgX = getX(stAvgPr);
-      const avgY = getY(stAvgPr);
+      const activeSub = subs[parentPrCurveSubIdx];
+      const badgeEl = document.getElementById('pPrCurveBadge');
+      if (badgeEl) {
+        badgeEl.innerText = `${activeSub.name}：${activeSub.score}分 (PR ${activeSub.pr})`;
+      }
 
-      const subColors = ['#4f46e5', '#06b6d4', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6'];
+      // 2. 計算該科實際班級成績分佈核密度 (KDE)
+      const samples = getSubjectScoreSamples(activeSub);
+      const { points, maxDensity, modeScore } = computeScoreKDE(samples);
 
-      const subjectDotsSvg = subs.map((s, idx) => {
-        const sx = getX(s.pr);
-        const sy = getY(s.pr);
-        const col = subColors[idx % subColors.length];
-        return `
-          <g class="subject-marker">
-            <circle cx="${sx}" cy="${sy}" r="4.5" fill="${col}" stroke="#ffffff" stroke-width="2" />
-            <text x="${sx}" y="${sy - 8}" font-size="9" font-weight="bold" fill="${col}" text-anchor="middle">${s.name} ${s.pr}</text>
-          </g>
-        `;
-      }).join('');
+      // 3. SVG 座標映射：X 軸為分數 0 ~ 100 分，Y 軸為分佈密度
+      const getX = score => 35 + (Math.max(0, Math.min(100, score)) / 100) * 530;
+      const getY = density => 160 - (density / maxDensity) * 120;
+
+      let pathD = `M ${getX(0).toFixed(1)} 160`;
+      for (let s = 0; s <= 100; s += 1) {
+        pathD += ` L ${getX(s).toFixed(1)} ${getY(points[s].density).toFixed(1)}`;
+      }
+      pathD += ` L ${getX(100).toFixed(1)} 160 Z`;
+
+      const score = activeSub.score !== undefined ? activeSub.score : 0;
+      const cAvg = activeSub.classAverage !== undefined ? activeSub.classAverage : 75;
+      const med = activeSub.median !== undefined ? activeSub.median : cAvg;
+      const pr = activeSub.pr !== undefined ? activeSub.pr : 50;
+
+      // 學生得分落點座標
+      const stX = getX(score);
+      const stDensity = points[Math.round(score)] ? points[Math.round(score)].density : (maxDensity * 0.5);
+      const stY = getY(stDensity);
+
+      // 班級平均座標
+      const avgX = getX(cAvg);
+      const avgDensity = points[Math.round(cAvg)] ? points[Math.round(cAvg)].density : (maxDensity * 0.7);
+      const avgY = getY(avgDensity);
 
       container.innerHTML = `
         <div class="relative w-full">
-          <svg viewBox="0 0 600 200" class="w-full h-auto drop-shadow-sm select-none">
+          <svg viewBox="0 0 600 205" class="w-full h-auto drop-shadow-sm select-none">
             <defs>
-              <linearGradient id="pCurveGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stop-color="#f43f5e" stop-opacity="0.18" />
-                <stop offset="25%" stop-color="#f59e0b" stop-opacity="0.22" />
-                <stop offset="50%" stop-color="#3b82f6" stop-opacity="0.25" />
-                <stop offset="75%" stop-color="#10b981" stop-opacity="0.28" />
-                <stop offset="100%" stop-color="#10b981" stop-opacity="0.32" />
+              <linearGradient id="pDistCurveGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#f43f5e" stop-opacity="0.15" />
+                <stop offset="35%" stop-color="#f59e0b" stop-opacity="0.22" />
+                <stop offset="70%" stop-color="#3b82f6" stop-opacity="0.26" />
+                <stop offset="100%" stop-color="#10b981" stop-opacity="0.30" />
               </linearGradient>
-              <linearGradient id="pStrokeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <linearGradient id="pDistStrokeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
                 <stop offset="0%" stop-color="#f43f5e" />
-                <stop offset="25%" stop-color="#f59e0b" />
-                <stop offset="50%" stop-color="#3b82f6" />
-                <stop offset="75%" stop-color="#10b981" />
+                <stop offset="35%" stop-color="#f59e0b" />
+                <stop offset="70%" stop-color="#3b82f6" />
                 <stop offset="100%" stop-color="#10b981" />
               </linearGradient>
             </defs>
 
-            <path d="${pathD}" fill="url(#pCurveGradient)" stroke="url(#pStrokeGradient)" stroke-width="3" stroke-linecap="round" />
+            <!-- 垂直參考格線與及格線 (60 分) -->
+            ${[0, 20, 40, 60, 80, 100].map(v => `
+              <line x1="${getX(v)}" y1="30" x2="${getX(v)}" y2="160" stroke="${v === 60 ? '#f59e0b' : '#e2e8f0'}" stroke-width="${v === 60 ? '1.5' : '1'}" stroke-dasharray="${v === 60 ? '3,3' : '2,2'}" />
+            `).join('')}
 
-            <line x1="${getX(25)}" y1="${getY(25)}" x2="${getX(25)}" y2="160" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="3,3" />
-            <line x1="${getX(50)}" y1="${getY(50)}" x2="${getX(50)}" y2="160" stroke="#94a3b8" stroke-width="2" stroke-dasharray="3,3" />
-            <line x1="${getX(75)}" y1="${getY(75)}" x2="${getX(75)}" y2="160" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="3,3" />
+            <!-- 班級成績分佈曲線本體 (KDE 面積與曲線) -->
+            <path d="${pathD}" fill="url(#pDistCurveGradient)" stroke="url(#pDistStrokeGradient)" stroke-width="3" stroke-linecap="round" />
 
-            <line x1="15" y1="160" x2="585" y2="160" stroke="#64748b" stroke-width="1.5" />
+            <!-- 分數基準軸 (X 軸) -->
+            <line x1="25" y1="160" x2="575" y2="160" stroke="#64748b" stroke-width="1.5" />
 
-            <text x="${getX(0)}" y="176" font-size="9" fill="#94a3b8" text-anchor="middle" font-weight="bold">PR 0</text>
-            <text x="${getX(25)}" y="176" font-size="9" fill="#94a3b8" text-anchor="middle" font-weight="bold">PR 25 (Q1)</text>
-            <text x="${getX(50)}" y="176" font-size="10" fill="#475569" text-anchor="middle" font-black">PR 50 (中位數)</text>
-            <text x="${getX(75)}" y="176" font-size="9" fill="#94a3b8" text-anchor="middle" font-weight="bold">PR 75 (Q3)</text>
-            <text x="${getX(100)}" y="176" font-size="9" fill="#94a3b8" text-anchor="middle" font-weight="bold">PR 99</text>
+            <!-- 分數刻度文字 -->
+            <text x="${getX(0)}" y="176" font-size="9" fill="#94a3b8" text-anchor="middle" font-weight="bold">0 分</text>
+            <text x="${getX(20)}" y="176" font-size="9" fill="#94a3b8" text-anchor="middle" font-weight="bold">20 分</text>
+            <text x="${getX(40)}" y="176" font-size="9" fill="#94a3b8" text-anchor="middle" font-weight="bold">40 分</text>
+            <text x="${getX(60)}" y="176" font-size="9" fill="#d97706" text-anchor="middle" font-black">及格 60</text>
+            <text x="${getX(80)}" y="176" font-size="9" fill="#94a3b8" text-anchor="middle" font-weight="bold">80 分</text>
+            <text x="${getX(100)}" y="176" font-size="9" fill="#059669" text-anchor="middle" font-black">100 分</text>
 
-            <text x="${(getX(0) + getX(25)) / 2}" y="152" font-size="9" fill="#e11d48" font-weight="bold" text-anchor="middle">🌱 紮根啟航</text>
-            <text x="${(getX(25) + getX(50)) / 2}" y="152" font-size="9" fill="#d97706" font-weight="bold" text-anchor="middle">💪 潛力蓄力</text>
-            <text x="${(getX(50) + getX(75)) / 2}" y="152" font-size="9" fill="#2563eb" font-weight="bold" text-anchor="middle">🌿 穩健發揮</text>
-            <text x="${(getX(75) + getX(100)) / 2}" y="152" font-size="9" fill="#059669" font-weight="bold" text-anchor="middle">🌟 卓越精熟</text>
+            <!-- 班級平均垂直標示線與標記 -->
+            <line x1="${avgX}" y1="${avgY}" x2="${avgX}" y2="160" stroke="#64748b" stroke-width="1.8" stroke-dasharray="3,3" />
+            <circle cx="${avgX}" cy="${avgY}" r="4.5" fill="#ffffff" stroke="#64748b" stroke-width="2" />
+            <text x="${avgX}" y="${Math.min(150, avgY + 14)}" font-size="9" fill="#475569" font-weight="bold" text-anchor="middle">班均 ${cAvg}</text>
 
-            ${subjectDotsSvg}
+            <!-- 學生個人得分落點垂直引線與定位圖釘 -->
+            <line x1="${stX}" y1="${stY}" x2="${stX}" y2="160" stroke="#4f46e5" stroke-width="2.5" />
+            <circle cx="${stX}" cy="${stY}" r="7" fill="#fbbf24" stroke="#4f46e5" stroke-width="3" />
+            <circle cx="${stX}" cy="${stY}" r="2.5" fill="#4f46e5" />
 
-            <line x1="${avgX}" y1="${avgY}" x2="${avgX}" y2="160" stroke="#4f46e5" stroke-width="2" stroke-dasharray="2,2" />
-            <circle cx="${avgX}" cy="${avgY}" r="7" fill="#fbbf24" stroke="#4f46e5" stroke-width="3" />
-            
-            <g transform="translate(${Math.max(60, Math.min(540, avgX))}, ${Math.max(20, avgY - 14)})">
-              <rect x="-48" y="-16" width="96" height="20" rx="10" fill="#4f46e5" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.15))" />
-              <text x="0" y="-3" font-size="10" font-weight="900" fill="#ffffff" text-anchor="middle">🌟 總均 PR ${stAvgPr}</text>
+            <!-- 學生得分懸浮氣泡徽章 -->
+            <g transform="translate(${Math.max(65, Math.min(535, stX))}, ${Math.max(20, stY - 14)})">
+              <rect x="-56" y="-16" width="112" height="22" rx="11" fill="#4f46e5" filter="drop-shadow(0 2px 5px rgba(79,70,229,0.3))" />
+              <text x="0" y="-1" font-size="10" font-weight="900" fill="#ffffff" text-anchor="middle">📍 個人得分 ${score}分</text>
             </g>
           </svg>
         </div>
 
+        <!-- 關鍵統計數據膠囊列 -->
         <div class="flex flex-wrap items-center justify-center gap-1.5 pt-1">
-          <span class="text-[10px] font-black text-indigo-900 bg-indigo-50 border border-indigo-200 px-2.5 py-0.5 rounded-full shadow-2xs">
-            🌟 總平均 PR ${stAvgPr}
+          <span class="text-[10px] font-black text-indigo-900 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-full shadow-2xs">
+            📍 個人得分 ${score} 分
           </span>
-          ${subs.map((s, i) => `
-            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border bg-white/90 text-slate-700 shadow-2xs" style="border-color: ${subColors[i % subColors.length]};">
-              <span class="inline-block w-1.5 h-1.5 rounded-full mr-1" style="background-color: ${subColors[i % subColors.length]};"></span>
-              ${s.name} PR ${s.pr}
-            </span>
-          `).join('')}
+          <span class="text-[10px] font-bold text-slate-700 bg-white border border-slate-200 px-2.5 py-1 rounded-full shadow-2xs">
+            👥 班級平均 ${cAvg} 分
+          </span>
+          <span class="text-[10px] font-bold text-slate-700 bg-white border border-slate-200 px-2.5 py-1 rounded-full shadow-2xs">
+            📊 中位數 ${med} 分
+          </span>
+          <span class="text-[10px] font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full shadow-2xs">
+            🌟 該科落點 PR ${pr}
+          </span>
+          <span class="text-[10px] font-bold ${activeSub.diff >= 0 ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-rose-700 bg-rose-50 border-rose-200'} border px-2.5 py-1 rounded-full shadow-2xs">
+            ${activeSub.diff >= 0 ? `與班均差距 +${activeSub.diff}` : `與班均差距 ${activeSub.diff}`} 分
+          </span>
         </div>
 
+        <!-- 該科當次分佈正向成長解讀卡 -->
         <div class="p-3 bg-gradient-to-r from-amber-50/80 via-white to-indigo-50/70 rounded-2xl border border-amber-200/60 text-[11px] text-slate-700 leading-relaxed space-y-1">
-          <div class="font-bold text-slate-800 flex items-center gap-1.5">
-            <span class="text-sm">🌱</span> 什麼是常態 PR 值 (百分位數)？
+          <div class="font-bold text-slate-800 flex items-center justify-between">
+            <span class="flex items-center gap-1.5"><span class="text-sm">🌱</span> 【${activeSub.name}】當次班級成績分佈解讀</span>
+            <span class="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200/60">
+              全班最高 ${activeSub.max || 100} 分 ‧ 最低 ${activeSub.min || 0} 分
+            </span>
           </div>
           <div class="text-slate-600">
-            PR 值範圍為 0～99，代表學生在同儕中的相對落點。例如 <b>PR ${stAvgPr}</b> 表示成績超越了約 <b>${stAvgPr}%</b> 的同學。PR 值能客觀看見相對優勢，陪伴孩子從優勢學科出發，建立自主學習的信心！
+            曲線呈現當次全班同學在<b>【${activeSub.name}】</b>的真實分數分佈走勢（多數同學落在約 <b>${modeScore} 分</b> 區間）。
+            孩子本次得分 <b>${score} 分</b>，在全班同儕中相對超越約 <b>${pr}%</b> 的同學，處於<b>「${activeSub.zoneStatus || (activeSub.zone + '區間')}」</b>。
           </div>
+          ${activeSub.advice ? `<div class="text-[10px] text-indigo-900 bg-indigo-50/80 p-2 rounded-xl border border-indigo-100 mt-1 font-medium">💡 適性引導：${activeSub.advice}</div>` : ''}
         </div>
       `;
     }
@@ -1205,42 +1346,102 @@
     }
 
     function buildDemoExamsForStudent(student) {
-      const isXiaoMing = student.seatNumber === '01' || student.name === '陳小明';
-      const exam1 = {
-        examTitle: '114學年度第1學期期中考',
-        sheetName: '114-1期中考',
-        studentAverage: isXiaoMing ? 77.0 : 79.5,
-        studentAveragePr: isXiaoMing ? 58 : 72,
-        studentRank: isXiaoMing ? 12 : 5,
-        totalStudents: 24,
-        classOverallAverage: 76.5,
-        subjects: [
-          { name: '國語', score: isXiaoMing ? 88 : 86, classAverage: 79.8, diff: isXiaoMing ? 8.2 : 6.2, pr: isXiaoMing ? 75 : 68, q1: 74, median: 80, q3: 88, min: 52, max: 98, zone: '精熟', zoneStatus: '精熟表現區間', advice: GRADE_INTERPR_ADVICE['國語'].leading[0] },
-          { name: '數學', score: isXiaoMing ? 70 : 74, classAverage: 75.3, diff: isXiaoMing ? -5.3 : -1.3, pr: isXiaoMing ? 42 : 52, q1: 65, median: 76, q3: 85, min: 40, max: 96, zone: '努力', zoneStatus: '努力成長區間', advice: GRADE_INTERPR_ADVICE['數學'].improving[0] },
-          { name: '社會', score: isXiaoMing ? 77 : 81, classAverage: 78.1, diff: isXiaoMing ? -1.1 : 2.9, pr: isXiaoMing ? 55 : 64, q1: 72, median: 78, q3: 86, min: 48, max: 98, zone: '穩健', zoneStatus: '穩健發揮區間', advice: GRADE_INTERPR_ADVICE['社會'].leading[0] },
-          { name: '英文', score: isXiaoMing ? 100 : 79, classAverage: 74.2, diff: isXiaoMing ? 25.8 : 4.8, pr: isXiaoMing ? 98 : 65, q1: 68, median: 75, q3: 88, min: 38, max: 100, zone: '精熟', zoneStatus: '精熟表現區間', advice: GRADE_INTERPR_ADVICE['英文'].leading[0] },
-          { name: '自然', score: isXiaoMing ? 57 : 69, classAverage: 75.0, diff: isXiaoMing ? -18.0 : -6.0, pr: isXiaoMing ? 22 : 45, q1: 68, median: 75, q3: 85, min: 45, max: 94, zone: '開發', zoneStatus: '開發潛力區間', advice: GRADE_INTERPR_ADVICE['自然'].improving[0] }
-        ]
+      const calcExam = (title, sheetName, rawList) => {
+        const subs = ['國語', '數學', '社會', '英文', '自然'];
+        const totalCount = rawList.length;
+        
+        // 各科班平均
+        const subAvgs = {};
+        subs.forEach(s => {
+          const sum = rawList.reduce((acc, st) => acc + (st.scores[s] || 0), 0);
+          subAvgs[s] = Math.round((sum / totalCount) * 100) / 100;
+        });
+
+        // 排名與個人平均
+        const ranked = rawList.map(st => {
+          const myScores = subs.map(s => st.scores[s] || 0);
+          const myAvg = myScores.reduce((a, b) => a + b, 0) / subs.length;
+          return { seat: normalizeSeatNumber(st.seat), name: st.name, avg: Math.round(myAvg * 100) / 100, scores: st.scores };
+        }).sort((a, b) => b.avg - a.avg);
+
+        const targetSeat = student ? normalizeSeatNumber(student.seatNumber) : '';
+        const targetName = student ? (student.name || '').trim() : '';
+        const myEntry = ranked.find(r => (targetSeat && r.seat === targetSeat) || (targetName && r.name === targetName)) || ranked[0];
+        const myRank = ranked.findIndex(r => r === myEntry) + 1;
+        const classOverallAvg = Math.round((ranked.reduce((a, b) => a + b.avg, 0) / totalCount) * 100) / 100;
+
+        const allAvgs = ranked.map(r => r.avg).sort((a, b) => a - b);
+        const belowAvg = allAvgs.filter(v => v < myEntry.avg).length;
+        const equalAvg = allAvgs.filter(v => v === myEntry.avg).length;
+        const studentAveragePr = Math.round(((belowAvg + 0.5 * equalAvg) / totalCount) * 100);
+
+        // 各科 PR 與建議及箱型圖五數摘要 (Q1, Median, Q3, Min, Max)
+        const subjectsResult = subs.map(s => {
+          const score = myEntry.scores[s] !== undefined ? myEntry.scores[s] : 0;
+          const cAvg = subAvgs[s];
+          const allS = rawList.map(st => st.scores[s] || 0);
+          const sortedS = allS.slice().sort((a, b) => a - b);
+          const getPVal = (arr, p) => {
+            const idx = (p / 100) * (arr.length - 1);
+            const low = Math.floor(idx);
+            const high = Math.ceil(idx);
+            const w = idx - low;
+            return Math.round((arr[low] * (1 - w) + arr[high] * w) * 10) / 10;
+          };
+          const q1 = getPVal(sortedS, 25);
+          const median = getPVal(sortedS, 50);
+          const q3 = getPVal(sortedS, 75);
+          const min = sortedS[0];
+          const max = sortedS[sortedS.length - 1];
+
+          const below = allS.filter(v => v < score).length;
+          const equal = allS.filter(v => v === score).length;
+          const pr = Math.round(((below + 0.5 * equal) / totalCount) * 100);
+
+          let zone = '穩健', zoneStatus = '穩健發揮區間', zoneType = 'leading';
+          if (score >= q3 || pr >= 75) { zone = '精熟'; zoneStatus = '精熟表現區間'; zoneType = 'leading'; }
+          else if (score >= median || pr >= 50) { zone = '穩健'; zoneStatus = '穩健發揮區間'; zoneType = 'leading'; }
+          else if (score >= q1 || pr >= 25) { zone = '努力'; zoneStatus = '努力成長區間'; zoneType = 'improving'; }
+          else { zone = '開發'; zoneStatus = '開發潛力區間'; zoneType = 'improving'; }
+
+          const advicePool = GRADE_INTERPR_ADVICE[s] || GRADE_INTERPR_ADVICE['國語'];
+          const list = advicePool[zoneType];
+          const pick = list[(s.charCodeAt(0) + Math.floor(score)) % list.length];
+
+          return {
+            name: s,
+            score: score,
+            classAverage: cAvg,
+            diff: Math.round((score - cAvg) * 100) / 100,
+            pr: pr,
+            q1: q1,
+            median: median,
+            q3: q3,
+            min: min,
+            max: max,
+            allScores: sortedS,
+            zone: zone,
+            zoneStatus: zoneStatus,
+            advice: pick
+          };
+        });
+
+        return {
+          examTitle: title,
+          sheetName: sheetName,
+          studentAverage: myEntry.avg,
+          studentAveragePr: studentAveragePr,
+          studentRank: myRank,
+          totalStudents: totalCount,
+          classOverallAverage: classOverallAvg,
+          subjects: subjectsResult
+        };
       };
 
-      const exam2 = {
-        examTitle: '114學年度第1學期期末考',
-        sheetName: '114-1期末考',
-        studentAverage: isXiaoMing ? 83.2 : 82.0,
-        studentAveragePr: isXiaoMing ? 78 : 70,
-        studentRank: isXiaoMing ? 7 : 4,
-        totalStudents: 24,
-        classOverallAverage: 78.2,
-        subjects: [
-          { name: '國語', score: isXiaoMing ? 92 : 88, classAverage: 81.2, diff: isXiaoMing ? 10.8 : 6.8, pr: isXiaoMing ? 85 : 72, q1: 75, median: 82, q3: 90, min: 55, max: 100, zone: '精熟', zoneStatus: '精熟表現區間', advice: GRADE_INTERPR_ADVICE['國語'].leading[0] },
-          { name: '數學', score: isXiaoMing ? 78 : 76, classAverage: 76.5, diff: isXiaoMing ? 1.5 : -0.5, pr: isXiaoMing ? 58 : 54, q1: 66, median: 77, q3: 86, min: 42, max: 98, zone: '穩健', zoneStatus: '穩健發揮區間', advice: GRADE_INTERPR_ADVICE['數學'].leading[0] },
-          { name: '社會', score: isXiaoMing ? 82 : 84, classAverage: 79.5, diff: isXiaoMing ? 2.5 : 4.5, pr: isXiaoMing ? 68 : 72, q1: 74, median: 80, q3: 87, min: 50, max: 98, zone: '穩健', zoneStatus: '穩健發揮區間', advice: GRADE_INTERPR_ADVICE['社會'].leading[0] },
-          { name: '英文', score: isXiaoMing ? 96 : 82, classAverage: 76.0, diff: isXiaoMing ? 20.0 : 6.0, pr: isXiaoMing ? 95 : 70, q1: 70, median: 77, q3: 89, min: 45, max: 100, zone: '精熟', zoneStatus: '精熟表現區間', advice: GRADE_INTERPR_ADVICE['英文'].leading[0] },
-          { name: '自然', score: isXiaoMing ? 68 : 73, classAverage: 77.8, diff: isXiaoMing ? -9.8 : -4.8, pr: isXiaoMing ? 38 : 50, q1: 70, median: 78, q3: 87, min: 48, max: 96, zone: '努力', zoneStatus: '努力成長區間', advice: GRADE_INTERPR_ADVICE['自然'].improving[0] }
-        ]
-      };
-
-      return [exam1, exam2];
+      return [
+        calcExam('114學年度第2學期期中考', '114-2期中考', DEMO_RAW_EXAM1),
+        calcExam('114學年度第2學期期末考', '114-2期末考', DEMO_RAW_EXAM2)
+      ];
     }
 
     function transformFlatRecordsToExams(records) {
