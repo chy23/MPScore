@@ -603,15 +603,16 @@
 
   <!-- ==================== 純淨家長查詢前台 (Parent Portal) ==================== -->
   <div id="parentPortal" class="hidden min-h-screen bg-slate-50 pb-16">
-    <header class="bg-indigo-700 text-white py-4 px-4 text-center shadow-md sticky top-0 z-40">
+    <header class="bg-indigo-700 text-white py-3.5 px-4 shadow-md sticky top-0 z-40">
       <div class="max-w-md mx-auto flex items-center justify-between">
         <div class="text-left">
           <h1 class="text-base font-bold tracking-tight">個別成績與學習診斷系統</h1>
           <p class="text-[11px] text-indigo-200">資安保護 ‧ 個別化學習成效回饋</p>
         </div>
-        <button onclick="exitParentMode()" class="text-[11px] bg-indigo-600/60 hover:bg-indigo-600 text-indigo-100 px-2.5 py-1 rounded border border-indigo-400/40">
-          返回後台
-        </button>
+        <div class="flex items-center gap-1.5 text-[11px] text-indigo-100 bg-indigo-800/90 px-3 py-1 rounded-full border border-indigo-400/30 font-medium shadow-xs">
+          <span>🔒</span>
+          <span>資安防護查詢</span>
+        </div>
       </div>
     </header>
 
@@ -621,7 +622,7 @@
       <div id="parentLoginBox" class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
         <label class="block text-xs font-bold text-slate-700 mb-1.5 text-center">請輸入學生專屬 6 碼查詢代碼 或 姓名</label>
         <div class="flex gap-2">
-          <input type="text" id="parentTokenInput" placeholder="例如：DEMO01 或 陳小華" class="flex-1 px-3 py-2 text-center uppercase tracking-widest font-mono border border-slate-300 rounded-xl text-base font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <input type="text" id="parentTokenInput" onkeydown="if(event.key==='Enter'){event.preventDefault();doParentQuery();}" placeholder="例如：DEMO01 或 陳小華" class="flex-1 px-3 py-2 text-center uppercase tracking-widest font-mono border border-slate-300 rounded-xl text-base font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500">
           <button onclick="doParentQuery()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-xl text-sm transition">
             查詢
           </button>
@@ -643,16 +644,16 @@
           </div>
 
           <!-- 3 大關鍵指標徽章 (全自動精算) -->
-          <div class="grid grid-cols-3 gap-2 pt-2 border-t border-indigo-500/50 text-center">
-            <div class="bg-white/10 rounded-xl p-2 backdrop-blur-sm">
+          <div id="pMetricsGrid" class="grid grid-cols-3 gap-2 pt-2 border-t border-indigo-500/50 text-center">
+            <div id="pMetricAvgCard" class="bg-white/10 rounded-xl p-2 backdrop-blur-sm">
               <div class="text-[10px] text-indigo-200">個人總平均</div>
               <div class="text-base font-black text-white" id="pStudentAverage">--</div>
             </div>
-            <div class="bg-white/10 rounded-xl p-2 backdrop-blur-sm">
+            <div id="pMetricRankCard" class="bg-white/10 rounded-xl p-2 backdrop-blur-sm">
               <div class="text-[10px] text-indigo-200">班級名次</div>
               <div class="text-base font-black text-amber-300" id="pStudentRank">--</div>
             </div>
-            <div class="bg-white/10 rounded-xl p-2 backdrop-blur-sm">
+            <div id="pMetricClassAvgCard" class="bg-white/10 rounded-xl p-2 backdrop-blur-sm">
               <div class="text-[10px] text-indigo-200">全班總平均</div>
               <div class="text-base font-black text-indigo-100" id="pClassOverallAvg">--</div>
             </div>
@@ -901,6 +902,18 @@
 
     // 初始化頁面
     window.addEventListener('DOMContentLoaded', () => {
+      // 恢復上次自訂的勾選設定
+      try {
+        const savedCfg = JSON.parse(localStorage.getItem('mpscore_visibility_cfg') || '{}');
+        if (savedCfg.showAvg !== undefined && document.getElementById('optShowAvg')) document.getElementById('optShowAvg').checked = savedCfg.showAvg;
+        if (savedCfg.showRank !== undefined && document.getElementById('optShowRank')) document.getElementById('optShowRank').checked = savedCfg.showRank;
+        if (savedCfg.showClassAvg !== undefined && document.getElementById('optShowClassAvg')) document.getElementById('optShowClassAvg').checked = savedCfg.showClassAvg;
+        if (savedCfg.showSubjects !== undefined && document.getElementById('optShowSubjects')) document.getElementById('optShowSubjects').checked = savedCfg.showSubjects;
+        if (savedCfg.showPr !== undefined && document.getElementById('optShowPr')) document.getElementById('optShowPr').checked = savedCfg.showPr;
+        if (savedCfg.showStudentId !== undefined && document.getElementById('optShowStudentId')) document.getElementById('optShowStudentId').checked = savedCfg.showStudentId;
+        if (savedCfg.showFootnote !== undefined && document.getElementById('optShowFootnote')) document.getElementById('optShowFootnote').checked = savedCfg.showFootnote;
+      } catch(e) {}
+
       if (document.getElementById('gasCodePreview')) {
         document.getElementById('gasCodePreview').innerText = GAS_CODE_CONTENT.substring(0, 600) + '\n\n// ... (其餘 500 行完整邏輯，請點擊上方按鈕一鍵複製即可)';
       }
@@ -1106,7 +1119,7 @@
       });
 
       students.forEach((st, idx) => {
-        const queryUrl = baseUrl + '?token=' + encodeURIComponent(st.token);
+        const queryUrl = baseUrl + '?token=' + encodeURIComponent(st.token) + '&v=' + getVisibilityFlagString();
         const cardId = 'qrcode-' + idx;
 
         // 提取該學生在所選考試的統計資訊
@@ -1205,7 +1218,12 @@
     }
 
     function updatePrintCards() {
+      getActiveVisibilityConfig();
       renderPrintCards(cachedStudents);
+      loadPreviewForSelectedStudent();
+      if (currentStudentExams && currentStudentExams.length > 0) {
+        renderSelectedExamView();
+      }
     }
 
     // ==========================================
@@ -1580,6 +1598,111 @@
     }
 
     // 渲染家長端完整數據儀表板
+    
+    // ==========================================
+    // 統計事項呈現權限管理 (家長端與小卡 100% 同步聯動)
+    // ==========================================
+    function getActiveVisibilityConfig() {
+      const urlParams = typeof URLSearchParams !== 'undefined' && typeof window !== 'undefined' && window.location ? new URLSearchParams(window.location.search) : null;
+      const vStr = urlParams ? urlParams.get('v') : null;
+      if (vStr && vStr.length >= 5) {
+        return {
+          showAvg: vStr[0] === '1',
+          showRank: vStr[1] === '1',
+          showClassAvg: vStr[2] === '1',
+          showSubjects: vStr[3] === '1',
+          showPr: vStr[4] === '1',
+          showStudentId: vStr.length > 5 ? vStr[5] === '1' : true,
+          showFootnote: vStr.length > 6 ? vStr[6] === '1' : true
+        };
+      }
+
+      // 2. 若在教師端後台有勾選設定
+      const elAvg = document.getElementById('optShowAvg');
+      const elRank = document.getElementById('optShowRank');
+      const elClassAvg = document.getElementById('optShowClassAvg');
+      const elSub = document.getElementById('optShowSubjects');
+      const elPr = document.getElementById('optShowPr');
+      const elId = document.getElementById('optShowStudentId');
+      const elFn = document.getElementById('optShowFootnote');
+
+      if (elAvg && elRank && elClassAvg) {
+        const cfg = {
+          showAvg: elAvg.checked,
+          showRank: elRank.checked,
+          showClassAvg: elClassAvg.checked,
+          showSubjects: elSub ? elSub.checked : true,
+          showPr: elPr ? elPr.checked : true,
+          showStudentId: elId ? elId.checked : true,
+          showFootnote: elFn ? elFn.checked : true
+        };
+        try {
+          localStorage.setItem('mpscore_visibility_cfg', JSON.stringify(cfg));
+        } catch(e) {}
+        return cfg;
+      }
+
+      // 3. 讀取先前儲存於 localStorage 的設定
+      try {
+        const saved = localStorage.getItem('mpscore_visibility_cfg');
+        if (saved) return JSON.parse(saved);
+      } catch(e) {}
+
+      // 預設全開
+      return {
+        showAvg: true,
+        showRank: true,
+        showClassAvg: true,
+        showSubjects: true,
+        showPr: true,
+        showStudentId: true,
+        showFootnote: true
+      };
+    }
+
+    function getVisibilityFlagString() {
+      const cfg = getActiveVisibilityConfig();
+      return [
+        cfg.showAvg ? 1 : 0,
+        cfg.showRank ? 1 : 0,
+        cfg.showClassAvg ? 1 : 0,
+        cfg.showSubjects ? 1 : 0,
+        cfg.showPr ? 1 : 0,
+        cfg.showStudentId ? 1 : 0,
+        cfg.showFootnote ? 1 : 0
+      ].join('');
+    }
+
+    // 教師管理登入彈窗邏輯
+    function promptTeacherLogin() {
+      const modal = document.getElementById('teacherLoginModal');
+      const input = document.getElementById('teacherPinInput');
+      const err = document.getElementById('teacherPinError');
+      if (modal && input) {
+        input.value = '';
+        if (err) err.classList.add('hidden');
+        modal.classList.remove('hidden');
+        input.focus();
+      }
+    }
+
+    function closeTeacherLoginModal() {
+      const modal = document.getElementById('teacherLoginModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function verifyTeacherPin() {
+      const pin = document.getElementById('teacherPinInput').value.trim();
+      const savedPin = localStorage.getItem('mpscore_teacher_pin') || '1234';
+      if (pin === savedPin) {
+        closeTeacherLoginModal();
+        exitParentMode();
+      } else {
+        const err = document.getElementById('teacherPinError');
+        if (err) err.classList.remove('hidden');
+      }
+    }
+
     function renderParentDashboard(student, exams) {
       currentStudentExams = exams;
       document.getElementById('pStudentName').innerText = student.name;
@@ -1606,18 +1729,46 @@
       const curExam = currentStudentExams[selIdx];
       if (!curExam) return;
 
-      // 3 大指標更新
-      document.getElementById('pStudentAverage').innerText = curExam.studentAverage ? curExam.studentAverage.toFixed(1) + ' 分' : '--';
-      document.getElementById('pStudentRank').innerText = curExam.studentRank ? `第 ${curExam.studentRank} 名` : '--';
-      document.getElementById('pClassOverallAvg').innerText = curExam.classOverallAverage ? curExam.classOverallAverage.toFixed(1) + ' 分' : '--';
+      const cfg = getActiveVisibilityConfig();
 
-      // 雷達圖
+      // 1. 3 大關鍵指標徽章更新 (依據教師勾選權限動態隱藏/呈現)
+      const cardAvg = document.getElementById('pMetricAvgCard');
+      const cardRank = document.getElementById('pMetricRankCard');
+      const cardClassAvg = document.getElementById('pMetricClassAvgCard');
+      const metricsContainer = document.getElementById('pMetricsGrid');
+
+      if (cardAvg) {
+        document.getElementById('pStudentAverage').innerText = curExam.studentAverage ? curExam.studentAverage.toFixed(1) + ' 分' : '--';
+        if (cfg.showAvg) cardAvg.classList.remove('hidden'); else cardAvg.classList.add('hidden');
+      }
+
+      if (cardRank) {
+        document.getElementById('pStudentRank').innerText = curExam.studentRank ? `第 ${curExam.studentRank} 名` : '--';
+        if (cfg.showRank) cardRank.classList.remove('hidden'); else cardRank.classList.add('hidden');
+      }
+
+      if (cardClassAvg) {
+        document.getElementById('pClassOverallAvg').innerText = curExam.classOverallAverage ? curExam.classOverallAverage.toFixed(1) + ' 分' : '--';
+        if (cfg.showClassAvg) cardClassAvg.classList.remove('hidden'); else cardClassAvg.classList.add('hidden');
+      }
+
+      if (metricsContainer) {
+        const visibleCount = (cfg.showAvg ? 1 : 0) + (cfg.showRank ? 1 : 0) + (cfg.showClassAvg ? 1 : 0);
+        if (visibleCount === 0) {
+          metricsContainer.classList.add('hidden');
+        } else {
+          metricsContainer.classList.remove('hidden');
+          metricsContainer.className = `grid grid-cols-${visibleCount} gap-2 pt-2 border-t border-indigo-500/50 text-center`;
+        }
+      }
+
+      // 2. 雷達圖更新 (若全班平均未勾選，雷達圖自動隱藏全班平均線)
       const labels = curExam.subjects.map(s => s.name);
       const scores = curExam.subjects.map(s => s.score);
       const avgs = curExam.subjects.map(s => s.classAverage);
       renderParentRadar(labels, scores, avgs);
 
-      // 本次 vs 上次 跨次對比
+      // 3. 跨次考試成長對比
       const compCard = document.getElementById('pComparisonCard');
       const compList = document.getElementById('pComparisonList');
       const compBadge = document.getElementById('pComparisonBadge');
@@ -1644,7 +1795,7 @@
               <div class="p-2 bg-slate-50 rounded-lg flex items-center justify-between border border-slate-200">
                 <span class="font-bold text-slate-700">${cSub.name}</span>
                 <div class="flex items-center gap-1.5">
-                  <span class="text-slate-400 text-[11px]">${pSub.score} ➔ ${cSub.score}</span>
+                  ${cfg.showSubjects ? `<span class="text-slate-400 text-[11px]">${pSub.score} ➔ ${cSub.score}</span>` : ''}
                   ${tag}
                 </div>
               </div>
@@ -1652,7 +1803,7 @@
           }
         });
 
-        if (matched > 0) {
+        if (matched > 0 && cfg.showAvg) {
           const avgDelta = ((curTotal - prevTotal) / matched).toFixed(1);
           if (avgDelta > 0) {
             compBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200';
@@ -1664,6 +1815,8 @@
             compBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200';
             compBadge.innerText = `總平均微幅波動 ${avgDelta} 分`;
           }
+        } else {
+          compBadge.className = 'hidden';
         }
         compCard.classList.remove('hidden');
       } else {
@@ -1673,7 +1826,20 @@
         compList.innerHTML = '<div class="col-span-2 text-center py-2 text-slate-400 text-xs">此為初始基準考試。建立下一分頁（如期末考）後，系統將自動在此呈現每科進退步成長軌跡！</div>';
       }
 
-      // 成績表
+      // 4. 各科成績明細表 (動態依勾選增減欄位)
+      const tableHead = document.getElementById('pScoreTableHead');
+      if (tableHead) {
+        tableHead.innerHTML = `
+          <tr>
+            <th class="py-2.5 px-3 text-left">科目</th>
+            ${cfg.showSubjects ? '<th class="py-2.5 px-3 text-center">個人得分</th>' : ''}
+            ${cfg.showClassAvg ? '<th class="py-2.5 px-3 text-center">班級平均</th>' : ''}
+            ${cfg.showPr ? '<th class="py-2.5 px-3 text-center">PR 常模</th>' : ''}
+            ${cfg.showClassAvg ? '<th class="py-2.5 px-3 text-center">與班均差距</th>' : ''}
+          </tr>
+        `;
+      }
+
       const table = document.getElementById('pScoreTable');
       const diagList = document.getElementById('pDiagnosisList');
       table.innerHTML = '';
@@ -1689,10 +1855,10 @@
         table.innerHTML += `
           <tr class="hover:bg-slate-50">
             <td class="py-2.5 px-3 font-bold text-slate-800">${sub.name}</td>
-            <td class="py-2.5 px-3 text-center font-black text-indigo-600 text-sm">${sub.score}</td>
-            <td class="py-2.5 px-3 text-center text-slate-400">${sub.classAverage}</td>
-            <td class="py-2.5 px-3 text-center">${prBadge}</td>
-            <td class="py-2.5 px-3 text-center">${diffBadge}</td>
+            ${cfg.showSubjects ? `<td class="py-2.5 px-3 text-center font-black text-indigo-600 text-sm">${sub.score}</td>` : ''}
+            ${cfg.showClassAvg ? `<td class="py-2.5 px-3 text-center text-slate-400">${sub.classAverage}</td>` : ''}
+            ${cfg.showPr ? `<td class="py-2.5 px-3 text-center">${prBadge}</td>` : ''}
+            ${cfg.showClassAvg ? `<td class="py-2.5 px-3 text-center">${diffBadge}</td>` : ''}
           </tr>
         `;
 
@@ -1704,7 +1870,11 @@
         diagList.innerHTML += `
           <div class="p-3 bg-white rounded-xl border border-slate-200 shadow-sm space-y-1.5">
             <div class="flex items-center justify-between">
-              <span class="font-bold text-xs text-slate-800">【${sub.name}】得分 <span class="text-indigo-600 font-black">${sub.score}</span> 分 (班均 ${sub.classAverage})</span>
+              <span class="font-bold text-xs text-slate-800">
+                【${sub.name}】
+                ${cfg.showSubjects ? `得分 <span class="text-indigo-600 font-black">${sub.score}</span> 分` : ''}
+                ${cfg.showClassAvg ? `<span class="text-slate-400 font-normal text-[11px]">(班均 ${sub.classAverage})</span>` : ''}
+              </span>
               <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border ${zoneBadgeClass}">${sub.zoneStatus || sub.zone}</span>
             </div>
             <div class="text-slate-600 leading-relaxed text-[11px]">${sub.advice}</div>
@@ -1714,31 +1884,38 @@
     }
 
     function renderParentRadar(labels, scores, avgs) {
+      const cfg = getActiveVisibilityConfig();
       const ctx = document.getElementById('pRadarChart').getContext('2d');
       if (pRadarInst) pRadarInst.destroy();
+
+      const datasets = [
+        {
+          label: '個人得分',
+          data: scores,
+          backgroundColor: 'rgba(79, 70, 229, 0.25)',
+          borderColor: 'rgba(79, 70, 229, 1)',
+          borderWidth: 2,
+          pointBackgroundColor: 'rgba(79, 70, 229, 1)'
+        }
+      ];
+
+      // 只有當老師勾選允許看「全班總平均」時，雷達圖才繪製班級平均對照線
+      if (cfg.showClassAvg) {
+        datasets.push({
+          label: '班級各科平均',
+          data: avgs,
+          backgroundColor: 'rgba(148, 163, 184, 0.2)',
+          borderColor: 'rgba(148, 163, 184, 1)',
+          borderWidth: 1.5,
+          borderDash: [3, 3]
+        });
+      }
 
       pRadarInst = new Chart(ctx, {
         type: 'radar',
         data: {
           labels: labels,
-          datasets: [
-            {
-              label: '個人得分',
-              data: scores,
-              backgroundColor: 'rgba(79, 70, 229, 0.25)',
-              borderColor: 'rgba(79, 70, 229, 1)',
-              borderWidth: 2,
-              pointBackgroundColor: 'rgba(79, 70, 229, 1)'
-            },
-            {
-              label: '班級各科平均',
-              data: avgs,
-              backgroundColor: 'rgba(148, 163, 184, 0.2)',
-              borderColor: 'rgba(148, 163, 184, 1)',
-              borderWidth: 1.5,
-              borderDash: [3, 3]
-            }
-          ]
+          datasets: datasets
         },
         options: {
           responsive: true,
@@ -1809,27 +1986,31 @@
       ) || pool[0];
       if (!curSt) return;
 
+      const cfg = getActiveVisibilityConfig();
       const exams = buildDemoExamsForStudent(curSt);
       const cur = exams[exams.length - 1];
+      if (!cur) return;
 
       const box = document.getElementById('sandboxMobileView');
       box.innerHTML = `
         <div class="bg-indigo-600 text-white rounded-xl p-3 flex justify-between items-center">
           <div>
-            <div class="font-black text-sm">${demoSt.name} (座號 ${demoSt.seatNumber})</div>
-            <div class="text-[10px] text-indigo-200">班級：${demoSt.className} ‧ 名次：第 ${cur.studentRank} 名 / 24人</div>
+            <div class="font-black text-sm">${curSt.name} (座號 ${curSt.seatNumber})</div>
+            <div class="text-[10px] text-indigo-200">
+              班級：${curSt.className} ${cfg.showRank ? `‧ 名次：第 ${cur.studentRank} 名 / ${cur.totalStudents}人` : ''}
+            </div>
           </div>
-          <span class="text-[10px] bg-indigo-500 px-2 py-0.5 rounded font-bold">個人平均: ${cur.studentAverage}分</span>
+          ${cfg.showAvg ? `<span class="text-[10px] bg-indigo-500 px-2 py-0.5 rounded font-bold">個人平均: ${cur.studentAverage}分</span>` : ''}
         </div>
 
         <div class="bg-white p-3 rounded-xl border border-slate-200">
           <div class="font-bold text-[11px] text-slate-700 mb-1 flex justify-between">
-            <span>🎯 各科雷達圖 (個人 vs 班平均)</span>
+            <span>🎯 各科雷達圖 ${cfg.showClassAvg ? '(個人 vs 班平均)' : '(個人表現)'}</span>
             <span class="text-indigo-600 font-bold">${cur.examTitle}</span>
           </div>
           <div class="text-center py-2 bg-slate-50 rounded-lg text-slate-500 text-[10px]">
-            國語: ${cur.subjects[0].score}分 (班均 ${cur.subjects[0].classAverage}) ‧ PR ${cur.subjects[0].pr}<br>
-            英文: ${cur.subjects[3].score}分 (班均 ${cur.subjects[3].classAverage}) ‧ PR ${cur.subjects[3].pr}
+            國語: ${cfg.showSubjects ? cur.subjects[0].score + '分' : ''} ${cfg.showClassAvg ? '(班均 ' + cur.subjects[0].classAverage + ')' : ''} ${cfg.showPr && cur.subjects[0].pr ? '‧ PR ' + cur.subjects[0].pr : ''}<br>
+            英文: ${cfg.showSubjects ? cur.subjects[3].score + '分' : ''} ${cfg.showClassAvg ? '(班均 ' + cur.subjects[3].classAverage + ')' : ''} ${cfg.showPr && cur.subjects[3].pr ? '‧ PR ' + cur.subjects[3].pr : ''}
           </div>
         </div>
 
@@ -1837,7 +2018,7 @@
           <div class="font-bold text-[11px] text-slate-800">💡 學習診斷處方 (GradeInterpr 平台)</div>
           ${cur.subjects.slice(0, 3).map(s => `
             <div class="p-2 bg-slate-50 rounded-lg border-l-2 border-indigo-500 text-[11px]">
-              <b>【${s.name} ${s.score}分】</b> ${s.advice}
+              <b>【${s.name}${cfg.showSubjects ? ` ${s.score}分` : ''}】</b> ${s.advice}
             </div>
           `).join('')}
         </div>
