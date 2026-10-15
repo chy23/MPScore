@@ -25,6 +25,9 @@ function doGet(e) {
       output = getStudentScoreByToken(params.token);
     } else if (action === 'getStudentsForPrint') {
       output = getStudentListForTeacher();
+    } else if (action === 'appendExamScores') {
+      var body = params.payload || (e && e.postData && e.postData.contents ? e.postData.contents : '');
+      output = appendExamScores(body);
     } else {
       output = { success: false, message: '未知的操作請求' };
     }
@@ -38,6 +41,45 @@ function doGet(e) {
 
 function doPost(e) {
   return doGet(e);
+}
+
+/**
+ * 從網頁端直接新增一整次考試成績到【成績明細】表的最下方 (不覆蓋舊考試)
+ */
+function appendExamScores(payloadStr) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var scSheet = ss.getSheetByName('成績明細');
+  if (!scSheet) return { success: false, message: '找不到【成績明細】分頁' };
+
+  if (!payloadStr) return { success: false, message: '請提供要新增的成績資料' };
+  var payload = typeof payloadStr === 'string' ? JSON.parse(payloadStr) : payloadStr;
+  var rows = payload.rows;
+  if (!rows || rows.length === 0) return { success: false, message: '成績列表為空' };
+
+  var newRows = [];
+  for (var i = 0; i < rows.length; i++) {
+    var r = rows[i];
+    newRows.push([
+      r.seatNumber,
+      r.year,
+      r.semester,
+      r.examName,
+      r.subject,
+      Number(r.score) || 0,
+      r.average ? Number(r.average) : '',
+      r.pr ? Number(r.pr) : '',
+      r.diagnosis || ''
+    ]);
+  }
+
+  var startRow = scSheet.getLastRow() + 1;
+  scSheet.getRange(startRow, 1, newRows.length, newRows[0].length).setValues(newRows);
+
+  return {
+    success: true,
+    message: '成功在【成績明細】最下方新增 ' + newRows.length + ' 筆考試成績！',
+    count: newRows.length
+  };
 }
 
 function checkSystemStatus() {

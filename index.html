@@ -287,11 +287,11 @@
     <section id="tabContent-dataHelper" class="tab-content hidden space-y-6">
       <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
         <div class="flex items-center justify-between mb-3">
-          <h2 class="text-lg font-bold text-slate-900">🔄 橫式成績轉【直式成績明細】小幫手</h2>
-          <span class="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-medium">常見痛點解方</span>
+          <h2 class="text-lg font-bold text-slate-900">📥 批次新增考試成績小幫手 (支援多次考試累加與成長對比)</h2>
+          <span class="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-full font-semibold border border-indigo-200">歷史資料不覆蓋</span>
         </div>
         <p class="text-sm text-slate-600 mb-4 leading-relaxed">
-          學校教務處通常匯出的是「橫式表格」（座號、姓名、國文、英文、數學...排成同一列），但資料庫需要「直式記錄」。請將 Excel 的成績表格直接複製貼在左邊，系統會自動轉換為標準格式！
+          每次段考或模擬考，您**完全不需要刪除舊考試**！只要在下方設定「學期與考試名稱（如：第二次段考）」，貼上新的 Excel 成績，點擊【⚡ 一鍵新增至試算表】，系統會自動接在【成績明細】最下方。家長端便會自動產生<b>本次 vs 上次進退步對比</b>與<b>歷次成長折線圖</b>！
         </p>
 
         <!-- 考試設定 -->
@@ -305,8 +305,8 @@
             <input type="text" id="toolSemester" value="1" class="w-full text-xs px-3 py-2 rounded-lg border border-slate-300">
           </div>
           <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1">考試名稱</label>
-            <input type="text" id="toolExamName" value="第一次段考" class="w-full text-xs px-3 py-2 rounded-lg border border-slate-300">
+            <label class="block text-xs font-bold text-slate-600 mb-1">考試名稱 (如：第二次段考)</label>
+            <input type="text" id="toolExamName" value="第二次段考" class="w-full text-xs px-3 py-2 rounded-lg border border-slate-300">
           </div>
         </div>
 
@@ -328,8 +328,13 @@
           <!-- 右側輸出 -->
           <div>
             <div class="flex items-center justify-between mb-1.5">
-              <label class="text-xs font-bold text-slate-700">2. 轉換結果（可直接複製貼入【成績明細】表）：</label>
-              <button onclick="copyConvertedData()" id="copyConvertedBtn" class="text-[11px] bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded hover:bg-indigo-100 font-bold">複製結果</button>
+              <label class="text-xs font-bold text-slate-700">2. 轉換結果（可直接複製或一鍵寫入）：</label>
+              <div class="flex gap-1.5">
+                <button onclick="copyConvertedData()" id="copyConvertedBtn" class="text-[11px] bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-0.5 rounded font-bold">複製結果</button>
+                <button onclick="appendConvertedScoresToSheet()" id="appendScoresBtn" class="text-[11px] bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-0.5 rounded font-bold transition flex items-center gap-1">
+                  <span>⚡ 一鍵新增至試算表</span>
+                </button>
+              </div>
             </div>
             <textarea id="convertedOutput" rows="10" readonly placeholder="轉換後的直式資料將呈現於此..." class="w-full p-3 font-mono text-xs border border-slate-300 rounded-xl bg-slate-50 text-slate-600"></textarea>
           </div>
@@ -481,6 +486,20 @@
           <div class="font-bold text-xs text-slate-700 mb-2">📈 歷次成績成長曲線</div>
           <div class="h-[200px]">
             <canvas id="pTrendChart"></canvas>
+          </div>
+        </div>
+
+        <!-- 本次 vs 上次 跨次考試對比卡片 -->
+        <div id="pComparisonCard" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
+          <div class="flex items-center justify-between border-b pb-2">
+            <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+              <span>🚀 跨次考試成長對比</span>
+              <span id="pPrevExamName" class="text-[10px] text-slate-400 font-normal"></span>
+            </span>
+            <span id="pComparisonBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">--</span>
+          </div>
+          <div id="pComparisonList" class="grid grid-cols-2 gap-2 text-xs">
+            <!-- 各科進退步由 JS 動態填入 -->
           </div>
         </div>
 
@@ -1096,9 +1115,135 @@ function generateTokensForStudents() {
       document.getElementById('parentScoreResult').classList.remove('hidden');
     }
 
+    // 一鍵將轉換後的考試成績批次新增寫入 Google 試算表最下方 (支援多次考試累加)
+    async function appendConvertedScoresToSheet() {
+      const outputText = document.getElementById('convertedOutput').value.trim();
+      if (!outputText) {
+        alert('請先點擊【⚡ 開始轉換成標準格式】！');
+        return;
+      }
+      if (!activeApiUrl) {
+        alert('尚未連線到 Google Apps Script！請先至【步驟 3】貼上網址並完成連線檢測。');
+        return;
+      }
+
+      const lines = outputText.split('\n').filter(l => l.trim());
+      if (lines.length <= 1) {
+        alert('沒有有效的成績明細資料！');
+        return;
+      }
+
+      const rows = [];
+      for (let i = 1; i < lines.length; i++) {
+        const p = lines[i].split('\t');
+        rows.push({
+          seatNumber: p[0],
+          year: p[1],
+          semester: p[2],
+          examName: p[3],
+          subject: p[4],
+          score: p[5],
+          average: p[6],
+          pr: p[7],
+          diagnosis: p[8]
+        });
+      }
+
+      const btn = document.getElementById('appendScoresBtn');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<span class="inline-block animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent"></span> 寫入中...';
+      btn.disabled = true;
+
+      try {
+        const targetUrl = activeApiUrl + (activeApiUrl.includes('?') ? '&' : '?') + 'action=appendExamScores';
+        const resp = await fetch(targetUrl, {
+          method: 'POST',
+          body: JSON.stringify({ rows: rows })
+        });
+        const res = await resp.json();
+        if (res.success) {
+          alert(`🎉 成功！已在試算表【成績明細】下方接續寫入 ${res.count} 筆成績！\n原有的舊考試資料完整保留，系統已自動建立不同考試對比！`);
+        } else {
+          alert('寫入失敗: ' + (res.message || '未知錯誤'));
+        }
+      } catch (err) {
+        alert('連線失敗: ' + err.message);
+      } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    }
+
     function renderParentExamDetails() {
       const selectedKey = document.getElementById('pExamSelect').value;
       const currentList = currentParentRecords.filter(r => r.examKey === selectedKey);
+
+      // --- 跨次考試成長對比運算 ---
+      const examKeys = [...new Set(currentParentRecords.map(r => r.examKey))];
+      const currentIdx = examKeys.indexOf(selectedKey);
+      const compList = document.getElementById('pComparisonList');
+      const compBadge = document.getElementById('pComparisonBadge');
+      const prevName = document.getElementById('pPrevExamName');
+
+      if (currentIdx > 0) {
+        const prevKey = examKeys[currentIdx - 1];
+        const prevList = currentParentRecords.filter(r => r.examKey === prevKey);
+        prevName.innerText = `(與前次【${prevKey}】對比)`;
+
+        let curTotal = 0, prevTotal = 0, matchedCount = 0;
+        compList.innerHTML = '';
+
+        currentList.forEach(cItem => {
+          const pItem = prevList.find(p => p.subject === cItem.subject);
+          if (pItem) {
+            matchedCount++;
+            curTotal += cItem.score;
+            prevTotal += pItem.score;
+            const delta = cItem.score - pItem.score;
+            let deltaTag = '';
+            if (delta > 0) {
+              deltaTag = `<span class="text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded">+${delta} 分 📈</span>`;
+            } else if (delta === 0) {
+              deltaTag = `<span class="text-slate-500 font-bold bg-slate-100 px-1.5 py-0.5 rounded">持平 ➖</span>`;
+            } else {
+              deltaTag = `<span class="text-rose-600 font-bold bg-rose-50 px-1.5 py-0.5 rounded">${delta} 分 📉</span>`;
+            }
+
+            compList.innerHTML += `
+              <div class="p-2 bg-slate-50 rounded-lg flex items-center justify-between border border-slate-200">
+                <span class="font-bold text-slate-700">${cItem.subject}</span>
+                <div class="flex items-center gap-1.5">
+                  <span class="text-slate-400 text-[11px]">${pItem.score} ➔ ${cItem.score}</span>
+                  ${deltaTag}
+                </div>
+              </div>
+            `;
+          }
+        });
+
+        if (matchedCount > 0) {
+          const avgDelta = ((curTotal - prevTotal) / matchedCount).toFixed(1);
+          if (avgDelta > 0) {
+            compBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200';
+            compBadge.innerText = `總平均成長 +${avgDelta} 分 🌟`;
+          } else if (avgDelta == 0) {
+            compBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700';
+            compBadge.innerText = `總平均持平`;
+          } else {
+            compBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200';
+            compBadge.innerText = `總平均微幅波動 ${avgDelta} 分`;
+          }
+        }
+      } else {
+        prevName.innerText = '(首筆考試基準)';
+        compBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500';
+        compBadge.innerText = '首筆考試基準';
+        compList.innerHTML = `
+          <div class="col-span-2 text-center py-2 text-slate-400 text-xs">
+            此為目前的初始基準考試。在發布後續考試（如：第二次段考）後，系統將自動在此呈現每科進退步成長軌跡！
+          </div>
+        `;
+      }
 
       const table = document.getElementById('pScoreTable');
       const diagList = document.getElementById('pDiagnosisList');
