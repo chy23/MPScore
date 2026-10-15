@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>學生個別成績與學習診斷系統</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen pb-16">
+
+  <!-- ==================== 純淨家長查詢專屬前台 ==================== -->
+  <header class="bg-indigo-700 text-white py-3.5 px-4 shadow-md sticky top-0 z-40">
+    <div class="max-w-md mx-auto flex items-center justify-between">
+      <div class="text-left">
+        <h1 class="text-base font-bold tracking-tight">個別成績與學習診斷系統</h1>
+        <p class="text-[11px] text-indigo-200">資安保護 ‧ 個別化學習成效回饋</p>
+      </div>
+      <div class="flex items-center gap-1.5 text-[11px] text-indigo-100 bg-indigo-800/90 px-3 py-1 rounded-full border border-indigo-400/30 font-medium shadow-xs">
+        <span>🔒</span>
+        <span>資安防護查詢</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-md mx-auto px-4 mt-4 space-y-4">
+    
+    <!-- 代碼輸入卡 -->
+    <div id="parentLoginBox" class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+      <label class="block text-xs font-bold text-slate-700 mb-1.5 text-center">請輸入學生專屬 6 碼查詢代碼 或 姓名</label>
+      <div class="flex gap-2">
+        <input type="text" id="parentTokenInput" onkeydown="if(event.key==='Enter'){event.preventDefault();doParentQuery();}" placeholder="例如：DEMO01 或 陳小華" class="flex-1 px-3 py-2 text-center uppercase tracking-widest font-mono border border-slate-300 rounded-xl text-base font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        <button onclick="doParentQuery()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-xl text-sm transition">
+          查詢
+        </button>
+      </div>
+      <div id="parentErrorMsg" class="text-red-500 text-xs text-center mt-2 hidden leading-relaxed"></div>
+    </div>
+
+    <!-- 查詢結果區 (預設隱藏) -->
+    <div id="parentScoreResult" class="hidden space-y-4">
+      
+      <!-- 學生卡片 -->
+      <div class="bg-gradient-to-r from-indigo-600 to-indigo-800 text-white rounded-2xl p-4 shadow-md space-y-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-xl font-black" id="pStudentName">--</div>
+            <div class="text-xs text-indigo-200 mt-0.5"><span id="pClassName">--</span> ‧ 座號：<span id="pSeatNumber">--</span> 號</div>
+          </div>
+          <select id="pExamSelect" onchange="renderSelectedExamView()" class="text-xs bg-white text-slate-800 font-bold px-3 py-1.5 rounded-lg focus:outline-none shadow-sm"></select>
+        </div>
+
+        <!-- 3 大關鍵指標徽章 (全自動精算) -->
+        <div id="pMetricsGrid" class="grid grid-cols-3 gap-2 pt-2 border-t border-indigo-500/50 text-center">
+          <div id="pMetricAvgCard" class="bg-white/10 rounded-xl p-2 backdrop-blur-sm">
+            <div class="text-[10px] text-indigo-200">個人總平均</div>
+            <div class="text-base font-black text-white" id="pStudentAverage">--</div>
+          </div>
+          <div id="pMetricRankCard" class="bg-white/10 rounded-xl p-2 backdrop-blur-sm">
+            <div class="text-[10px] text-indigo-200">班級名次</div>
+            <div class="text-base font-black text-amber-300" id="pStudentRank">--</div>
+          </div>
+          <div id="pMetricClassAvgCard" class="bg-white/10 rounded-xl p-2 backdrop-blur-sm">
+            <div class="text-[10px] text-indigo-200">全班總平均</div>
+            <div class="text-base font-black text-indigo-100" id="pClassOverallAvg">--</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 🎯 各科能力雷達圖 (依教師權限動態隱藏/顯示) -->
+      <div id="pRadarCard" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+        <div class="font-bold text-xs text-slate-700 mb-2 flex justify-between">
+          <span>🎯 本次各科能力雷達圖</span>
+          <span class="text-slate-400 font-normal">個人表現形狀</span>
+        </div>
+        <div class="max-w-[260px] mx-auto aspect-square">
+          <canvas id="pRadarChart"></canvas>
+        </div>
+      </div>
+
+      <!-- 📈 歷次成長趨勢圖 (依教師權限動態隱藏/顯示) -->
+      <div id="pTrendCard" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+        <div class="font-bold text-xs text-slate-700 mb-2">📈 歷次考試成長曲線</div>
+        <div class="h-[200px]">
+          <canvas id="pTrendChart"></canvas>
+        </div>
+      </div>
+
+      <!-- 🚀 跨次考試進退步對比卡片 (依教師權限動態隱藏/顯示) -->
+      <div id="pComparisonCard" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
+        <div class="flex items-center justify-between border-b pb-2">
+          <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+            <span>🚀 跨次考試進退步對比</span>
+            <span id="pPrevExamName" class="text-[10px] text-slate-400 font-normal"></span>
+          </span>
+          <span id="pComparisonBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">--</span>
+        </div>
+        <div id="pComparisonList" class="grid grid-cols-2 gap-2 text-xs"></div>
+      </div>
+
+      <!-- 📋 各科成績與常模明細 -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="p-3 border-b border-slate-100 font-bold text-xs text-slate-800 flex justify-between items-center">
+          <span>📋 各科成績與常模明細</span>
+          <span class="text-[10px] text-indigo-600 font-medium">免手算 ‧ 系統自動精算</span>
+        </div>
+        <table class="w-full text-left text-xs">
+          <thead id="pScoreTableHead" class="bg-slate-50 text-slate-500">
+            <tr>
+              <th class="py-2.5 px-3">科目</th>
+              <th class="py-2.5 px-3 text-center">得分</th>
+              <th class="py-2.5 px-3 text-center">班均</th>
+              <th class="py-2.5 px-3 text-center">PR 值</th>
+              <th class="py-2.5 px-3 text-center">差額</th>
+            </tr>
+          </thead>
+          <tbody id="pScoreTable" class="divide-y divide-slate-100"></tbody>
+        </table>
+      </div>
+
+      <!-- 💡 專家學習診斷與精進建議 (依教師權限動態隱藏/顯示) -->
+      <div id="pDiagnosisCard" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
+        <div class="flex items-center justify-between mb-3">
+          <div class="font-bold text-xs text-slate-800">💡 學習診斷與適性精進建議</div>
+          <span class="text-[10px] text-indigo-600 font-semibold bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200/50">
+            GradeInterpr 處方
+          </span>
+        </div>
+        <div id="pDiagnosisList" class="space-y-2.5 text-xs"></div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <footer class="mt-8 text-center text-[11px] text-slate-400 space-y-1">
+    <div>MPScore 智慧個別成績與學習診斷系統</div>
+    <div>資安保護 ‧ 僅能依專屬代碼或姓名查詢個別紀錄</div>
+  </footer>
+
+  <script>
+    // 預設示範學生
+    const DEMO_STUDENTS = [
+      { className: '605', seatNumber: '01', name: '陳小明', token: 'DEMO01', studentId: '605-01' },
+      { className: '605', seatNumber: '02', name: '陳小華', token: 'DEMO02', studentId: '605-02' },
+      { className: '605', seatNumber: '03', name: '陳大美', token: 'DEMO03', studentId: '605-03' },
+      { className: '605', seatNumber: '04', name: '陳志豪', token: 'DEMO04', studentId: '605-04' },
+      { className: '605', seatNumber: '05', name: '黃小琪', token: 'DEMO05', studentId: '605-05' }
+    ];
+
+    const GRADE_INTERPR_ADVICE = {
+      '國語': {
+        leading: [
+          "你對文字的敏感度很高，可以多接觸不同背景的文學作品，練習體會文字背後的弦外之音。",
+          "嘗試將閱讀後的感想與生活連結，這能幫助你將零散的思緒整理成更有系統的觀點。"
+        ],
+        improving: [
+          "建議透過『大聲朗讀』來感受課文的語氣與節奏，這對於建立語感很有幫助。",
+          "先從自己感興趣的故事主題開始讀起，累積對文字的親近感，閱讀會變得越來越輕鬆。"
+        ]
+      },
+      '數學': {
+        leading: [
+          "你展現了優秀的思維，可以試著探索公式背後的由來，理解原理會讓應用更靈活。",
+          "練習看看『一題多解』，從不同的路徑切入問題，能讓你的思維死角越來越少。"
+        ],
+        improving: [
+          "學習數學像是堆積木，先把課本裡的基礎定義弄清楚，基礎穩了，解題就會有成就感。",
+          "不需要急著寫很難的題目，先把基本例題反覆練習幾次，確保運算的流程是流暢的。"
+        ]
+      },
+      '社會': {
+        leading: [
+          "你很擅長整理資訊，可以練習將不同時間的事件串聯起來，看見歷史或地理背後的因果。",
+          "關注一下最近的新聞時事，並思考課本內容在現實中是如何運作的，這能讓知識變得立體。"
+        ],
+        improving: [
+          "社會科其實是許多精彩故事的集合。想像自己是當時的人，能幫你理解為何會有那樣的發展。",
+          "對於複雜的資訊，可以試着用畫圖或拉時間軸的方式呈現，讓文字敘述變成圖像記憶。"
+        ]
+      },
+      '英文': {
+        leading: [
+          "你的語感表現優異，可以開始接觸課外的英文讀物或短片，挑戰更自然的語言環境。",
+          "試着用英文寫下簡短的計畫或心情，讓語言成為你生活中自然的一部分。"
+        ],
+        improving: [
+          "英文需要時間來讓耳朵習慣。每天花幾分鐘聽聽朗讀，即便沒聽懂全部，也是在累積感度。",
+          "不要怕犯錯，試著勇敢讀出聲來。語言是溝通的橋樑，只要敢開口就是跨出了一大步。"
+        ]
+      },
+      '自然': {
+        leading: [
+          "你擁有敏銳的觀察力。對於生活中的現象，試著用科學的視角去推論它發生的原因。",
+          "可以閱讀一些科普短文或新聞，探索前瞻的科學發展，這會大大擴展你的科學視野。"
+        ],
+        improving: [
+          "自然科很多概念都藏在身邊。試著把課堂學到的知識，對應到生活中的日常現象。",
+          "複習時可以多看課本裡的實驗圖和示意圖，理解每個實驗步驟背後的目的與原理。"
+        ]
+      }
+    };
+
+    function normalizeSeatNumber(val) {
+      if (val === null || val === undefined) return '';
+      const s = val.toString().trim();
+      const num = parseInt(s, 10);
+      if (!isNaN(num) && num < 10 && s.length === 1) return '0' + num;
+      return s;
+    }
+
+    let activeApiUrl = localStorage.getItem('mpscore_gas_url') || '';
+    let currentStudentExams = [];
+    let pRadarInst = null;
+    let pTrendInst = null;
+
+    function getVisibilityConfig() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const vStr = urlParams.get('v');
+
+      if (vStr && vStr.length >= 7) {
+        return {
+          showAvg: vStr[0] === '1',
+          showRank: vStr[1] === '1',
+          showClassAvg: vStr[2] === '1',
+          showSubjects: vStr[3] === '1',
+          showPr: vStr[4] === '1',
+          showStudentId: vStr.length > 5 ? vStr[5] === '1' : true,
+          showFootnote: vStr.length > 6 ? vStr[6] === '1' : true,
+          showRadar: vStr.length > 7 ? vStr[7] === '1' : true,
+          showTrend: vStr.length > 8 ? vStr[8] === '1' : true,
+          showComparison: vStr.length > 9 ? vStr[9] === '1' : true,
+          showDiagnosis: vStr.length > 10 ? vStr[10] === '1' : true
+        };
+      }
+
+      try {
+        const saved = localStorage.getItem('mpscore_visibility_cfg');
+        if (saved) return JSON.parse(saved);
+      } catch(e) {}
+
+      return {
+        showAvg: true,
+        showRank: true,
+        showClassAvg: true,
+        showSubjects: true,
+        showPr: true,
+        showStudentId: true,
+        showFootnote: true,
+        showRadar: true,
+        showTrend: true,
+        showComparison: true,
+        showDiagnosis: true
+      };
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get('t') || urlParams.get('token');
+      const apiParam = urlParams.get('a') || urlParams.get('api');
+
+      if (apiParam) {
+        let fullApi = apiParam;
+        if (!fullApi.startsWith('http')) {
+          fullApi = 'https://script.google.com/macros/s/' + fullApi + '/exec';
+        }
+        activeApiUrl = fullApi;
+        localStorage.setItem('mpscore_gas_url', activeApiUrl);
+      }
+
+      if (token) {
+        document.getElementById('parentTokenInput').value = token;
+        doParentQuery();
+      }
+    });
+
+    async function doParentQuery() {
+      const input = document.getElementById('parentTokenInput').value.trim();
+      const errBox = document.getElementById('parentErrorMsg');
+
+      if (!input) {
+        errBox.innerText = '請輸入 6 碼查詢代碼或學生姓名';
+        errBox.classList.remove('hidden');
+        return;
+      }
+      errBox.classList.add('hidden');
+
+      // 1. 若有串接 Google 試算表 API，向雲端試算表發出查詢
+      if (activeApiUrl) {
+        try {
+          const qUrl = activeApiUrl + (activeApiUrl.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(input);
+          const resp = await fetch(qUrl);
+          const data = await resp.json();
+          if (data.success) {
+            renderParentDashboard(data.student, data.exams || transformFlatRecordsToExams(data.records));
+            return;
+          } else {
+            errBox.innerText = data.message || `查無代碼或學生「${input}」的成績，請確認輸入是否正確。`;
+            errBox.classList.remove('hidden');
+            return;
+          }
+        } catch (e) {
+          console.warn('API 連線失敗，切換為本地比對', e);
+        }
+      }
+
+      // 2. 本地展示模式：比對示範名冊
+      const targetSt = DEMO_STUDENTS.find(s => 
+        (s.token && s.token.toUpperCase() === input.toUpperCase()) ||
+        (s.name && s.name === input) ||
+        (input.length <= 2 && normalizeSeatNumber(s.seatNumber) === normalizeSeatNumber(input))
+      );
+
+      if (targetSt) {
+        const computedExams = buildDemoExamsForStudent(targetSt);
+        renderParentDashboard(targetSt, computedExams);
+      } else {
+        errBox.innerHTML = `查無代碼或學生姓名「${input}」。<br><span class="text-[11px] text-slate-500 font-normal mt-1 block">💡 提示：本機目前處於離線展示狀態。若您是家長，請直接用手機相機掃描個別通知小卡上的專屬 QR Code 即可自動連線！</span>`;
+        errBox.classList.remove('hidden');
+      }
+    }
+
+    function renderParentDashboard(student, exams) {
+      if (!exams || exams.length === 0) {
+        alert('此學生目前尚無任何考試成績資料。');
+        return;
+      }
+      currentStudentExams = exams;
+
+      document.getElementById('pStudentName').innerText = student.name;
+      document.getElementById('pClassName').innerText = student.className + ' 班';
+      document.getElementById('pSeatNumber').innerText = student.seatNumber;
+
+      const sel = document.getElementById('pExamSelect');
+      sel.innerHTML = '';
+      exams.forEach((ex, idx) => {
+        const opt = document.createElement('option');
+        opt.value = idx;
+        opt.innerText = ex.examTitle || ex.sheetName;
+        sel.appendChild(opt);
+      });
+      sel.value = exams.length - 1;
+
+      renderSelectedExamView();
+      document.getElementById('parentScoreResult').classList.remove('hidden');
+      document.getElementById('parentScoreResult').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function renderSelectedExamView() {
+      const cfg = getVisibilityConfig();
+      const sel = document.getElementById('pExamSelect');
+      const curIdx = parseInt(sel.value, 10);
+      const curExam = currentStudentExams[curIdx];
+      if (!curExam) return;
+
+      // 1. 3 大關鍵指標徽章更新 (依教師勾選權限動態隱藏/呈現)
+      const cardAvg = document.getElementById('pMetricAvgCard');
+      const cardRank = document.getElementById('pMetricRankCard');
+      const cardClassAvg = document.getElementById('pMetricClassAvgCard');
+      const metricsContainer = document.getElementById('pMetricsGrid');
+
+      if (cardAvg) {
+        document.getElementById('pStudentAverage').innerText = curExam.studentAverage ? curExam.studentAverage.toFixed(1) + ' 分' : '--';
+        if (cfg.showAvg) cardAvg.classList.remove('hidden'); else cardAvg.classList.add('hidden');
+      }
+
+      if (cardRank) {
+        document.getElementById('pStudentRank').innerText = curExam.studentRank ? `第 ${curExam.studentRank} 名` : '--';
+        if (cfg.showRank) cardRank.classList.remove('hidden'); else cardRank.classList.add('hidden');
+      }
+
+      if (cardClassAvg) {
+        document.getElementById('pClassOverallAvg').innerText = curExam.classOverallAverage ? curExam.classOverallAverage.toFixed(1) + ' 分' : '--';
+        if (cfg.showClassAvg) cardClassAvg.classList.remove('hidden'); else cardClassAvg.classList.add('hidden');
+      }
+
+      if (metricsContainer) {
+        const visibleCount = (cfg.showAvg ? 1 : 0) + (cfg.showRank ? 1 : 0) + (cfg.showClassAvg ? 1 : 0);
+        if (visibleCount === 0) {
+          metricsContainer.classList.add('hidden');
+        } else {
+          metricsContainer.classList.remove('hidden');
+          metricsContainer.className = `grid grid-cols-${visibleCount} gap-2 pt-2 border-t border-indigo-500/50 text-center`;
+        }
+      }
+
+      // 2. 🎯 各科能力雷達圖控制
+      const radarCard = document.getElementById('pRadarCard');
+      const labels = curExam.subjects.map(s => s.name);
+      const scores = curExam.subjects.map(s => s.score);
+      const classAvgs = curExam.subjects.map(s => s.classAverage);
+
+      if (radarCard) {
+        if (cfg.showRadar) {
+          radarCard.classList.remove('hidden');
+          renderParentRadar(labels, scores, classAvgs, cfg.showClassAvg);
+        } else {
+          radarCard.classList.add('hidden');
+        }
+      }
+
+      // 3. 📈 歷次成長趨勢圖控制
+      const trendCard = document.getElementById('pTrendCard');
+      if (trendCard) {
+        if (cfg.showTrend) {
+          trendCard.classList.remove('hidden');
+          renderParentTrend(currentStudentExams);
+        } else {
+          trendCard.classList.add('hidden');
+        }
+      }
+
+      // 4. 🚀 跨次考試進退步對比卡片控制
+      const compCard = document.getElementById('pComparisonCard');
+      if (compCard) {
+        if (cfg.showComparison) {
+          compCard.classList.remove('hidden');
+          const compList = document.getElementById('pComparisonList');
+          compList.innerHTML = '';
+
+          if (curIdx > 0) {
+            const prevExam = currentStudentExams[curIdx - 1];
+            document.getElementById('pPrevExamName').innerText = `(對比：${prevExam.examTitle || prevExam.sheetName})`;
+
+            const diffAvg = curExam.studentAverage - prevExam.studentAverage;
+            const badgeEl = document.getElementById('pComparisonBadge');
+            if (diffAvg > 0) {
+              badgeEl.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700';
+              badgeEl.innerText = `總均進步 +${diffAvg.toFixed(1)} 分`;
+            } else if (diffAvg < 0) {
+              badgeEl.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-700';
+              badgeEl.innerText = `總均退步 ${diffAvg.toFixed(1)} 分`;
+            } else {
+              badgeEl.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700';
+              badgeEl.innerText = `持平`;
+            }
+
+            curExam.subjects.forEach(sub => {
+              const prevSub = prevExam.subjects.find(p => p.name === sub.name);
+              const pScore = prevSub ? prevSub.score : sub.score;
+              const diff = sub.score - pScore;
+              let diffTag = '<span class="text-slate-400">持平</span>';
+              if (diff > 0) diffTag = `<span class="text-emerald-600 font-bold">+${diff} ▲</span>`;
+              else if (diff < 0) diffTag = `<span class="text-rose-500 font-bold">${diff} ▼</span>`;
+
+              compList.innerHTML += `
+                <div class="p-2 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between">
+                  <span class="font-bold text-slate-700">${sub.name}</span>
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-slate-400 line-through text-[10px]">${pScore}</span>
+                    <span class="font-black text-indigo-600 text-xs">${sub.score}</span>
+                    <span class="text-[11px]">${diffTag}</span>
+                  </div>
+                </div>
+              `;
+            });
+          } else {
+            document.getElementById('pPrevExamName').innerText = '(初始基準考試)';
+            document.getElementById('pComparisonBadge').innerText = '初始基準';
+            compList.innerHTML = '<div class="col-span-2 text-center py-2 text-slate-400 text-xs">此為初始基準考試。建立下一分頁後，系統自動在此呈現成長軌跡！</div>';
+          }
+        } else {
+          compCard.classList.add('hidden');
+        }
+      }
+
+      // 5. 各科成績明細表
+      const tableHead = document.getElementById('pScoreTableHead');
+      if (tableHead) {
+        tableHead.innerHTML = `
+          <tr>
+            <th class="py-2.5 px-3 text-left">科目</th>
+            ${cfg.showSubjects ? '<th class="py-2.5 px-3 text-center">個人得分</th>' : ''}
+            ${cfg.showClassAvg ? '<th class="py-2.5 px-3 text-center">班級平均</th>' : ''}
+            ${cfg.showPr ? '<th class="py-2.5 px-3 text-center">PR 常模</th>' : ''}
+            ${cfg.showClassAvg ? '<th class="py-2.5 px-3 text-center">與班均差距</th>' : ''}
+          </tr>
+        `;
+      }
+
+      const table = document.getElementById('pScoreTable');
+      table.innerHTML = '';
+
+      curExam.subjects.forEach(sub => {
+        const prBadge = `<span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${sub.pr >= 75 ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-600'}">PR ${sub.pr}</span>`;
+        const diffBadge = sub.diff >= 0 
+          ? `<span class="text-emerald-600 font-bold">+${sub.diff}</span>` 
+          : `<span class="text-rose-500 font-bold">${sub.diff}</span>`;
+
+        table.innerHTML += `
+          <tr class="hover:bg-slate-50">
+            <td class="py-2.5 px-3 font-bold text-slate-800">${sub.name}</td>
+            ${cfg.showSubjects ? `<td class="py-2.5 px-3 text-center font-black text-indigo-600 text-sm">${sub.score}</td>` : ''}
+            ${cfg.showClassAvg ? `<td class="py-2.5 px-3 text-center text-slate-400">${sub.classAverage}</td>` : ''}
+            ${cfg.showPr ? `<td class="py-2.5 px-3 text-center">${prBadge}</td>` : ''}
+            ${cfg.showClassAvg ? `<td class="py-2.5 px-3 text-center">${diffBadge}</td>` : ''}
+          </tr>
+        `;
+      });
+
+      // 6. 💡 專家學習診斷處方控制
+      const diagCard = document.getElementById('pDiagnosisCard');
+      if (diagCard) {
+        if (cfg.showDiagnosis) {
+          diagCard.classList.remove('hidden');
+          const diagList = document.getElementById('pDiagnosisList');
+          diagList.innerHTML = '';
+          curExam.subjects.forEach(sub => {
+            const zoneBadgeClass = sub.zone === '精熟' ? 'bg-indigo-100 text-indigo-800 border-indigo-200' :
+                                   sub.zone === '穩健' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' :
+                                   sub.zone === '努力' ? 'bg-amber-100 text-amber-800 border-amber-200' : 'bg-rose-100 text-rose-800 border-rose-200';
+            diagList.innerHTML += `
+              <div class="p-3 bg-white rounded-xl border border-slate-200 shadow-sm space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-xs text-slate-800">
+                    【${sub.name}】
+                    ${cfg.showSubjects ? `得分 <span class="text-indigo-600 font-black">${sub.score}</span> 分` : ''}
+                    ${cfg.showClassAvg ? `<span class="text-slate-400 font-normal text-[11px]">(班均 ${sub.classAverage})</span>` : ''}
+                  </span>
+                  <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border ${zoneBadgeClass}">${sub.zoneStatus || sub.zone}</span>
+                </div>
+                <div class="text-slate-600 leading-relaxed text-[11px]">${sub.advice}</div>
+              </div>
+            `;
+          });
+        } else {
+          diagCard.classList.add('hidden');
+        }
+      }
+    }
+
+    function renderParentRadar(labels, scores, avgs, showClassAvg) {
+      const ctx = document.getElementById('pRadarChart').getContext('2d');
+      if (pRadarInst) pRadarInst.destroy();
+
+      const datasets = [
+        {
+          label: '個人得分',
+          data: scores,
+          backgroundColor: 'rgba(79, 70, 229, 0.25)',
+          borderColor: 'rgba(79, 70, 229, 1)',
+          borderWidth: 2,
+          pointBackgroundColor: 'rgba(79, 70, 229, 1)'
+        }
+      ];
+
+      if (showClassAvg) {
+        datasets.push({
+          label: '班級各科平均',
+          data: avgs,
+          backgroundColor: 'rgba(148, 163, 184, 0.2)',
+          borderColor: 'rgba(148, 163, 184, 1)',
+          borderWidth: 1.5,
+          borderDash: [3, 3]
+        });
+      }
+
+      pRadarInst = new Chart(ctx, {
+        type: 'radar',
+        data: {
+          labels: labels,
+          datasets: datasets
+        },
+        options: {
+          responsive: true,
+          scales: {
+            r: {
+              min: 0,
+              max: 100,
+              ticks: { stepSize: 25, display: false },
+              pointLabels: { font: { size: 11, weight: 'bold' } }
+            }
+          },
+          plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } }
+          }
+        }
+      });
+    }
+
+    function renderParentTrend(exams) {
+      const ctx = document.getElementById('pTrendChart').getContext('2d');
+      if (pTrendInst) pTrendInst.destroy();
+
+      const labels = exams.map(e => e.examTitle || e.sheetName);
+      const avgs = exams.map(e => e.studentAverage);
+
+      pTrendInst = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: '個人平均成績',
+            data: avgs,
+            borderColor: 'rgba(79, 70, 229, 1)',
+            backgroundColor: 'rgba(79, 70, 229, 0.1)',
+            fill: true,
+            tension: 0.3,
+            pointRadius: 5,
+            pointBackgroundColor: 'rgba(79, 70, 229, 1)'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: { min: 40, max: 100, ticks: { stepSize: 15 } }
+          },
+          plugins: {
+            legend: { display: false }
+          }
+        }
+      });
+    }
+
+    function buildDemoExamsForStudent(student) {
+      const isXiaoMing = student.seatNumber === '01' || student.name === '陳小明';
+      const exam1 = {
+        examTitle: '114學年度第1學期期中考',
+        sheetName: '114-1期中考',
+        studentAverage: isXiaoMing ? 77.0 : 79.5,
+        studentRank: isXiaoMing ? 12 : 5,
+        totalStudents: 24,
+        classOverallAverage: 76.5,
+        subjects: [
+          { name: '國語', score: isXiaoMing ? 88 : 86, classAverage: 79.8, diff: isXiaoMing ? 8.2 : 6.2, pr: isXiaoMing ? 75 : 68, zone: '精熟', zoneStatus: '精熟表現區間', advice: GRADE_INTERPR_ADVICE['國語'].leading[0] },
+          { name: '數學', score: isXiaoMing ? 70 : 74, classAverage: 75.3, diff: isXiaoMing ? -5.3 : -1.3, pr: isXiaoMing ? 42 : 52, zone: '努力', zoneStatus: '努力成長區間', advice: GRADE_INTERPR_ADVICE['數學'].improving[0] },
+          { name: '社會', score: isXiaoMing ? 77 : 81, classAverage: 78.1, diff: isXiaoMing ? -1.1 : 2.9, pr: isXiaoMing ? 55 : 64, zone: '穩健', zoneStatus: '穩健發揮區間', advice: GRADE_INTERPR_ADVICE['社會'].leading[0] },
+          { name: '英文', score: isXiaoMing ? 100 : 79, classAverage: 74.2, diff: isXiaoMing ? 25.8 : 4.8, pr: isXiaoMing ? 98 : 65, zone: '精熟', zoneStatus: '精熟表現區間', advice: GRADE_INTERPR_ADVICE['英文'].leading[0] },
+          { name: '自然', score: isXiaoMing ? 57 : 69, classAverage: 75.0, diff: isXiaoMing ? -18.0 : -6.0, pr: isXiaoMing ? 22 : 45, zone: '開發', zoneStatus: '開發潛力區間', advice: GRADE_INTERPR_ADVICE['自然'].improving[0] }
+        ]
+      };
+
+      const exam2 = {
+        examTitle: '114學年度第1學期期末考',
+        sheetName: '114-1期末考',
+        studentAverage: isXiaoMing ? 83.2 : 82.0,
+        studentRank: isXiaoMing ? 7 : 4,
+        totalStudents: 24,
+        classOverallAverage: 78.2,
+        subjects: [
+          { name: '國語', score: isXiaoMing ? 92 : 88, classAverage: 81.2, diff: isXiaoMing ? 10.8 : 6.8, pr: isXiaoMing ? 85 : 72, zone: '精熟', zoneStatus: '精熟表現區間', advice: GRADE_INTERPR_ADVICE['國語'].leading[0] },
+          { name: '數學', score: isXiaoMing ? 78 : 76, classAverage: 76.5, diff: isXiaoMing ? 1.5 : -0.5, pr: isXiaoMing ? 58 : 54, zone: '穩健', zoneStatus: '穩健發揮區間', advice: GRADE_INTERPR_ADVICE['數學'].leading[0] },
+          { name: '社會', score: isXiaoMing ? 82 : 84, classAverage: 79.5, diff: isXiaoMing ? 2.5 : 4.5, pr: isXiaoMing ? 68 : 72, zone: '穩健', zoneStatus: '穩健發揮區間', advice: GRADE_INTERPR_ADVICE['社會'].leading[0] },
+          { name: '英文', score: isXiaoMing ? 96 : 82, classAverage: 76.0, diff: isXiaoMing ? 20.0 : 6.0, pr: isXiaoMing ? 95 : 70, zone: '精熟', zoneStatus: '精熟表現區間', advice: GRADE_INTERPR_ADVICE['英文'].leading[0] },
+          { name: '自然', score: isXiaoMing ? 68 : 73, classAverage: 77.8, diff: isXiaoMing ? -9.8 : -4.8, pr: isXiaoMing ? 38 : 50, zone: '努力', zoneStatus: '努力成長區間', advice: GRADE_INTERPR_ADVICE['自然'].improving[0] }
+        ]
+      };
+
+      return [exam1, exam2];
+    }
+
+    function transformFlatRecordsToExams(records) {
+      if (!records || records.length === 0) return [];
+      const examMap = {};
+      records.forEach(r => {
+        const key = r.examKey || r.examName || r.sheetName;
+        if (!examMap[key]) {
+          examMap[key] = {
+            examTitle: r.examName || key,
+            sheetName: r.sheetName || key,
+            studentAverage: 0,
+            studentRank: 1,
+            totalStudents: 1,
+            classOverallAverage: 0,
+            subjects: []
+          };
+        }
+        examMap[key].subjects.push({
+          name: r.subject,
+          score: r.score,
+          classAverage: r.average,
+          diff: Math.round((r.score - r.average) * 10) / 10,
+          pr: r.pr,
+          zone: r.zone,
+          zoneStatus: r.zoneStatus,
+          advice: r.diagnosis
+        });
+      });
+      return Object.values(examMap);
+    }
+  </script>
+</body>
+</html>
