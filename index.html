@@ -66,7 +66,7 @@
               <span>未連線</span>
             </span>
           </div>
-          <p class="text-xs text-slate-400">專為老師設計的成績發布、診斷與 QR Code 列印系統</p>
+          <p class="text-xs text-slate-400">每次考試一個新分頁 ‧ 僅需原始分數 ‧ 網站全自動計算平均與排名</p>
         </div>
       </div>
 
@@ -76,7 +76,7 @@
           🚀 4 步設定精靈
         </button>
         <button onclick="switchTab('dataHelper')" id="tabBtn-dataHelper" class="tab-btn px-4 py-1.5 rounded-lg hover:text-slate-900 transition">
-          🔄 成績轉置小幫手
+          🧮 成績試算小幫手
         </button>
         <button onclick="switchTab('printCenter')" id="tabBtn-printCenter" class="tab-btn px-4 py-1.5 rounded-lg hover:text-slate-900 transition">
           🖨️ QR Code 列印中心
@@ -109,7 +109,7 @@
           <div class="w-8 h-8 rounded-lg bg-indigo-600 text-white font-bold flex items-center justify-center text-sm">1</div>
           <div>
             <div class="text-xs text-slate-400 font-medium">第 1 步</div>
-            <div class="text-sm font-bold text-slate-800">建立試算表範本</div>
+            <div class="text-sm font-bold text-slate-800">建立試算表分頁</div>
           </div>
         </div>
         <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
@@ -123,7 +123,7 @@
           <div class="w-8 h-8 rounded-lg bg-slate-200 text-slate-700 font-bold flex items-center justify-center text-sm">3</div>
           <div>
             <div class="text-xs text-slate-400 font-medium">第 3 步</div>
-            <div class="text-sm font-bold text-slate-800">連線與資料檢核</div>
+            <div class="text-sm font-bold text-slate-800">連線與自動計算</div>
           </div>
         </div>
         <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
@@ -136,25 +136,121 @@
       </div>
 
       <!-- 步驟 1 卡片 -->
-      <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+      <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
         <div class="flex items-start justify-between gap-4">
           <div class="flex items-center gap-3">
             <span class="w-7 h-7 rounded-full bg-indigo-100 text-indigo-700 font-bold text-sm flex items-center justify-center">1</span>
-            <h2 class="text-lg font-bold text-slate-900">建立專屬的 Google 試算表</h2>
+            <div>
+              <h2 class="text-lg font-bold text-slate-900">試算表分頁格式：每次考試建立一個新分頁</h2>
+              <p class="text-xs text-indigo-600 font-semibold mt-0.5">✨ 老師免手動計算！各科平均、個人平均、班級排名、PR值與評語全部交給網站自動計算</p>
+            </div>
           </div>
-          <span class="text-xs bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full font-semibold border border-emerald-200">免手刻欄位</span>
+          <span class="text-xs bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full font-semibold border border-emerald-200">免公式・免轉置</span>
         </div>
-        <p class="text-sm text-slate-600 mt-2 mb-4 leading-relaxed">
-          為了讓您免去手動打標題的麻煩，您可以直接複製標準格式的試算表範本。試算表內已預設好兩個核心分頁：<span class="font-bold text-indigo-600">【學生名冊】</span> 與 <span class="font-bold text-indigo-600">【成績明細】</span>。
+
+        <p class="text-sm text-slate-600 leading-relaxed">
+          為了讓您最輕鬆，系統全面支援<b>「每次考試一個新分頁」</b>架構！您只需要在每個考試分頁貼上<b>學生的原始分數</b>，其他所有複雜運算全由網站與程式自動處理：
         </p>
 
-        <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-3 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div>
-            <div class="font-bold text-sm text-slate-800">📄 依您的需求設定之標準試算表結構</div>
-            <div class="text-xs text-slate-500 mt-1.5 space-y-1">
-              <div>• <b>【學生名冊】</b>：A: 班級 | B: 座號 | C: 姓名 | D: 專屬代碼 (系統自動產生) | E: 啟用狀態 (TRUE)</div>
-              <div>• <b>【成績明細】</b>：座號 | 學年度 | 學期 | 考試名稱 | 科目 | 個人得分 | 班級平均 | PR值 (可由網站自動計算) | 解讀評語</div>
+        <!-- 試算表結構模擬圖 -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <!-- 分頁 1 說明 -->
+          <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-bold text-xs text-indigo-900 bg-indigo-100/80 px-2 py-0.5 rounded">核心分頁 1：【學生名冊】</span>
+              <span class="text-[11px] text-slate-400">每學期建置一次即可</span>
             </div>
+            <p class="text-xs text-slate-500 mb-2.5">記錄學生基本資訊與防偽 6 碼查詢代碼（保護隱私）：</p>
+            <div class="overflow-x-auto">
+              <table class="w-full text-[11px] border-collapse bg-white rounded-lg overflow-hidden border border-slate-200">
+                <thead class="bg-indigo-900 text-white font-bold">
+                  <tr>
+                    <th class="p-1.5 border border-indigo-800 text-center">班級</th>
+                    <th class="p-1.5 border border-indigo-800 text-center">座號</th>
+                    <th class="p-1.5 border border-indigo-800 text-center">姓名</th>
+                    <th class="p-1.5 border border-indigo-800 text-center">專屬代碼</th>
+                    <th class="p-1.5 border border-indigo-800 text-center">啟用狀態</th>
+                  </tr>
+                </thead>
+                <tbody class="text-slate-600 font-mono text-center">
+                  <tr>
+                    <td class="p-1 border border-slate-200">701</td>
+                    <td class="p-1 border border-slate-200">01</td>
+                    <td class="p-1 border border-slate-200 font-sans">陳小明</td>
+                    <td class="p-1 border border-slate-200 text-indigo-600 font-bold">A8k9Zm</td>
+                    <td class="p-1 border border-slate-200 text-emerald-600">TRUE</td>
+                  </tr>
+                  <tr>
+                    <td class="p-1 border border-slate-200">701</td>
+                    <td class="p-1 border border-slate-200">02</td>
+                    <td class="p-1 border border-slate-200 font-sans">陳小華</td>
+                    <td class="p-1 border border-slate-200 text-indigo-600 font-bold">7xQ2Wp</td>
+                    <td class="p-1 border border-slate-200 text-emerald-600">TRUE</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="text-[11px] text-indigo-700 mt-2 font-medium">
+              💡 貼心工具：貼上考試成績後，只要點選試算表選單【⚡ MPScore 工具 > 🔄 從最新考試分頁同步名冊】，系統會自動從成績單帶入座號與姓名並一鍵產生代碼！
+            </div>
+          </div>
+
+          <!-- 分頁 2 說明 -->
+          <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-bold text-xs text-indigo-900 bg-indigo-100/80 px-2 py-0.5 rounded">考試分頁（如：【114-1期中考】、【114-1期末考】）</span>
+              <span class="text-[11px] text-emerald-700 font-bold">每考一次就「+」新分頁</span>
+            </div>
+            <p class="text-xs text-slate-500 mb-2.5">完全依照您的真實表格格式，僅需上傳原始分數：</p>
+            <div class="overflow-x-auto">
+              <table class="w-full text-[11px] border-collapse bg-white rounded-lg overflow-hidden border border-slate-200">
+                <thead>
+                  <tr class="bg-slate-800 text-white font-bold">
+                    <th colspan="7" class="p-1 text-center">114學年度第2學期期中考</th>
+                  </tr>
+                  <tr class="bg-slate-700 text-white font-bold text-center">
+                    <th class="p-1.5 border border-slate-600">座號</th>
+                    <th class="p-1.5 border border-slate-600">姓名</th>
+                    <th class="p-1.5 border border-slate-600">國語</th>
+                    <th class="p-1.5 border border-slate-600">數學</th>
+                    <th class="p-1.5 border border-slate-600">社會</th>
+                    <th class="p-1.5 border border-slate-600">英文</th>
+                    <th class="p-1.5 border border-slate-600">自然</th>
+                  </tr>
+                </thead>
+                <tbody class="text-slate-600 font-mono text-center">
+                  <tr>
+                    <td class="p-1 border border-slate-200">01</td>
+                    <td class="p-1 border border-slate-200 font-sans">陳小明</td>
+                    <td class="p-1 border border-slate-200">88</td>
+                    <td class="p-1 border border-slate-200">70</td>
+                    <td class="p-1 border border-slate-200">77</td>
+                    <td class="p-1 border border-slate-200">100</td>
+                    <td class="p-1 border border-slate-200">57</td>
+                  </tr>
+                  <tr>
+                    <td class="p-1 border border-slate-200">02</td>
+                    <td class="p-1 border border-slate-200 font-sans">陳小華</td>
+                    <td class="p-1 border border-slate-200">86</td>
+                    <td class="p-1 border border-slate-200">74</td>
+                    <td class="p-1 border border-slate-200">81</td>
+                    <td class="p-1 border border-slate-200">79</td>
+                    <td class="p-1 border border-slate-200">69</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="text-[11px] text-emerald-800 mt-2 font-medium bg-emerald-50 p-2 rounded-lg border border-emerald-200">
+              ⚡ <b>全自動計算</b>：您無需手算「平均」或「排名」，也不需打底部的統計列！網站會自動即時計算出各科班平均、個人總平均、排名、PR值、雷達圖與學習診斷評語！
+            </div>
+          </div>
+        </div>
+
+        <!-- 快速捷徑操作區 -->
+        <div class="flex flex-wrap items-center justify-between gap-3 p-4 bg-indigo-50/70 rounded-xl border border-indigo-200">
+          <div>
+            <div class="font-bold text-xs text-indigo-950">✨ 最省力的零手刻建置法（推薦）：</div>
+            <div class="text-xs text-indigo-800 mt-0.5">點擊右側按鈕開啟一張全新的空白試算表，按照【步驟 2】貼上程式碼，點選上方選單即可一鍵自動建置完成！</div>
           </div>
           <div class="flex gap-2">
             <button onclick="downloadCsvTemplates()" class="text-xs font-semibold bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 px-3 py-2 rounded-lg transition shadow-sm">
@@ -165,17 +261,6 @@
             </a>
           </div>
         </div>
-
-        <!-- 一鍵全自動建置提示 -->
-        <div class="p-3.5 bg-indigo-50/70 rounded-xl border border-indigo-200 text-xs text-indigo-950 leading-relaxed">
-          <div class="font-bold text-indigo-900 mb-1 flex items-center gap-1.5">
-            <span>✨ 零手刻建置法（最強推薦・免手動打任何欄位）：</span>
-          </div>
-          <div>1. 點擊上方按鈕建立一張<b>完全空白的 Google 試算表</b>。</div>
-          <div>2. 按照【步驟 2】在擴充功能貼上後端程式碼。</div>
-          <div>3. 重新整理試算表，點選上方選單 <b>【⚡ MPScore 工具 > 🛠️ 一鍵自動建立標準分頁與欄位】</b>。</div>
-          <div class="text-indigo-700 font-medium mt-1">➔ 系統會瞬間自動幫您把【學生名冊】與【成績明細】的所有標準欄位、顏色與示範資料全部建置好！</div>
-        </div>
       </div>
 
       <!-- 步驟 2 卡片 -->
@@ -185,7 +270,7 @@
           <h2 class="text-lg font-bold text-slate-900">在試算表貼上後端程式碼 (只需做一次)</h2>
         </div>
         <p class="text-sm text-slate-600 mb-4">
-          這段程式碼負責在後端過濾成績，確保學生無法看到其他人的成績。請依下列圖解三步驟操作：
+          這段程式碼負責在後端自動精算各分頁成績，確保每位家長只能查到自己孩子的成績。請依下列圖解三動作操作：
         </p>
 
         <!-- 圖解步驟 -->
@@ -201,9 +286,9 @@
             <p class="text-xs text-slate-500 leading-relaxed">清空編輯器中原本的代碼，點擊下方按鈕複製後整段貼上，並按上方磁碟圖示儲存。</p>
           </div>
           <div class="bg-indigo-50/50 rounded-xl p-4 border border-indigo-100">
-            <div class="text-xs font-bold text-indigo-700 mb-1">動作 C</div>
+            <div class="text-xs font-bold text-indigo-700 mb-1">動作 C (關鍵設定)</div>
             <div class="text-sm font-bold text-slate-800 mb-1">部署為網頁應用程式</div>
-            <p class="text-xs text-slate-500 leading-relaxed">點右上角「部署」>「新部署」，選「網頁應用程式」，身分選「我」，存取選「所有人」，點擊部署。</p>
+            <p class="text-xs text-slate-500 leading-relaxed">點右上角「部署」>「新部署」，選「網頁應用程式」，身分選<b>「我」</b>，存取權限務必選<b>【所有人 (Anyone)】</b>！</p>
           </div>
         </div>
 
@@ -214,7 +299,7 @@
             <span class="font-extrabold text-sm text-amber-900">重要必看：Google 帳號授權 4 步解鎖（看到安全性警示不要慌！）</span>
           </div>
           <p class="text-xs text-amber-800 leading-relaxed">
-            第一次部署或點選建表工具時，Google 會跳出「要求授予資料存取權」，這是 Google 確認您授權自己的程式讀取試算表的標準流程，請依下列步驟點擊：
+            第一次點選部署或試算表選單建表時，Google 會跳出「要求授予資料存取權」，這是 Google 確認您授權自己的程式讀取試算表的標準流程，請依下列步驟點擊：
           </p>
           <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5 text-xs">
             <div class="bg-white/90 p-3 rounded-xl border border-amber-200">
@@ -246,7 +331,7 @@
         <!-- 複製代碼區 -->
         <div class="flex items-center justify-between p-3 bg-slate-900 rounded-xl text-white">
           <div class="text-xs text-slate-300 font-mono">
-            // MPScore 後端程式碼 (Code.gs)
+            // MPScore 多分頁全自動計算後端程式碼 (Code.gs)
           </div>
           <button onclick="copyGasCode()" id="copyCodeBtn" class="text-xs font-bold bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1.5 rounded-lg transition flex items-center gap-1">
             <span>📋 一鍵複製完整程式碼</span>
@@ -261,7 +346,7 @@
           <h2 class="text-lg font-bold text-slate-900">連線檢測與解讀平台設定</h2>
         </div>
         <p class="text-sm text-slate-600 mb-4">
-          將部署完成後取得的網址貼入下方進行驗證，您也可以在此設定「成績單解讀平台」的連線網址：
+          將部署完成後取得的網址貼入下方進行驗證，系統會自動檢測您的試算表分頁與學生名冊：
         </p>
 
         <div class="space-y-3 mb-3">
@@ -278,18 +363,17 @@
 
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">
-              2. 成績單解讀平台 API 網址 (選填，若有外部解讀網站可在此串接)：
+              2. 成績單解讀平台 (GradeInterpr) 整合：
             </label>
-            <div class="flex gap-2">
-              <input type="text" id="aiDiagApiInput" placeholder="例如：https://your-diagnostic-service.com/api/getFeedback" 
-                     class="flex-1 px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs font-mono">
-              <button onclick="saveDiagApi()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl transition text-xs">
-                儲存設定
-              </button>
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600 flex items-center justify-between">
+              <div>
+                <span class="font-bold text-slate-800">✅ 系統已內建楊家驊老師 GradeInterpr 專家學習診斷資料庫！</span>
+                <div class="text-[11px] text-slate-500 mt-0.5">自動依各科落點（精熟、穩健、努力、開發四區間）提供國、數、社、英、自五大學科的專家精進建議。</div>
+              </div>
+              <a href="https://chy23.github.io/GradeInterpr/" target="_blank" class="text-indigo-600 hover:underline font-bold text-xs whitespace-nowrap">
+                參觀 GradeInterpr 平台 ↗
+              </a>
             </div>
-            <p class="text-[11px] text-slate-400 mt-1">
-              💡 若未設定外部解讀 API，系統會優先讀取試算表中的【解讀評語】欄位；若試算表未填，網站會啟動內建學習診斷引擎自動給予適性建議。
-            </p>
           </div>
         </div>
 
@@ -316,61 +400,39 @@
     </section>
 
     <!-- ========================================== -->
-    <!-- 分頁 2: 成績轉置小幫手 (Data Formatter)   -->
+    <!-- 分頁 2: 成績試算小幫手 (Data Calculator) -->
     <!-- ========================================== -->
     <section id="tabContent-dataHelper" class="tab-content hidden space-y-6">
       <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
         <div class="flex items-center justify-between mb-3">
-          <h2 class="text-lg font-bold text-slate-900">📥 批次新增考試成績小幫手 (支援多次考試累加與成長對比)</h2>
-          <span class="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-full font-semibold border border-indigo-200">歷史資料不覆蓋</span>
+          <h2 class="text-lg font-bold text-slate-900">🧮 原始成績即時試算小幫手 (線上驗證)</h2>
+          <span class="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-full font-semibold border border-indigo-200">僅需原始成績</span>
         </div>
         <p class="text-sm text-slate-600 mb-4 leading-relaxed">
-          每次段考或模擬考，您**完全不需要刪除舊考試**！只要在下方設定「學期與考試名稱（如：第二次段考）」，貼上新的 Excel 成績，點擊【⚡ 一鍵新增至試算表】，系統會自動接在【成績明細】最下方。家長端便會自動產生<b>本次 vs 上次進退步對比</b>與<b>歷次成長折線圖</b>！
+          想快速驗證系統如何自動計算？只要在左側貼上您的原始表格（座號、姓名、國語、數學、社會、英文、自然），點擊【⚡ 開始自動試算】，系統會立刻為您算好<b>各科班平均、個人總平均、班級排名與 PR 值</b>！
         </p>
-
-        <!-- 考試設定 -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
-          <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1">學年度</label>
-            <input type="text" id="toolYear" value="112" class="w-full text-xs px-3 py-2 rounded-lg border border-slate-300">
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1">學期</label>
-            <input type="text" id="toolSemester" value="1" class="w-full text-xs px-3 py-2 rounded-lg border border-slate-300">
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1">考試名稱 (如：第二次段考)</label>
-            <input type="text" id="toolExamName" value="第二次段考" class="w-full text-xs px-3 py-2 rounded-lg border border-slate-300">
-          </div>
-        </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <!-- 左側輸入 -->
           <div>
             <div class="flex items-center justify-between mb-1.5">
-              <label class="text-xs font-bold text-slate-700">1. 從 Excel 貼上（含標題列）：</label>
-              <button onclick="fillSampleExcelData()" class="text-[11px] text-indigo-600 hover:underline">帶入範例數據</button>
+              <label class="text-xs font-bold text-slate-700">1. 貼上原始成績（可直接從 Excel/試算表複製）：</label>
+              <button onclick="fillSampleScoresData()" class="text-[11px] text-indigo-600 hover:underline">帶入真實班級示範數據</button>
             </div>
-            <textarea id="rawExcelInput" rows="10" placeholder="座號	姓名	國文	英文	數學
-01	王小明	85	90	78
-02	李小華	92	88	95" class="w-full p-3 font-mono text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
-            <button onclick="convertHorizontalScores()" class="mt-2 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 rounded-xl text-xs transition">
-              ⚡ 開始轉換成標準格式
+            <textarea id="rawExcelInput" rows="12" placeholder="座號	姓名	國語	數學	社會	英文	自然&#10;01	陳小明	88	70	77	100	57&#10;02	陳小華	86	74	81	79	69&#10;03	陳大美	84	90	81	86	90" class="w-full p-3 font-mono text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
+            <button onclick="calculateRawScoresOnline()" class="mt-2 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 rounded-xl text-xs transition">
+              ⚡ 開始自動試算班級平均與排名
             </button>
           </div>
 
           <!-- 右側輸出 -->
           <div>
             <div class="flex items-center justify-between mb-1.5">
-              <label class="text-xs font-bold text-slate-700">2. 轉換結果（可直接複製或一鍵寫入）：</label>
-              <div class="flex gap-1.5">
-                <button onclick="copyConvertedData()" id="copyConvertedBtn" class="text-[11px] bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-0.5 rounded font-bold">複製結果</button>
-                <button onclick="appendConvertedScoresToSheet()" id="appendScoresBtn" class="text-[11px] bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-0.5 rounded font-bold transition flex items-center gap-1">
-                  <span>⚡ 一鍵新增至試算表</span>
-                </button>
-              </div>
+              <label class="text-xs font-bold text-slate-700">2. 系統自動試算結果（免手算）：</label>
             </div>
-            <textarea id="convertedOutput" rows="10" readonly placeholder="轉換後的直式資料將呈現於此..." class="w-full p-3 font-mono text-xs border border-slate-300 rounded-xl bg-slate-50 text-slate-600"></textarea>
+            <div id="calcPreviewResult" class="p-4 rounded-xl border border-slate-200 bg-slate-50 text-xs min-h-[280px] max-h-[340px] overflow-y-auto space-y-3">
+              <div class="text-slate-400 text-center py-10">請點擊左側「帶入真實班級示範數據」並點擊「開始自動試算」</div>
+            </div>
           </div>
         </div>
       </div>
@@ -417,9 +479,8 @@
       <!-- A4 列印預覽容器 -->
       <div id="printArea" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
         <div id="cardsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- 小卡將由 JS 動態生成填入 -->
           <div class="text-center py-12 text-slate-400 text-sm col-span-2">
-            目前尚未載入學生名單。請點選上方【從試算表同步名單】或先至【第 3 步】完成連線。
+            正在載入示範學生小卡...
           </div>
         </div>
       </div>
@@ -439,8 +500,6 @@
           <div class="flex items-center gap-2">
             <label class="text-xs font-bold text-slate-600">測試學生：</label>
             <select id="previewStudentSelect" onchange="loadPreviewForSelectedStudent()" class="text-xs font-semibold border border-slate-300 rounded-lg px-3 py-1.5 bg-white">
-              <option value="DEMO1">示範生：王小明 (Token: DEMO1)</option>
-              <option value="DEMO2">示範生：李小華 (Token: DEMO2)</option>
             </select>
           </div>
         </div>
@@ -448,15 +507,9 @@
         <!-- 手機模型展示框 -->
         <div class="max-w-[420px] mx-auto bg-slate-800 p-3 rounded-[36px] shadow-2xl border-4 border-slate-700">
           <div class="bg-slate-50 rounded-[28px] overflow-hidden min-h-[620px] max-h-[700px] overflow-y-auto p-4 border border-slate-200 text-xs">
-            
-            <!-- 模擬手機畫面內嵌內容 -->
             <div id="sandboxMobileView" class="space-y-4">
-              <div class="text-center py-8">
-                <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-indigo-600 border-t-transparent"></div>
-                <p class="text-xs text-slate-400 mt-2">載入預覽數據中...</p>
-              </div>
+              <!-- 模擬內容動態渲染 -->
             </div>
-
           </div>
         </div>
       </div>
@@ -466,10 +519,10 @@
 
   <!-- ==================== 純淨家長查詢前台 (Parent Portal) ==================== -->
   <div id="parentPortal" class="hidden min-h-screen bg-slate-50 pb-16">
-    <header class="bg-indigo-700 text-white py-4 px-4 text-center shadow-md">
+    <header class="bg-indigo-700 text-white py-4 px-4 text-center shadow-md sticky top-0 z-40">
       <div class="max-w-md mx-auto flex items-center justify-between">
         <div class="text-left">
-          <h1 class="text-base font-bold tracking-tight" id="parentPortalTitle">個別成績與學習診斷系統</h1>
+          <h1 class="text-base font-bold tracking-tight">個別成績與學習診斷系統</h1>
           <p class="text-[11px] text-indigo-200">資安保護 ‧ 個別化學習成效回饋</p>
         </div>
         <button onclick="exitParentMode()" class="text-[11px] bg-indigo-600/60 hover:bg-indigo-600 text-indigo-100 px-2.5 py-1 rounded border border-indigo-400/40">
@@ -484,7 +537,7 @@
       <div id="parentLoginBox" class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
         <label class="block text-xs font-bold text-slate-700 mb-1.5 text-center">請輸入學生專屬 6 碼查詢代碼</label>
         <div class="flex gap-2">
-          <input type="text" id="parentTokenInput" placeholder="例如：A8k9Zm" class="flex-1 px-3 py-2 text-center uppercase tracking-widest font-mono border border-slate-300 rounded-xl text-base font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <input type="text" id="parentTokenInput" placeholder="例如：DEMO01" class="flex-1 px-3 py-2 text-center uppercase tracking-widest font-mono border border-slate-300 rounded-xl text-base font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500">
           <button onclick="doParentQuery()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-xl text-sm transition">
             查詢
           </button>
@@ -496,28 +549,46 @@
       <div id="parentScoreResult" class="hidden space-y-4">
         
         <!-- 學生卡片 -->
-        <div class="bg-gradient-to-r from-indigo-600 to-indigo-800 text-white rounded-2xl p-4 shadow-md flex items-center justify-between">
-          <div>
-            <div class="text-xl font-black" id="pStudentName">--</div>
-            <div class="text-xs text-indigo-200 mt-0.5">學號：<span id="pStudentId">--</span> ‧ 班級：<span id="pClassName">--</span></div>
+        <div class="bg-gradient-to-r from-indigo-600 to-indigo-800 text-white rounded-2xl p-4 shadow-md space-y-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="text-xl font-black" id="pStudentName">--</div>
+              <div class="text-xs text-indigo-200 mt-0.5"><span id="pClassName">--</span> ‧ 座號：<span id="pSeatNumber">--</span> 號</div>
+            </div>
+            <select id="pExamSelect" onchange="renderSelectedExamView()" class="text-xs bg-white text-slate-800 font-bold px-3 py-1.5 rounded-lg focus:outline-none shadow-sm"></select>
           </div>
-          <select id="pExamSelect" onchange="renderParentExamDetails()" class="text-xs bg-white text-slate-800 font-bold px-2 py-1.5 rounded-lg focus:outline-none shadow-sm"></select>
+
+          <!-- 3 大關鍵指標徽章 (全自動精算) -->
+          <div class="grid grid-cols-3 gap-2 pt-2 border-t border-indigo-500/50 text-center">
+            <div class="bg-white/10 rounded-xl p-2 backdrop-blur-sm">
+              <div class="text-[10px] text-indigo-200">個人總平均</div>
+              <div class="text-base font-black text-white" id="pStudentAverage">--</div>
+            </div>
+            <div class="bg-white/10 rounded-xl p-2 backdrop-blur-sm">
+              <div class="text-[10px] text-indigo-200">班級名次</div>
+              <div class="text-base font-black text-amber-300" id="pStudentRank">--</div>
+            </div>
+            <div class="bg-white/10 rounded-xl p-2 backdrop-blur-sm">
+              <div class="text-[10px] text-indigo-200">全班總平均</div>
+              <div class="text-base font-black text-indigo-100" id="pClassOverallAvg">--</div>
+            </div>
+          </div>
         </div>
 
         <!-- 雷達圖 -->
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
           <div class="font-bold text-xs text-slate-700 mb-2 flex justify-between">
-            <span>🎯 本次各科雷達向度圖</span>
-            <span class="text-slate-400 font-normal">個人 vs 班級平均</span>
+            <span>🎯 本次各科能力雷達圖</span>
+            <span class="text-slate-400 font-normal">個人 vs 班級各科平均</span>
           </div>
           <div class="max-w-[260px] mx-auto aspect-square">
             <canvas id="pRadarChart"></canvas>
           </div>
         </div>
 
-        <!-- 歷年趨勢圖 -->
+        <!-- 歷次成長趨勢圖 -->
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
-          <div class="font-bold text-xs text-slate-700 mb-2">📈 歷次成績成長曲線</div>
+          <div class="font-bold text-xs text-slate-700 mb-2">📈 歷次考試成長曲線</div>
           <div class="h-[200px]">
             <canvas id="pTrendChart"></canvas>
           </div>
@@ -527,19 +598,21 @@
         <div id="pComparisonCard" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
           <div class="flex items-center justify-between border-b pb-2">
             <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-              <span>🚀 跨次考試成長對比</span>
+              <span>🚀 跨次考試進退步對比</span>
               <span id="pPrevExamName" class="text-[10px] text-slate-400 font-normal"></span>
             </span>
             <span id="pComparisonBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">--</span>
           </div>
           <div id="pComparisonList" class="grid grid-cols-2 gap-2 text-xs">
-            <!-- 各科進退步由 JS 動態填入 -->
           </div>
         </div>
 
         <!-- 數據列表 -->
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-          <div class="p-3 border-b border-slate-100 font-bold text-xs text-slate-800">📋 本次成績明細</div>
+          <div class="p-3 border-b border-slate-100 font-bold text-xs text-slate-800 flex justify-between items-center">
+            <span>📋 各科成績與常模明細</span>
+            <span class="text-[10px] text-indigo-600 font-medium">免手算 ‧ 系統自動精算</span>
+          </div>
           <table class="w-full text-left text-xs">
             <thead class="bg-slate-50 text-slate-500">
               <tr>
@@ -557,7 +630,7 @@
         <!-- 診斷建議 -->
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
           <div class="flex items-center justify-between mb-3">
-            <div class="font-bold text-xs text-slate-800">💡 學習診斷與精進建議</div>
+            <div class="font-bold text-xs text-slate-800">💡 學習診斷與適性精進建議</div>
             <a href="https://chy23.github.io/GradeInterpr/" target="_blank" class="text-[10px] text-indigo-600 hover:text-indigo-800 font-semibold bg-indigo-50 px-2 py-0.5 rounded-full flex items-center gap-1 border border-indigo-200/50">
               <span>GradeInterpr 平台</span> ↗
             </a>
@@ -589,13 +662,11 @@
       '國文': {
         leading: [
           "你對文字的敏感度很高，可以多接觸不同背景的文學作品，練習體會文字背後的弦外之音。",
-          "嘗試將閱讀後的感想與生活連結，這能幫助你將零散的思緒整理成更有系統的觀點。",
-          "在閱讀長篇文章後，練習提取幾個關鍵概念，這對掌握複雜文本非常有幫助。"
+          "嘗試將閱讀後的感想與生活連結，這能幫助你將零散的思緒整理成更有系統的觀點。"
         ],
         improving: [
           "建議透過『大聲朗讀』來感受課文的語氣與節奏，這對於建立語感很有幫助。",
-          "可以試著將課文中的優美詞彙應用在平日的簡短紀錄中，這會讓這些文字真正變成你的。",
-          "先從自己感興趣的故事主題開始讀起，累積對文字的親近感，閱讀會變得越來越輕鬆。"
+          "可以試著將課文中的優美詞彙應用在平日的簡短紀錄中，這會讓這些文字真正變成你的。"
         ]
       },
       '數學': {
@@ -610,16 +681,16 @@
           "遇到卡住的題目時，可以換個心情再回頭看，或者試著畫出圖表來幫助大腦思考。"
         ]
       },
-      '英語': {
+      '社會': {
         leading: [
-          "你的語感表現優異，可以開始接觸課外的英文讀物或短片，挑戰更自然的語言環境。",
-          "練習聽不同背景的英文資源，這能提升你在真實生活情境中的聽力適應能力。",
-          "試著用英文寫下簡短的計畫或心情，讓語言成為你生活中自然的一部分。"
+          "你很擅長整理資訊，可以練習將不同時間的事件串聯起來，看見歷史或地理背後的因果。",
+          "關注一下最近的新聞時事，並思考課本內容在現實中是如何運作的，這能讓知識變得很立體。",
+          "試著從不同的社會角色來看同一件事，這能幫助你培養更全面、更具深度的思辨力。"
         ],
         improving: [
-          "英文需要時間來讓耳朵習慣。每天花幾分鐘聽聽朗讀，即便沒聽懂全部，也是在累積感度。",
-          "每天掌握幾個對你有意義、用得到的單字，積少成多會產生非常驚人的進步。",
-          "不要怕犯錯，試著勇敢讀出聲來。語言是溝通的橋樑，只要敢開口就是跨出了一大步。"
+          "社會科其實是許多精彩故事的集合。想像自己是當時的人，這能幫你理解為何會有那樣的發展。",
+          "對於複雜的資訊，可以試著用畫圖或拉時間軸的方式呈現，讓文字敘述變成圖像記憶。",
+          "可以從你喜歡的地圖、圖表或特定人物故事開始讀起，興趣是理解學科最好的動力。"
         ]
       },
       '英文': {
@@ -634,6 +705,16 @@
           "不要怕犯錯，試著勇敢讀出聲來。語言是溝通的橋樑，只要敢開口就是跨出了一大步。"
         ]
       },
+      '英語': {
+        leading: [
+          "你的語感表現優異，可以開始接觸課外的英文讀物或短片，挑戰更自然的語言環境。",
+          "練習聽不同背景的英文資源，這能提升你在真實生活情境中的聽力適應能力。"
+        ],
+        improving: [
+          "英文需要時間來讓耳朵習慣。每天花幾分鐘聽聽朗讀，即便沒聽懂全部，也是在累積感度。",
+          "每天掌握幾個對你有意義、用得到的單字，積少成多會產生非常驚人的進步。"
+        ]
+      },
       '自然': {
         leading: [
           "你擁有敏銳的觀察力。對於生活中的現象，試著用科學的視角去推論它發生的原因。",
@@ -645,49 +726,73 @@
           "試著將課本上的圖表與生活現象對照，找回對世界運作的好奇心，學習會更有動力。",
           "先從記錄你觀察到的細節開始。當你開始好奇『這是在做什麼？』時，你就跨出了第一步。"
         ]
-      },
-      '社會': {
-        leading: [
-          "你很擅長整理資訊，可以練習將不同時間的事件串聯起來，看見歷史或地理背後的因果。",
-          "關注一下最近的新聞時事，並思考課本內容在現實中是如何運作的，這能讓知識變得很立體。",
-          "試著從不同的社會角色來看同一件事，這能幫助你培養更全面、更具深度的思辨力。"
-        ],
-        improving: [
-          "社會科其實是許多精彩故事的集合。想像自己是當時的人，這能幫你理解為何會有那樣的發展。",
-          "對於複雜的資訊，可以試著用畫圖或拉時間軸的方式呈現，讓文字敘述變成圖像記憶。",
-          "可以從你喜歡的地圖、圖表或特定人物故事開始讀起，興趣是理解學科最好的動力。"
-        ]
       }
     };
 
-    // 預設示範數據 (提供無連線時的即時體驗)
+    // --- 真實班級示範數據（完全依據楊家驊老師成績單數據） ---
     const DEMO_STUDENTS = [
-      { studentId: '112001', name: '王小明', className: '701', seatNumber: '01', token: 'DEMO1' },
-      { studentId: '112002', name: '李小華', className: '701', seatNumber: '02', token: 'DEMO2' },
-      { studentId: '112003', name: '張小美', className: '701', seatNumber: '03', token: 'DEMO3' },
-      { studentId: '112004', name: '陳大文', className: '701', seatNumber: '04', token: 'DEMO4' }
+      { className: '701', seatNumber: '01', name: '陳小明', token: 'DEMO01', studentId: '701-01' },
+      { className: '701', seatNumber: '02', name: '陳小華', token: 'DEMO02', studentId: '701-02' },
+      { className: '701', seatNumber: '03', name: '陳大美', token: 'DEMO03', studentId: '701-03' },
+      { className: '701', seatNumber: '04', name: '陳志豪', token: 'DEMO04', studentId: '701-04' },
+      { className: '701', seatNumber: '06', name: '黃小琪', token: 'DEMO06', studentId: '701-06' },
+      { className: '701', seatNumber: '07', name: '李大偉', token: 'DEMO07', studentId: '701-07' },
+      { className: '701', seatNumber: '08', name: '林子涵', token: 'DEMO08', studentId: '701-08' },
+      { className: '701', seatNumber: '09', name: '凌雅婷', token: 'DEMO09', studentId: '701-09' }
     ];
 
-    const DEMO_SCORES = [
-      { year: '112', semester: '1', examName: '第一次段考', examKey: '112-1 第一次段考', subject: '國文', score: 88, average: 78.5, pr: 82, diagnosis: '閱讀理解能力出色，成語與文意掌握度高。' },
-      { year: '112', semester: '1', examName: '第一次段考', examKey: '112-1 第一次段考', subject: '英語', score: 92, average: 75.0, pr: 89, diagnosis: '文法與詞彙量豐富，聽力表現優異。' },
-      { year: '112', semester: '1', examName: '第一次段考', examKey: '112-1 第一次段考', subject: '數學', score: 74, average: 72.0, pr: 60, diagnosis: '基礎代數概念扎實，但幾何計算過程需加強驗算。' },
-      { year: '112', semester: '1', examName: '第一次段考', examKey: '112-1 第一次段考', subject: '自然', score: 85, average: 70.2, pr: 80, diagnosis: '實驗題型理解力佳，圖表判讀迅速。' },
-      { year: '112', semester: '1', examName: '第二次段考', examKey: '112-1 第二次段考', subject: '國文', score: 90, average: 79.0, pr: 85, diagnosis: '文言文題型表現亮眼，寫作能力持續進步。' },
-      { year: '112', semester: '1', examName: '第二次段考', examKey: '112-1 第二次段考', subject: '英語', score: 95, average: 76.2, pr: 93, diagnosis: '整體語感敏銳，閱讀測驗全對。' },
-      { year: '112', semester: '1', examName: '第二次段考', examKey: '112-1 第二次段考', subject: '數學', score: 86, average: 73.0, pr: 78, diagnosis: '計算錯誤率明顯下降，本次進步幅度顯著！' },
-      { year: '112', semester: '1', examName: '第二次段考', examKey: '112-1 第二次段考', subject: '自然', score: 88, average: 71.5, pr: 84, diagnosis: '物理與化學原理應用靈活。' }
+    // 示範 24 人真實原始成績 (第 1 次考試: 114學年度第2學期期中考)
+    const DEMO_RAW_EXAM1 = [
+      { seat: '01', name: '陳小明', scores: { '國語': 88, '數學': 70, '社會': 77, '英文': 100, '自然': 57 } },
+      { seat: '02', name: '陳小華', scores: { '國語': 86, '數學': 74, '社會': 81, '英文': 79, '自然': 69 } },
+      { seat: '03', name: '陳大美', scores: { '國語': 84, '數學': 90, '社會': 81, '英文': 86, '自然': 90 } },
+      { seat: '04', name: '陳志豪', scores: { '國語': 62, '數學': 80, '社會': 55, '英文': 55, '自然': 43 } },
+      { seat: '06', name: '黃小琪', scores: { '國語': 77, '數學': 76, '社會': 70, '英文': 92, '自然': 52 } },
+      { seat: '07', name: '李大偉', scores: { '國語': 92, '數學': 96, '社會': 96, '英文': 79, '自然': 89 } },
+      { seat: '08', name: '林子涵', scores: { '國語': 96, '數學': 96, '社會': 96, '英文': 98, '自然': 97 } },
+      { seat: '09', name: '凌雅婷', scores: { '國語': 72, '數學': 70, '社會': 80, '英文': 70, '自然': 58 } },
+      { seat: '10', name: '劉建銘', scores: { '國語': 69, '數學': 82, '社會': 79, '英文': 86, '自然': 79 } },
+      { seat: '11', name: '王冠宇', scores: { '國語': 47, '數學': 36, '社會': 45, '英文': 43, '自然': 30 } },
+      { seat: '12', name: '吳宗憲', scores: { '國語': 77, '數學': 76, '社會': 98, '英文': 56, '自然': 68 } },
+      { seat: '13', name: '嚴立婷', scores: { '國語': 89, '數學': 100, '社會': 94, '英文': 90, '自然': 85 } },
+      { seat: '14', name: '余承恩', scores: { '國語': 73, '數學': 64, '社會': 58, '英文': 64, '自然': 44 } },
+      { seat: '15', name: '嚴佳慧', scores: { '國語': 88, '數學': 90, '社會': 91, '英文': 97, '自然': 91 } },
+      { seat: '16', name: '羅品安', scores: { '國語': 97, '數學': 92, '社會': 94, '英文': 96, '自然': 80 } },
+      { seat: '17', name: '羅廷宇', scores: { '國語': 52, '數學': 56, '社會': 34, '英文': 41, '自然': 44 } },
+      { seat: '18', name: '蕭雅云', scores: { '國語': 90, '數學': 90, '社會': 95, '英文': 89, '自然': 94 } },
+      { seat: '19', name: '張凱傑', scores: { '國語': 76, '數學': 68, '社會': 65, '英文': 77, '自然': 54 } },
+      { seat: '20', name: '茅文傑', scores: { '國語': 88, '數學': 84, '社會': 92, '英文': 95, '自然': 83 } },
+      { seat: '21', name: '洪宇成', scores: { '國語': 69, '數學': 62, '社會': 66, '英文': 80, '自然': 57 } },
+      { seat: '22', name: '林郁潔', scores: { '國語': 87, '數學': 88, '社會': 92, '英文': 89, '自然': 89 } },
+      { seat: '23', name: '周奕翔', scores: { '國語': 100, '數學': 80, '社會': 92, '英文': 98, '自然': 89 } },
+      { seat: '24', name: '吳秉翰', scores: { '國語': 80, '數學': 70, '社會': 78, '英文': 31, '自然': 63 } },
+      { seat: '25', name: '李勝吉', scores: { '國語': 54, '數學': 36, '社會': 32, '英文': 35, '自然': 41 } }
     ];
+
+    // 示範第 2 次考試 (114學年度第2學期期末考)
+    const DEMO_RAW_EXAM2 = DEMO_RAW_EXAM1.map(st => ({
+      seat: st.seat,
+      name: st.name,
+      scores: {
+        '國語': Math.min(100, st.scores['國語'] + (st.seat === '01' ? 4 : (st.seat === '04' ? 8 : -2))),
+        '數學': Math.min(100, st.scores['數學'] + (st.seat === '01' ? 8 : 2)),
+        '社會': Math.min(100, st.scores['社會'] + (st.seat === '01' ? 5 : 0)),
+        '英文': Math.min(100, st.scores['英文'] + (st.seat === '01' ? -2 : 3)),
+        '自然': Math.min(100, st.scores['自然'] + (st.seat === '01' ? 11 : 4))
+      }
+    }));
 
     let cachedStudents = [];
     let activeApiUrl = localStorage.getItem('mpscore_gas_url') || '';
-    let currentParentRecords = [];
+    let currentStudentExams = [];
     let pRadarInst = null;
     let pTrendInst = null;
 
+    // 後端程式碼由 python 注入，保持 100% 同步
+    const GAS_CODE_CONTENT = "/**\n * MPScore - \u667a\u6167\u5b78\u751f\u6210\u7e3e\u8207\u5b78\u7fd2\u8a3a\u65b7\u7cfb\u7d71 (Google Apps Script \u5f8c\u7aef)\n * \u7db2\u7ad9\u4f5c\u8005 / \u7cfb\u7d71\u898f\u5283\uff1a\u694a\u5bb6\u9a4a\u8001\u5e2b (Chiahua Yang)\n *\n * \u3010\u6838\u5fc3\u67b6\u69cb - \u6bcf\u6b21\u8003\u8a66\u7368\u7acb\u5206\u9801\u3011\uff1a\n * 1. \u3010\u5b78\u751f\u540d\u518a\u3011\u5206\u9801\uff1a\u73ed\u7d1a | \u5ea7\u865f | \u59d3\u540d | \u5c08\u5c6c\u4ee3\u78bc | \u555f\u7528\u72c0\u614b\n * 2. \u8003\u8a66\u5206\u9801\uff08\u4f8b\u5982\uff1a114-1\u671f\u4e2d\u8003\u3001114-1\u671f\u672b\u8003... \u6bcf\u6b21\u8003\u8a66\u4e00\u500b\u65b0\u5206\u9801\uff09\uff1a\n *    - \u7b2c 1 \u5217\uff1a\u8003\u8a66\u540d\u7a31\u6a19\u984c\uff08\u4f8b\u5982\uff1a114\u5b78\u5e74\u5ea6\u7b2c2\u5b78\u671f\u671f\u4e2d\u8003\uff09\n *    - \u7b2c 2 \u5217\uff1a\u5ea7\u865f | \u59d3\u540d | \u570b\u8a9e | \u6578\u5b78 | \u793e\u6703 | \u82f1\u6587 | \u81ea\u7136 (\u50c5\u9700\u4e0a\u50b3\u539f\u59cb\u6210\u7e3e)\n *    - \u7b2c 3 \u5217\u8d77\uff1a\u5404\u5b78\u751f\u539f\u59cb\u5206\u6578\n *    \u2605 \u8001\u5e2b\u53ea\u9700\u4e0a\u50b3\u539f\u59cb\u6210\u7e3e\uff01\u6240\u6709\u300c\u5404\u79d1\u73ed\u7d1a\u5e73\u5747\u3001\u500b\u4eba\u5e73\u5747\u3001\u73ed\u7d1a\u6392\u540d\u3001PR\u503c\u3001\u7b49\u7b2c\u5340\u9593\u3001\u5b78\u7fd2\u8a3a\u65b7\u8a55\u8a9e\u300d\n *      \u5168\u7531\u672c\u7cfb\u7d71\u81ea\u52d5\u904b\u7b97\uff0c\u7121\u9700\u8001\u5e2b\u624b\u52d5\u8a08\u7b97\uff01\n */\n\nfunction onOpen() {\n  var ui = SpreadsheetApp.getUi();\n  ui.createMenu('\u26a1 MPScore \u5de5\u5177')\n    .addItem('\ud83d\udee0\ufe0f \u4e00\u9375\u81ea\u52d5\u5efa\u7acb\u6a19\u6e96\u5206\u9801\u7bc4\u672c (\u5168\u65b0\u7a7a\u767d\u8868\u5c08\u7528)', 'setupStandardSheets')\n    .addSeparator()\n    .addItem('\ud83d\udd04 \u5f9e\u6700\u65b0\u8003\u8a66\u5206\u9801\u540c\u6b65\u540d\u518a\u81f3\u3010\u5b78\u751f\u540d\u518a\u3011', 'syncStudentsFromExamSheet')\n    .addItem('\ud83d\udd11 \u4e00\u9375\u70ba\u5168\u73ed\u7522\u751f\u9632\u507d\u67e5\u8a62\u4ee3\u78bc (Token)', 'generateTokensForStudents')\n    .addSeparator()\n    .addItem('\ud83d\udcca \u9810\u89bd\u5168\u73ed\u6210\u7e3e\u7d71\u8a08\u5206\u6790\u8207\u5404\u79d1\u5e73\u5747', 'previewClassStatistics')\n    .addToUi();\n}\n\n/**\n * \ud83d\udee0\ufe0f \u4e00\u9375\u81ea\u52d5\u5efa\u7acb\u6a19\u6e96\u5206\u9801\u7bc4\u672c\n * \u5efa\u7acb\u3010\u5b78\u751f\u540d\u518a\u3011\u53ca\u5169\u500b\u8003\u8a66\u5206\u9801\u3010114-1\u671f\u4e2d\u8003\u3011\u3001\u3010114-1\u671f\u672b\u8003\u3011\uff0c\u4f9b\u7acb\u5373\u9ad4\u9a57\u591a\u6b21\u8003\u8a66\u6b77\u7a0b\u6bd4\u5c0d\n */\nfunction setupStandardSheets() {\n  var ss = SpreadsheetApp.getActiveSpreadsheet();\n  var ui = SpreadsheetApp.getUi();\n\n  // 1. \u5efa\u7acb\u6216\u683c\u5f0f\u5316\u3010\u5b78\u751f\u540d\u518a\u3011\n  var sSheet = ss.getSheetByName('\u5b78\u751f\u540d\u518a') || ss.getSheets()[0];\n  sSheet.setName('\u5b78\u751f\u540d\u518a');\n  var sHeaders = [['\u73ed\u7d1a', '\u5ea7\u865f', '\u59d3\u540d', '\u5c08\u5c6c\u4ee3\u78bc', '\u555f\u7528\u72c0\u614b']];\n  sSheet.getRange(1, 1, 1, 5).setValues(sHeaders)\n    .setBackground('#312e81') // \u6df1\u975b\u85cd\n    .setFontColor('#ffffff')\n    .setFontWeight('bold')\n    .setHorizontalAlignment('center');\n\n  var sampleRoster = [\n    ['701', '01', '\u9673\u5c0f\u660e', 'DEMO01', true],\n    ['701', '02', '\u9673\u5c0f\u83ef', 'DEMO02', true],\n    ['701', '03', '\u9673\u5927\u7f8e', 'DEMO03', true],\n    ['701', '04', '\u9673\u5fd7\u8c6a', 'DEMO04', true],\n    ['701', '06', '\u9ec3\u5c0f\u742a', 'DEMO06', true],\n    ['701', '07', '\u674e\u5927\u5049', 'DEMO07', true],\n    ['701', '08', '\u6797\u5b50\u6db5', 'DEMO08', true],\n    ['701', '09', '\u51cc\u96c5\u5a77', 'DEMO09', true]\n  ];\n  if (sSheet.getLastRow() <= 1) {\n    sSheet.getRange(2, 1, sampleRoster.length, 5).setValues(sampleRoster);\n    sSheet.autoResizeColumns(1, 5);\n  }\n\n  // 2. \u5efa\u7acb\u7b2c 1 \u6b21\u8003\u8a66\u5206\u9801\u3010114-1\u671f\u4e2d\u8003\u3011(\u4f9d\u694a\u8001\u5e2b\u771f\u5be6\u6210\u7e3e\u55ae\u683c\u5f0f)\n  var exam1Sheet = ss.getSheetByName('114-1\u671f\u4e2d\u8003') || ss.insertSheet('114-1\u671f\u4e2d\u8003');\n  formatExamSheet(exam1Sheet, '114\u5b78\u5e74\u5ea6\u7b2c1\u5b78\u671f\u671f\u4e2d\u8003', [\n    ['01', '\u9673\u5c0f\u660e', 88, 70, 77, 100, 57],\n    ['02', '\u9673\u5c0f\u83ef', 86, 74, 81, 79, 69],\n    ['03', '\u9673\u5927\u7f8e', 84, 90, 81, 86, 90],\n    ['04', '\u9673\u5fd7\u8c6a', 62, 80, 55, 55, 43],\n    ['06', '\u9ec3\u5c0f\u742a', 77, 76, 70, 92, 52],\n    ['07', '\u674e\u5927\u5049', 92, 96, 96, 79, 89],\n    ['08', '\u6797\u5b50\u6db5', 96, 96, 96, 98, 97],\n    ['09', '\u51cc\u96c5\u5a77', 72, 70, 80, 70, 58]\n  ]);\n\n  // 3. \u5efa\u7acb\u7b2c 2 \u6b21\u8003\u8a66\u5206\u9801\u3010114-1\u671f\u672b\u8003\u3011(\u4f9b\u8de8\u6b21\u8003\u8a66\u9032\u9000\u6b65\u5c0d\u6bd4)\n  var exam2Sheet = ss.getSheetByName('114-1\u671f\u672b\u8003') || ss.insertSheet('114-1\u671f\u672b\u8003');\n  formatExamSheet(exam2Sheet, '114\u5b78\u5e74\u5ea6\u7b2c1\u5b78\u671f\u671f\u672b\u8003', [\n    ['01', '\u9673\u5c0f\u660e', 92, 78, 82, 98, 68],\n    ['02', '\u9673\u5c0f\u83ef', 88, 76, 85, 84, 75],\n    ['03', '\u9673\u5927\u7f8e', 88, 92, 85, 90, 92],\n    ['04', '\u9673\u5fd7\u8c6a', 70, 84, 62, 60, 52],\n    ['06', '\u9ec3\u5c0f\u742a', 82, 80, 75, 94, 60],\n    ['07', '\u674e\u5927\u5049', 95, 98, 98, 85, 92],\n    ['08', '\u6797\u5b50\u6db5', 98, 98, 98, 100, 98],\n    ['09', '\u51cc\u96c5\u5a77', 78, 76, 84, 75, 66]\n  ]);\n\n  ui.alert(\n    '\ud83c\udf89 \u5efa\u7f6e\u5b8c\u6210\uff01\\n\\n' +\n    '\u5df2\u70ba\u60a8\u5efa\u7acb\uff1a\\n' +\n    '1. \u3010\u5b78\u751f\u540d\u518a\u3011(\u542b\u5c08\u5c6c\u4ee3\u78bc\u8207\u555f\u7528\u72c0\u614b)\\n' +\n    '2. \u3010114-1\u671f\u4e2d\u8003\u3011(\u53ea\u9700\u539f\u59cb\u6210\u7e3e\uff1a\u5ea7\u865f\u3001\u59d3\u540d\u3001\u570b\u8a9e\u3001\u6578\u5b78\u3001\u793e\u6703\u3001\u82f1\u6587\u3001\u81ea\u7136)\\n' +\n    '3. \u3010114-1\u671f\u672b\u8003\u3011(\u4f9b\u8de8\u6b21\u5c0d\u6bd4\u793a\u7bc4)\\n\\n' +\n    '\ud83d\udca1 \u5c0f\u63d0\u9192\uff1a\u672a\u4f86\u6bcf\u6b21\u8003\u8a66\uff0c\u53ea\u9700\u9ede\u9078\u300c+\u300d\u65b0\u589e\u4e00\u500b\u5206\u9801\uff08\u4f8b\u5982\uff1a114-2\u671f\u4e2d\u8003\uff09\uff0c\u8cbc\u4e0a\u5b78\u751f\u7684\u5404\u79d1\u539f\u59cb\u6210\u7e3e\u5373\u53ef\uff0c\u7db2\u7ad9\u6703\u81ea\u52d5\u8a08\u7b97\u73ed\u7d1a\u5e73\u5747\u3001\u6392\u540d\u8207PR\u503c\uff01'\n  );\n}\n\n/**\n * \u8f14\u52a9\u683c\u5f0f\u5316\u8003\u8a66\u5206\u9801\n */\nfunction formatExamSheet(sheet, examTitle, rowsData) {\n  var headers = ['\u5ea7\u865f', '\u59d3\u540d', '\u570b\u8a9e', '\u6578\u5b78', '\u793e\u6703', '\u82f1\u6587', '\u81ea\u7136'];\n  \n  // \u7b2c 1 \u5217\uff1a\u8003\u8a66\u540d\u7a31\u6a19\u984c\n  sheet.getRange(1, 1, 1, headers.length).merge()\n    .setValue(examTitle)\n    .setBackground('#1e293b') // \u6df1\u7070\u85cd\n    .setFontColor('#ffffff')\n    .setFontWeight('bold')\n    .setFontSize(12)\n    .setHorizontalAlignment('center');\n\n  // \u7b2c 2 \u5217\uff1a\u6b04\u4f4d\u6a19\u984c\n  sheet.getRange(2, 1, 1, headers.length).setValues([headers])\n    .setBackground('#334155')\n    .setFontColor('#ffffff')\n    .setFontWeight('bold')\n    .setHorizontalAlignment('center');\n\n  // \u7b2c 3 \u5217\u8d77\uff1a\u5b78\u751f\u539f\u59cb\u6210\u7e3e\n  if (rowsData && rowsData.length > 0) {\n    sheet.getRange(3, 1, rowsData.length, headers.length).setValues(rowsData)\n      .setHorizontalAlignment('center');\n  }\n\n  sheet.autoResizeColumns(1, headers.length);\n}\n\n/**\n * Web API \u5165\u53e3\u9ede (doGet / doPost)\n */\nfunction doGet(e) {\n  var params = e ? e.parameter : {};\n  var action = params.action || (params.token ? 'query' : 'ping');\n  var output = {};\n\n  try {\n    if (action === 'ping') {\n      output = checkSystemStatus();\n    } else if (action === 'query') {\n      output = getStudentScoreByToken(params.token);\n    } else if (action === 'getStudentsForPrint') {\n      output = getStudentListForTeacher();\n    } else if (action === 'appendExamScores') {\n      var body = params.payload || (e && e.postData && e.postData.contents ? e.postData.contents : '');\n      output = appendExamScores(body);\n    } else {\n      output = { success: false, message: '\u672a\u77e5\u7684\u64cd\u4f5c\u8acb\u6c42' };\n    }\n  } catch (err) {\n    output = { success: false, message: '\u7cfb\u7d71\u932f\u8aa4: ' + err.toString() };\n  }\n\n  return ContentService.createTextOutput(JSON.stringify(output))\n    .setMimeType(ContentService.MimeType.JSON);\n}\n\nfunction doPost(e) {\n  return doGet(e);\n}\n\n/**\n * \u7cfb\u7d71\u9023\u7dda\u6aa2\u6e2c (ping)\n * \u5075\u6e2c\u8a66\u7b97\u8868\u5167\u3010\u5b78\u751f\u540d\u518a\u3011\u8207\u6240\u6709\u8003\u8a66\u5206\u9801\n */\nfunction checkSystemStatus() {\n  var ss = SpreadsheetApp.getActiveSpreadsheet();\n  var sSheet = ss.getSheetByName('\u5b78\u751f\u540d\u518a');\n  if (!sSheet) {\n    return { success: false, message: '\u8a66\u7b97\u8868\u5167\u627e\u4e0d\u5230\u540d\u70ba\u3010\u5b78\u751f\u540d\u518a\u3011\u7684\u5206\u9801\uff0c\u8acb\u5148\u9ede\u9078\u3010MPScore \u5de5\u5177 > \ud83d\udee0\ufe0f \u4e00\u9375\u81ea\u52d5\u5efa\u7acb\u6a19\u6e96\u5206\u9801\u7bc4\u672c\u3011' };\n  }\n\n  var allSheets = ss.getSheets();\n  var examTabs = [];\n  for (var i = 0; i < allSheets.length; i++) {\n    var name = allSheets[i].getName();\n    if (name !== '\u5b78\u751f\u540d\u518a' && !name.startsWith('_')) {\n      examTabs.push(name);\n    }\n  }\n\n  var studentCount = Math.max(0, sSheet.getLastRow() - 1);\n\n  return {\n    success: true,\n    message: '\u9023\u7dda\u6b63\u5e38\uff01\u7cfb\u7d71\u5df2\u5c31\u7dd2',\n    sheetTitle: ss.getName(),\n    studentCount: studentCount,\n    examCount: examTabs.length,\n    examTabs: examTabs,\n    autoCalculationEnabled: true\n  };\n}\n\n/**\n * \u4f9d\u64da\u5c08\u5c6c Token \u67e5\u8a62\u8a72\u540d\u5b78\u751f\u6b77\u6b21\u8003\u8a66\u6210\u7e3e\u8207\u81ea\u52d5\u904b\u7b97\u6210\u679c\n */\nfunction getStudentScoreByToken(token) {\n  if (!token) return { success: false, message: '\u8acb\u63d0\u4f9b\u5c08\u5c6c\u67e5\u8a62\u4ee3\u78bc' };\n  token = token.toString().trim();\n\n  var ss = SpreadsheetApp.getActiveSpreadsheet();\n  var sSheet = ss.getSheetByName('\u5b78\u751f\u540d\u518a');\n  if (!sSheet) {\n    return { success: false, message: '\u8a66\u7b97\u8868\u7f3a\u5c11\u3010\u5b78\u751f\u540d\u518a\u3011\u5206\u9801' };\n  }\n\n  // 1. \u5728\u3010\u5b78\u751f\u540d\u518a\u3011\u4e2d\u5c0b\u627e\u6b64\u4ee3\u78bc\u5c0d\u61c9\u7684\u5b78\u751f\n  var sData = sSheet.getDataRange().getValues();\n  var student = null;\n\n  for (var i = 1; i < sData.length; i++) {\n    var row = sData[i];\n    var rowToken = row[3] ? row[3].toString().trim() : ''; // D \u6b04: \u5c08\u5c6c\u4ee3\u78bc\n    var isEnabled = row[4]; // E \u6b04: \u555f\u7528\u72c0\u614b\n\n    if (rowToken === token) {\n      if (isEnabled === false) {\n        return { success: false, message: '\u6b64\u4ee3\u78bc\u5e33\u865f\u5df2\u88ab\u505c\u7528\u3002' };\n      }\n      student = {\n        className: row[0] ? row[0].toString().trim() : '',\n        seatNumber: normalizeSeatNumber(row[1]),\n        name: row[2] ? row[2].toString().trim() : '',\n        token: rowToken,\n        studentId: (row[0] || '') + '-' + normalizeSeatNumber(row[1])\n      };\n      break;\n    }\n  }\n\n  if (!student) {\n    return { success: false, message: '\u9a57\u8b49\u5931\u6557\uff1a\u67e5\u7121\u6b64\u4ee3\u78bc\uff0c\u8acb\u78ba\u8a8d\u662f\u5426\u8f38\u5165\u6b63\u78ba\u3002' };\n  }\n\n  // 2. \u904d\u6b77\u8a66\u7b97\u8868\u4e2d\u6240\u6709\u7684\u8003\u8a66\u5206\u9801\n  var allSheets = ss.getSheets();\n  var exams = [];\n  var flatRecords = [];\n\n  for (var s = 0; s < allSheets.length; s++) {\n    var curSheet = allSheets[s];\n    var sheetName = curSheet.getName();\n    if (sheetName === '\u5b78\u751f\u540d\u518a' || sheetName.startsWith('_')) {\n      continue;\n    }\n\n    var examAnalysis = analyzeExamSheet(curSheet, student);\n    if (examAnalysis && examAnalysis.studentFound) {\n      exams.push(examAnalysis.examData);\n\n      // \u540c\u6642\u8f49\u6210\u5e73\u92ea\u7684 records \u9663\u5217\uff0c\u5b8c\u7f8e\u5411\u4e0b\u76f8\u5bb9\u65e2\u6709\u5716\u8868\u8207\u5831\u8868\n      var curExam = examAnalysis.examData;\n      for (var subIdx = 0; subIdx < curExam.subjects.length; subIdx++) {\n        var subItem = curExam.subjects[subIdx];\n        flatRecords.push({\n          examKey: curExam.examTitle,\n          examName: curExam.examTitle,\n          sheetName: curExam.sheetName,\n          subject: subItem.name,\n          score: subItem.score,\n          average: subItem.classAverage,\n          pr: subItem.pr,\n          zone: subItem.zone,\n          zoneStatus: subItem.zoneStatus,\n          diagnosis: subItem.advice\n        });\n      }\n    }\n  }\n\n  return {\n    success: true,\n    student: student,\n    exams: exams,\n    records: flatRecords\n  };\n}\n\n/**\n * \u6df1\u5165\u89e3\u6790\u55ae\u4e00\u8003\u8a66\u5206\u9801\uff1a\u5168\u81ea\u52d5\u904b\u7b97\u8a72\u6b21\u8003\u8a66\u7684\u5168\u73ed\u5e73\u5747\u3001PR\u503c\u3001\u6392\u540d\u8207\u500b\u4eba\u8a3a\u65b7\n */\nfunction analyzeExamSheet(sheet, student) {\n  var data = sheet.getDataRange().getValues();\n  if (data.length < 2) return null;\n\n  var sheetName = sheet.getName();\n  var examTitle = sheetName;\n\n  // 1. \u5224\u5b9a\u6a19\u984c\u8207\u6b04\u4f4d\u6a19\u984c\u5217\n  var headerRowIdx = 1; // \u9810\u8a2d\u7b2c 2 \u5217 (\u7d22\u5f15 1)\n  if (data.length > 0) {\n    var row0Str = data[0].join(' ');\n    // \u5982\u679c\u7b2c 1 \u5217\u5c31\u5305\u542b\u300c\u5ea7\u865f\u300d\u6216\u300c\u59d3\u540d\u300d\uff0c\u4ee3\u8868\u6c92\u6709\u7b2c 1 \u5217\u5408\u4f75\u5927\u6a19\u984c\n    if (row0Str.indexOf('\u5ea7\u865f') !== -1 || row0Str.indexOf('\u59d3\u540d') !== -1) {\n      headerRowIdx = 0;\n    } else {\n      // \u7b2c 1 \u5217\u70ba\u8003\u8a66\u540d\u7a31\u5927\u6a19\u984c\n      var titleCandidate = data[0][0] ? data[0][0].toString().trim() : '';\n      if (titleCandidate) examTitle = titleCandidate;\n      headerRowIdx = 1;\n    }\n  }\n\n  var headerRow = data[headerRowIdx].map(function(h) { return h.toString().trim(); });\n  var seatCol = -1;\n  var nameCol = -1;\n\n  for (var c = 0; c < headerRow.length; c++) {\n    if (headerRow[c].indexOf('\u5ea7\u865f') !== -1) seatCol = c;\n    else if (headerRow[c].indexOf('\u59d3\u540d') !== -1) nameCol = c;\n  }\n\n  if (seatCol === -1) seatCol = 0;\n  if (nameCol === -1 && headerRow.length > 1) nameCol = 1;\n\n  // 2. \u8fa8\u8b58\u79d1\u76ee\u6b04\u4f4d\uff08\u5f9e\u59d3\u540d\u53f3\u5074\u958b\u59cb\uff0c\u5230\u6700\u5f8c\u4e00\u500b\u975e\u5e73\u5747/\u6392\u540d\u7684\u6709\u6548\u6b04\u4f4d\uff09\n  var subjectCols = [];\n  var startCol = Math.max(seatCol, nameCol) + 1;\n\n  for (var sc = startCol; sc < headerRow.length; sc++) {\n    var hName = headerRow[sc];\n    if (!hName) continue;\n    // \u6392\u9664\u300c\u5e73\u5747\u300d\u3001\u300c\u6392\u540d\u300d\u6216\u7d71\u8a08\u6b04\u4f4d\uff08\u56e0\u70ba\u7531\u7db2\u7ad9\u81ea\u52d5\u7cbe\u7b97\uff09\n    if (hName === '\u5e73\u5747' || hName === '\u7e3d\u5206' || hName === '\u6392\u540d' || hName === '\u540d\u6b21') {\n      continue;\n    }\n    subjectCols.push({ index: sc, name: hName });\n  }\n\n  if (subjectCols.length === 0) return null;\n\n  // 3. \u6536\u96c6\u6240\u6709\u5b78\u751f\u7684\u539f\u59cb\u5206\u6578\uff08\u81ea\u52d5\u6392\u9664\u5e95\u90e8\u7684\u300c\u5e73\u5747\u300d\u3001\u300c\u6a19\u6e96\u5dee\u300d\u6216\u7a7a\u5217\uff09\n  var studentsScores = [];\n  var myStudentRow = null;\n\n  for (var r = headerRowIdx + 1; r < data.length; r++) {\n    var row = data[r];\n    var seatVal = row[seatCol] ? row[seatCol].toString().trim() : '';\n    var nameVal = nameCol !== -1 && row[nameCol] ? row[nameCol].toString().trim() : '';\n\n    // \u9047\u5230\u5e73\u5747\u3001\u6a19\u6e96\u5dee\u6216\u7a7a\u5217\uff0c\u4ee3\u8868\u5b78\u751f\u8cc7\u6599\u5df2\u7d50\u675f\n    if (!seatVal || seatVal.indexOf('\u5e73\u5747') !== -1 || seatVal.indexOf('\u6a19\u6e96\u5dee') !== -1 || seatVal.indexOf('\u5206') !== -1) {\n      break;\n    }\n    if (nameVal && (nameVal.indexOf('\u5e73\u5747') !== -1 || nameVal.indexOf('\u6a19\u6e96\u5dee') !== -1)) {\n      break;\n    }\n\n    var sObj = {\n      seat: normalizeSeatNumber(seatVal),\n      name: nameVal,\n      scores: {},\n      total: 0,\n      count: 0\n    };\n\n    for (var sIdx = 0; sIdx < subjectCols.length; sIdx++) {\n      var colInfo = subjectCols[sIdx];\n      var rawScore = row[colInfo.index];\n      var numScore = Number(rawScore);\n      if (!isNaN(numScore) && rawScore !== '') {\n        sObj.scores[colInfo.name] = numScore;\n        sObj.total += numScore;\n        sObj.count++;\n      } else {\n        sObj.scores[colInfo.name] = 0;\n      }\n    }\n\n    sObj.average = sObj.count > 0 ? Math.round((sObj.total / sObj.count) * 100) / 100 : 0;\n    studentsScores.push(sObj);\n\n    // \u6bd4\u5c0d\u76ee\u6a19\u5b78\u751f\n    if (sObj.seat === student.seatNumber || (student.name && sObj.name === student.name)) {\n      myStudentRow = sObj;\n    }\n  }\n\n  if (!myStudentRow || studentsScores.length === 0) {\n    return { studentFound: false };\n  }\n\n  var totalStudents = studentsScores.length;\n\n  // 4. \u8a08\u7b97\u5168\u73ed\u6392\u540d (\u4f9d\u5b78\u751f\u500b\u4eba\u5e73\u5747\u7531\u9ad8\u81f3\u4f4e)\n  var sortedByAvg = studentsScores.slice().sort(function(a, b) {\n    return b.average - a.average;\n  });\n\n  var myRank = 1;\n  for (var rankIdx = 0; rankIdx < sortedByAvg.length; rankIdx++) {\n    if (sortedByAvg[rankIdx].seat === myStudentRow.seat) {\n      myRank = rankIdx + 1;\n      break;\n    }\n  }\n\n  // 5. \u8a08\u7b97\u5404\u79d1\u76ee\u7684\u300c\u73ed\u7d1a\u5e73\u5747\u300d\u8207\u300cPR\u503c\u300d\n  var subjectsResult = [];\n  var classTotalAvgSum = 0;\n\n  for (var j = 0; j < subjectCols.length; j++) {\n    var subName = subjectCols[j].name;\n    var allScoresForSub = [];\n\n    for (var k = 0; k < studentsScores.length; k++) {\n      allScoresForSub.push(studentsScores[k].scores[subName] || 0);\n    }\n\n    // \u8a08\u7b97\u8a72\u79d1\u73ed\u7d1a\u5e73\u5747\n    var subSum = allScoresForSub.reduce(function(a, b) { return a + b; }, 0);\n    var subClassAvg = Math.round((subSum / totalStudents) * 100) / 100;\n    classTotalAvgSum += subClassAvg;\n\n    // \u8a08\u7b97\u8a72\u540d\u5b78\u751f\u7684 PR \u503c: (\u4f4e\u65bc\u4eba\u6578 + 0.5 * \u540c\u5206\u4eba\u6578) / \u7e3d\u4eba\u6578 * 100\n    var mySubScore = myStudentRow.scores[subName] || 0;\n    var below = 0;\n    var equal = 0;\n\n    for (var p = 0; p < allScoresForSub.length; p++) {\n      if (allScoresForSub[p] < mySubScore) below++;\n      else if (allScoresForSub[p] === mySubScore) equal++;\n    }\n\n    var prVal = Math.round(((below + 0.5 * equal) / totalStudents) * 100);\n\n    // \u5b78\u7fd2\u843d\u9ede\u5340\u9593\u5224\u5b9a (\u4f9d\u694a\u5bb6\u9a4a\u8001\u5e2b GradeInterpr \u6a19\u6e96)\n    var zone = '\u7a69\u5065';\n    var zoneStatus = '\u7a69\u5065\u767c\u63ee\u5340\u9593';\n    var zoneType = 'leading';\n\n    if (prVal >= 75) {\n      zone = '\u7cbe\u719f';\n      zoneStatus = '\u7cbe\u719f\u8868\u73fe\u5340\u9593';\n      zoneType = 'leading';\n    } else if (prVal >= 50) {\n      zone = '\u7a69\u5065';\n      zoneStatus = '\u7a69\u5065\u767c\u63ee\u5340\u9593';\n      zoneType = 'leading';\n    } else if (prVal >= 25) {\n      zone = '\u52aa\u529b';\n      zoneStatus = '\u52aa\u529b\u6210\u9577\u5340\u9593';\n      zoneType = 'improving';\n    } else {\n      zone = '\u958b\u767c';\n      zoneStatus = '\u958b\u767c\u6f5b\u529b\u5340\u9593';\n      zoneType = 'improving';\n    }\n\n    // \u7522\u751f\u5c08\u5bb6\u5efa\u8b70\n    var adviceText = getExpertSubjectAdvice(subName, zoneType, mySubScore);\n\n    subjectsResult.push({\n      name: subName,\n      score: mySubScore,\n      classAverage: subClassAvg,\n      diff: Math.round((mySubScore - subClassAvg) * 100) / 100,\n      pr: prVal,\n      zone: zone,\n      zoneStatus: zoneStatus,\n      advice: adviceText\n    });\n  }\n\n  var classOverallAvg = Math.round((classTotalAvgSum / subjectCols.length) * 100) / 100;\n\n  return {\n    studentFound: true,\n    examData: {\n      examTitle: examTitle,\n      sheetName: sheetName,\n      studentAverage: myStudentRow.average,\n      studentRank: myRank,\n      totalStudents: totalStudents,\n      classOverallAverage: classOverallAvg,\n      subjects: subjectsResult\n    }\n  };\n}\n\n/**\n * \u6a19\u6e96\u5316\u5ea7\u865f\uff08\u4f8b\u5982\uff1a1 \u8f49\u70ba \"01\"\uff09\n */\nfunction normalizeSeatNumber(val) {\n  if (val === null || val === undefined) return '';\n  var s = val.toString().trim();\n  var num = parseInt(s, 10);\n  if (!isNaN(num) && num < 10 && s.length === 1) {\n    return '0' + num;\n  }\n  return s;\n}\n\n/**\n * \u53d6\u5f97\u5168\u73ed\u5b78\u751f\u540d\u55ae (\u4f9b\u5217\u5370 QR Code \u5c0f\u5361)\n */\nfunction getStudentListForTeacher() {\n  var ss = SpreadsheetApp.getActiveSpreadsheet();\n  var sheet = ss.getSheetByName('\u5b78\u751f\u540d\u518a');\n  if (!sheet) return { success: false, message: '\u627e\u4e0d\u5230\u3010\u5b78\u751f\u540d\u518a\u3011\u5de5\u4f5c\u8868' };\n\n  var data = sheet.getDataRange().getValues();\n  var students = [];\n\n  for (var i = 1; i < data.length; i++) {\n    var row = data[i];\n    if (row[2] && row[3]) { // \u6709\u59d3\u540d\u8207\u4ee3\u78bc\n      var seat = normalizeSeatNumber(row[1]);\n      var cls = row[0] ? row[0].toString().trim() : '';\n      students.push({\n        className: cls,\n        seatNumber: seat,\n        name: row[2].toString().trim(),\n        token: row[3].toString().trim(),\n        studentId: (cls || '') + '-' + seat\n      });\n    }\n  }\n\n  return {\n    success: true,\n    students: students\n  };\n}\n\n/**\n * \ud83d\udd04 \u5f9e\u6700\u65b0\u8003\u8a66\u5206\u9801\u81ea\u52d5\u540c\u6b65\u5ea7\u865f\u8207\u59d3\u540d\u81f3\u3010\u5b78\u751f\u540d\u518a\u3011\u4e26\u751f\u6210\u4ee3\u78bc\n * \u8001\u5e2b\u53ea\u8981\u8cbc\u4e0a\u8003\u8a66\u6210\u7e3e\uff0c\u9ede\u6b64\u6309\u9215\u7acb\u5373\u5b8c\u6210\u5168\u73ed\u9632\u507d\u540d\u518a\u5efa\u7f6e\uff01\n */\nfunction syncStudentsFromExamSheet() {\n  var ss = SpreadsheetApp.getActiveSpreadsheet();\n  var ui = SpreadsheetApp.getUi();\n\n  var sSheet = ss.getSheetByName('\u5b78\u751f\u540d\u518a');\n  if (!sSheet) {\n    sSheet = ss.insertSheet('\u5b78\u751f\u540d\u518a', 0);\n    sSheet.getRange(1, 1, 1, 5).setValues([['\u73ed\u7d1a', '\u5ea7\u865f', '\u59d3\u540d', '\u5c08\u5c6c\u4ee3\u78bc', '\u555f\u7528\u72c0\u614b']])\n      .setBackground('#312e81').setFontColor('#ffffff').setFontWeight('bold').setHorizontalAlignment('center');\n  }\n\n  // \u5c0b\u627e\u7b2c\u4e00\u500b\u975e\u5b78\u751f\u540d\u518a\u7684\u8003\u8a66\u5206\u9801\n  var sheets = ss.getSheets();\n  var examSheet = null;\n  for (var i = 0; i < sheets.length; i++) {\n    if (sheets[i].getName() !== '\u5b78\u751f\u540d\u518a' && !sheets[i].getName().startsWith('_')) {\n      examSheet = sheets[i];\n      break;\n    }\n  }\n\n  if (!examSheet) {\n    ui.alert('\u8acb\u5148\u5efa\u7acb\u81f3\u5c11\u4e00\u500b\u8003\u8a66\u5206\u9801\uff08\u4f8b\u5982\uff1a114-1\u671f\u4e2d\u8003\uff09\u4e26\u8cbc\u4e0a\u5ea7\u865f\u8207\u59d3\u540d\uff01');\n    return;\n  }\n\n  var data = examSheet.getDataRange().getValues();\n  var headerRowIdx = 1;\n  if (data.length > 0 && (data[0].join(' ').indexOf('\u5ea7\u865f') !== -1 || data[0].join(' ').indexOf('\u59d3\u540d') !== -1)) {\n    headerRowIdx = 0;\n  }\n\n  var headerRow = data[headerRowIdx].map(function(h) { return h.toString().trim(); });\n  var seatCol = 0;\n  var nameCol = 1;\n  for (var c = 0; c < headerRow.length; c++) {\n    if (headerRow[c].indexOf('\u5ea7\u865f') !== -1) seatCol = c;\n    else if (headerRow[c].indexOf('\u59d3\u540d') !== -1) nameCol = c;\n  }\n\n  // \u8b80\u53d6\u65e2\u6709\u4ee3\u78bc\u907f\u514d\u8986\u84cb\n  var existingTokens = {};\n  var sData = sSheet.getDataRange().getValues();\n  for (var s = 1; s < sData.length; s++) {\n    var exSeat = normalizeSeatNumber(sData[s][1]);\n    var exTok = sData[s][3];\n    if (exSeat && exTok) existingTokens[exSeat] = exTok;\n  }\n\n  var chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';\n  var newRoster = [];\n\n  for (var r = headerRowIdx + 1; r < data.length; r++) {\n    var seatVal = data[r][seatCol] ? data[r][seatCol].toString().trim() : '';\n    var nameVal = data[r][nameCol] ? data[r][nameCol].toString().trim() : '';\n\n    if (!seatVal || seatVal.indexOf('\u5e73\u5747') !== -1 || seatVal.indexOf('\u6a19\u6e96\u5dee') !== -1) break;\n    if (nameVal && nameVal.indexOf('\u5e73\u5747') !== -1) break;\n\n    var normSeat = normalizeSeatNumber(seatVal);\n    var token = existingTokens[normSeat];\n    if (!token) {\n      token = '';\n      for (var t = 0; t < 6; t++) token += chars.charAt(Math.floor(Math.random() * chars.length));\n    }\n\n    newRoster.push(['701', normSeat, nameVal, token, true]);\n  }\n\n  if (newRoster.length === 0) {\n    ui.alert('\u5728\u8003\u8a66\u5206\u9801\u3010' + examSheet.getName() + '\u3011\u4e2d\u672a\u5075\u6e2c\u5230\u5b78\u751f\u5ea7\u865f\u8207\u59d3\u540d\uff01');\n    return;\n  }\n\n  sSheet.getRange(2, 1, sSheet.getLastRow() > 1 ? sSheet.getLastRow() - 1 : 1, 5).clearContent();\n  sSheet.getRange(2, 1, newRoster.length, 5).setValues(newRoster);\n  sSheet.autoResizeColumns(1, 5);\n\n  ui.alert('\ud83c\udf89 \u6210\u529f\uff01\u5df2\u5f9e\u3010' + examSheet.getName() + '\u3011\u540c\u6b65 ' + newRoster.length + ' \u4f4d\u5b78\u751f\u5ea7\u865f\u59d3\u540d\uff0c\u4e26\u5efa\u7acb\u5c08\u5c6c\u9632\u507d\u4ee3\u78bc\uff01');\n}\n\n/**\n * \u70ba\u3010\u5b78\u751f\u540d\u518a\u3011\u4e2d\u5c1a\u672a\u6709\u4ee3\u78bc\u7684\u5b78\u751f\u751f\u6210 6 \u78bc\u96a8\u6a5f Token\n */\nfunction generateTokensForStudents() {\n  var ss = SpreadsheetApp.getActiveSpreadsheet();\n  var sheet = ss.getSheetByName('\u5b78\u751f\u540d\u518a');\n  if (!sheet) {\n    SpreadsheetApp.getUi().alert('\u627e\u4e0d\u5230\u3010\u5b78\u751f\u540d\u518a\u3011\u5de5\u4f5c\u8868\uff01');\n    return;\n  }\n\n  var data = sheet.getDataRange().getValues();\n  var chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';\n  var updated = 0;\n\n  for (var i = 1; i < data.length; i++) {\n    var existingToken = data[i][3];\n    if (!existingToken || existingToken.toString().trim() === '') {\n      var token = '';\n      for (var c = 0; c < 6; c++) {\n        token += chars.charAt(Math.floor(Math.random() * chars.length));\n      }\n      sheet.getRange(i + 1, 4).setValue(token);\n      sheet.getRange(i + 1, 5).setValue(true);\n      updated++;\n    }\n  }\n\n  SpreadsheetApp.getUi().alert('\u2728 \u6210\u529f\uff01\u5df2\u70ba ' + updated + ' \u4f4d\u5b78\u751f\u751f\u6210\u5c08\u5c6c\u67e5\u8a62\u4ee3\u78bc\u3002');\n}\n\n/**\n * \ud83d\udcca \u9810\u89bd\u5168\u73ed\u6210\u7e3e\u7d71\u8a08\u5206\u6790\u8207\u5404\u79d1\u5e73\u5747\n */\nfunction previewClassStatistics() {\n  var ss = SpreadsheetApp.getActiveSpreadsheet();\n  var ui = SpreadsheetApp.getUi();\n  var sheets = ss.getSheets();\n  var report = '\ud83d\udcca MPScore \u5373\u6642\u6210\u7e3e\u7cbe\u7b97\u5206\u6790\uff1a\\n\\n';\n\n  for (var i = 0; i < sheets.length; i++) {\n    var sh = sheets[i];\n    var sName = sh.getName();\n    if (sName === '\u5b78\u751f\u540d\u518a' || sName.startsWith('_')) continue;\n\n    var mockStudent = { seatNumber: '01', name: '' };\n    var result = analyzeExamSheet(sh, mockStudent);\n    if (result && result.examData) {\n      var d = result.examData;\n      report += '\u3010' + d.examTitle + '\u3011(\u5b78\u751f ' + d.totalStudents + ' \u4eba\uff0c\u7e3d\u5e73\u5747 ' + d.classOverallAverage + ' \u5206)\\n';\n      for (var s = 0; s < d.subjects.length; s++) {\n        report += '  \u2022 ' + d.subjects[s].name + ' \u73ed\u5e73\u5747: ' + d.subjects[s].classAverage + ' \u5206\\n';\n      }\n      report += '\\n';\n    }\n  }\n\n  ui.alert(report);\n}\n\n/**\n * \u4f86\u81ea\u694a\u5bb6\u9a4a\u8001\u5e2b GradeInterpr \u7684\u5c08\u5bb6\u5b78\u7fd2\u8a3a\u65b7\u5efa\u8b70\u751f\u6210\u5668\n */\nfunction getExpertSubjectAdvice(subject, zoneType, score) {\n  var adviceDb = {\n    '\u570b\u8a9e': {\n      leading: [\n        \"\u4f60\u5c0d\u6587\u5b57\u7684\u654f\u611f\u5ea6\u5f88\u9ad8\uff0c\u53ef\u4ee5\u591a\u63a5\u89f8\u4e0d\u540c\u80cc\u666f\u7684\u6587\u5b78\u4f5c\u54c1\uff0c\u7df4\u7fd2\u9ad4\u6703\u6587\u5b57\u80cc\u5f8c\u7684\u5f26\u5916\u4e4b\u97f3\u3002\",\n        \"\u5617\u8a66\u5c07\u95b1\u8b80\u5f8c\u7684\u611f\u60f3\u8207\u751f\u6d3b\u9023\u7d50\uff0c\u9019\u80fd\u5e6b\u52a9\u4f60\u5c07\u96f6\u6563\u7684\u601d\u7dd2\u6574\u7406\u6210\u66f4\u6709\u7cfb\u7d71\u7684\u89c0\u9ede\u3002\",\n        \"\u5728\u95b1\u8b80\u9577\u7bc7\u6587\u7ae0\u5f8c\uff0c\u7df4\u7fd2\u63d0\u53d6\u5e7e\u500b\u95dc\u9375\u6982\u5ff5\uff0c\u9019\u5c0d\u638c\u63e1\u8907\u96dc\u6587\u672c\u975e\u5e38\u6709\u5e6b\u52a9\u3002\"\n      ],\n      improving: [\n        \"\u5efa\u8b70\u900f\u904e\u300e\u5927\u8072\u6717\u8b80\u300f\u4f86\u611f\u53d7\u8ab2\u6587\u7684\u8a9e\u6c23\u8207\u7bc0\u594f\uff0c\u9019\u5c0d\u65bc\u5efa\u7acb\u8a9e\u611f\u5f88\u6709\u5e6b\u52a9\u3002\",\n        \"\u53ef\u4ee5\u8a66\u8457\u5c07\u8ab2\u6587\u4e2d\u7684\u512a\u7f8e\u8a5e\u5f59\u61c9\u7528\u5728\u5e73\u65e5\u7684\u7c21\u77ed\u7d00\u9304\u4e2d\uff0c\u9019\u6703\u8b93\u9019\u4e9b\u6587\u5b57\u771f\u6b63\u8b8a\u6210\u4f60\u7684\u3002\",\n        \"\u5148\u5f9e\u81ea\u5df1\u611f\u8208\u8da3\u7684\u6545\u4e8b\u4e3b\u984c\u958b\u59cb\u8b80\u8d77\uff0c\u7d2f\u7a4d\u5c0d\u6587\u5b57\u7684\u89aa\u8fd1\u611f\uff0c\u95b1\u8b80\u6703\u8b8a\u5f97\u8d8a\u4f86\u8d8a\u8f15\u9b06\u3002\"\n      ]\n    },\n    '\u570b\u6587': {\n      leading: [\n        \"\u4f60\u5c0d\u6587\u5b57\u7684\u654f\u611f\u5ea6\u5f88\u9ad8\uff0c\u53ef\u4ee5\u591a\u63a5\u89f8\u4e0d\u540c\u80cc\u666f\u7684\u6587\u5b78\u4f5c\u54c1\uff0c\u7df4\u7fd2\u9ad4\u6703\u6587\u5b57\u80cc\u5f8c\u7684\u5f26\u5916\u4e4b\u97f3\u3002\",\n        \"\u5617\u8a66\u5c07\u95b1\u8b80\u5f8c\u7684\u611f\u60f3\u8207\u751f\u6d3b\u9023\u7d50\uff0c\u9019\u80fd\u5e6b\u52a9\u4f60\u5c07\u96f6\u6563\u7684\u601d\u7dd2\u6574\u7406\u6210\u66f4\u6709\u7cfb\u7d71\u7684\u89c0\u9ede\u3002\"\n      ],\n      improving: [\n        \"\u5efa\u8b70\u900f\u904e\u300e\u5927\u8072\u6717\u8b80\u300f\u4f86\u611f\u53d7\u8ab2\u6587\u7684\u8a9e\u6c23\u8207\u7bc0\u594f\uff0c\u9019\u5c0d\u65bc\u5efa\u7acb\u8a9e\u611f\u5f88\u6709\u5e6b\u52a9\u3002\",\n        \"\u53ef\u4ee5\u8a66\u8457\u5c07\u8ab2\u6587\u4e2d\u7684\u512a\u7f8e\u8a5e\u5f59\u61c9\u7528\u5728\u5e73\u65e5\u7684\u7c21\u77ed\u7d00\u9304\u4e2d\uff0c\u9019\u6703\u8b93\u9019\u4e9b\u6587\u5b57\u771f\u6b63\u8b8a\u6210\u4f60\u7684\u3002\"\n      ]\n    },\n    '\u6578\u5b78': {\n      leading: [\n        \"\u4f60\u5c55\u73fe\u4e86\u512a\u79c0\u7684\u601d\u7dad\uff0c\u53ef\u4ee5\u8a66\u8457\u63a2\u7d22\u516c\u5f0f\u80cc\u5f8c\u7684\u7531\u4f86\uff0c\u7406\u89e3\u539f\u7406\u6703\u8b93\u61c9\u7528\u66f4\u9748\u6d3b\u3002\",\n        \"\u7df4\u7fd2\u770b\u770b\u300e\u4e00\u984c\u591a\u89e3\u300f\uff0c\u5f9e\u4e0d\u540c\u7684\u8def\u5f91\u5207\u5165\u554f\u984c\uff0c\u80fd\u8b93\u4f60\u7684\u601d\u7dad\u6b7b\u89d2\u8d8a\u4f86\u8d8a\u5c11\u3002\",\n        \"\u8a66\u8457\u628a\u5b78\u904e\u7684\u908f\u8f2f\u6559\u7d66\u5225\u4eba\u770b\uff0c\u7576\u4f60\u80fd\u8b1b\u5f97\u901a\u6642\uff0c\u5c31\u4ee3\u8868\u4f60\u5df2\u7d93\u5167\u5316\u4e86\u9019\u500b\u6982\u5ff5\u3002\"\n      ],\n      improving: [\n        \"\u5b78\u7fd2\u6578\u5b78\u50cf\u662f\u5806\u7a4d\u6728\uff0c\u5148\u628a\u8ab2\u672c\u88e1\u7684\u57fa\u790e\u5b9a\u7fa9\u5f04\u6e05\u695a\uff0c\u57fa\u790e\u7a69\u4e86\uff0c\u89e3\u984c\u5c31\u6703\u6709\u6210\u5c31\u611f\u3002\",\n        \"\u4e0d\u9700\u8981\u6025\u8457\u5beb\u5f88\u96e3\u7684\u984c\u76ee\uff0c\u5148\u628a\u57fa\u672c\u4f8b\u984c\u53cd\u8986\u7df4\u7fd2\u5e7e\u6b21\uff0c\u78ba\u4fdd\u904b\u7b97\u7684\u6d41\u7a0b\u662f\u6d41\u66a2\u7684\u3002\",\n        \"\u9047\u5230\u5361\u4f4f\u7684\u984c\u76ee\u6642\uff0c\u53ef\u4ee5\u63db\u500b\u5fc3\u60c5\u518d\u56de\u982d\u770b\uff0c\u6216\u8005\u8a66\u8457\u756b\u51fa\u5716\u8868\u4f86\u5e6b\u52a9\u5927\u8166\u601d\u8003\u3002\"\n      ]\n    },\n    '\u793e\u6703': {\n      leading: [\n        \"\u4f60\u5f88\u64c5\u9577\u6574\u7406\u8cc7\u8a0a\uff0c\u53ef\u4ee5\u7df4\u7fd2\u5c07\u4e0d\u540c\u6642\u9593\u7684\u4e8b\u4ef6\u4e32\u806f\u8d77\u4f86\uff0c\u770b\u898b\u6b77\u53f2\u6216\u5730\u7406\u80cc\u5f8c\u7684\u56e0\u679c\u3002\",\n        \"\u95dc\u6ce8\u4e00\u4e0b\u6700\u8fd1\u7684\u65b0\u805e\u6642\u4e8b\uff0c\u4e26\u601d\u8003\u8ab2\u672c\u5167\u5bb9\u5728\u73fe\u5be6\u4e2d\u662f\u5982\u4f55\u904b\u4f5c\u7684\uff0c\u9019\u80fd\u8b93\u77e5\u8b58\u8b8a\u5f97\u5f88\u7acb\u9ad4\u3002\",\n        \"\u8a66\u8457\u5f9e\u4e0d\u540c\u7684\u793e\u6703\u89d2\u8272\u4f86\u770b\u540c\u4e00\u4ef6\u4e8b\uff0c\u9019\u80fd\u5e6b\u52a9\u4f60\u57f9\u990a\u66f4\u5168\u9762\u3001\u66f4\u5177\u6df1\u5ea6\u7684\u601d\u8fa8\u529b\u3002\"\n      ],\n      improving: [\n        \"\u793e\u6703\u79d1\u5176\u5be6\u662f\u8a31\u591a\u7cbe\u5f69\u6545\u4e8b\u7684\u96c6\u5408\u3002\u60f3\u50cf\u81ea\u5df1\u662f\u7576\u6642\u7684\u4eba\uff0c\u9019\u80fd\u5e6b\u4f60\u7406\u89e3\u70ba\u4f55\u6703\u6709\u90a3\u6a23\u7684\u767c\u5c55\u3002\",\n        \"\u5c0d\u65bc\u8907\u96dc\u7684\u8cc7\u8a0a\uff0c\u53ef\u4ee5\u8a66\u8457\u7528\u756b\u5716\u6216\u62c9\u6642\u9593\u8ef8\u7684\u65b9\u5f0f\u5448\u73fe\uff0c\u8b93\u6587\u5b57\u6558\u8ff0\u8b8a\u6210\u5716\u50cf\u8a18\u61b6\u3002\",\n        \"\u53ef\u4ee5\u5f9e\u4f60\u559c\u6b61\u7684\u5730\u5716\u3001\u5716\u8868\u6216\u7279\u5b9a\u4eba\u7269\u6545\u4e8b\u958b\u59cb\u8b80\u8d77\uff0c\u8208\u8da3\u662f\u7406\u89e3\u5b78\u79d1\u6700\u597d\u7684\u52d5\u529b\u3002\"\n      ]\n    },\n    '\u82f1\u6587': {\n      leading: [\n        \"\u4f60\u7684\u8a9e\u611f\u8868\u73fe\u512a\u7570\uff0c\u53ef\u4ee5\u958b\u59cb\u63a5\u89f8\u8ab2\u5916\u7684\u82f1\u6587\u8b80\u7269\u6216\u77ed\u7247\uff0c\u6311\u6230\u66f4\u81ea\u7136\u7684\u8a9e\u8a00\u74b0\u5883\u3002\",\n        \"\u7df4\u7fd2\u807d\u4e0d\u540c\u80cc\u666f\u7684\u82f1\u6587\u8cc7\u6e90\uff0c\u9019\u80fd\u63d0\u5347\u4f60\u5728\u771f\u5be6\u751f\u6d3b\u60c5\u5883\u4e2d\u7684\u807d\u529b\u9069\u61c9\u80fd\u529b\u3002\",\n        \"\u8a66\u8457\u7528\u82f1\u6587\u5beb\u4e0b\u7c21\u77ed\u7684\u8a08\u756b\u6216\u5fc3\u60c5\uff0c\u8b93\u8a9e\u8a00\u6210\u70ba\u4f60\u751f\u6d3b\u4e2d\u81ea\u7136\u7684\u4e00\u90e8\u5206\u3002\"\n      ],\n      improving: [\n        \"\u82f1\u6587\u9700\u8981\u6642\u9593\u4f86\u8b93\u8033\u6735\u7fd2\u6163\u3002\u6bcf\u5929\u82b1\u5e7e\u5206\u9418\u807d\u807d\u6717\u8b80\uff0c\u5373\u4fbf\u6c92\u807d\u61c2\u5168\u90e8\uff0c\u4e5f\u662f\u5728\u7d2f\u7a4d\u611f\u5ea6\u3002\",\n        \"\u6bcf\u5929\u638c\u63e1\u5e7e\u500b\u5c0d\u4f60\u6709\u610f\u7fa9\u3001\u7528\u5f97\u5230\u7684\u55ae\u5b57\uff0c\u7a4d\u5c11\u6210\u591a\u6703\u7522\u751f\u975e\u5e38\u9a5a\u4eba\u7684\u9032\u6b65\u3002\",\n        \"\u4e0d\u8981\u6015\u72af\u932f\uff0c\u8a66\u8457\u52c7\u6562\u8b80\u51fa\u8072\u4f86\u3002\u8a9e\u8a00\u662f\u6e9d\u901a\u7684\u6a4b\u6a11\uff0c\u53ea\u8981\u6562\u958b\u53e3\u5c31\u662f\u8de8\u51fa\u4e86\u4e00\u5927\u6b65\u3002\"\n      ]\n    },\n    '\u82f1\u8a9e': {\n      leading: [\n        \"\u4f60\u7684\u8a9e\u611f\u8868\u73fe\u512a\u7570\uff0c\u53ef\u4ee5\u958b\u59cb\u63a5\u89f8\u8ab2\u5916\u7684\u82f1\u6587\u8b80\u7269\u6216\u77ed\u7247\uff0c\u6311\u6230\u66f4\u81ea\u7136\u7684\u8a9e\u8a00\u74b0\u5883\u3002\",\n        \"\u7df4\u7fd2\u807d\u4e0d\u540c\u80cc\u666f\u7684\u82f1\u6587\u8cc7\u6e90\uff0c\u9019\u80fd\u63d0\u5347\u4f60\u5728\u771f\u5be6\u751f\u6d3b\u60c5\u5883\u4e2d\u7684\u807d\u529b\u9069\u61c9\u80fd\u529b\u3002\"\n      ],\n      improving: [\n        \"\u82f1\u6587\u9700\u8981\u6642\u9593\u4f86\u8b93\u8033\u6735\u7fd2\u6163\u3002\u6bcf\u5929\u82b1\u5e7e\u5206\u9418\u807d\u807d\u6717\u8b80\uff0c\u5373\u4fbf\u6c92\u807d\u61c2\u5168\u90e8\uff0c\u4e5f\u662f\u5728\u7d2f\u7a4d\u611f\u5ea6\u3002\",\n        \"\u6bcf\u5929\u638c\u63e1\u5e7e\u500b\u5c0d\u4f60\u6709\u610f\u7fa9\u3001\u7528\u5f97\u5230\u7684\u55ae\u5b57\uff0c\u7a4d\u5c11\u6210\u591a\u6703\u7522\u751f\u975e\u5e38\u9a5a\u4eba\u7684\u9032\u6b65\u3002\"\n      ]\n    },\n    '\u81ea\u7136': {\n      leading: [\n        \"\u4f60\u64c1\u6709\u654f\u92b3\u7684\u89c0\u5bdf\u529b\u3002\u5c0d\u65bc\u751f\u6d3b\u4e2d\u7684\u73fe\u8c61\uff0c\u8a66\u8457\u7528\u79d1\u5b78\u7684\u8996\u89d2\u53bb\u63a8\u8ad6\u5b83\u767c\u751f\u7684\u539f\u56e0\u3002\",\n        \"\u53ef\u4ee5\u95b1\u8b80\u4e00\u4e9b\u79d1\u666e\u77ed\u6587\u6216\u65b0\u805e\uff0c\u63a2\u7d22\u524d\u77bb\u7684\u79d1\u5b78\u767c\u5c55\uff0c\u9019\u6703\u5927\u5927\u64f4\u5c55\u4f60\u7684\u79d1\u5b78\u8996\u91ce\u3002\",\n        \"\u91dd\u5c0d\u5be6\u9a57\u7d50\u679c\uff0c\u8a66\u8457\u63d0\u51fa\u300e\u5982\u679c\u6539\u8b8a\u67d0\u500b\u689d\u4ef6\u6703\u600e\u6a23\uff1f\u300f\u7684\u5047\u8a2d\uff0c\u9019\u662f\u79d1\u5b78\u63a2\u7a76\u7684\u9748\u9b42\u3002\"\n      ],\n      improving: [\n        \"\u79d1\u5b78\u5176\u5be6\u5c31\u5728\u4f60\u7684\u751f\u6d3b\u9031\u906d\u3002\u89c0\u5bdf\u690d\u7269\u751f\u9577\u6216\u5eda\u623f\u88e1\u7684\u7269\u7406\u73fe\u8c61\uff0c\u4f60\u6703\u767c\u73fe\u539f\u7406\u5f88\u89aa\u5207\u3002\",\n        \"\u8a66\u8457\u5c07\u8ab2\u672c\u4e0a\u7684\u5716\u8868\u8207\u751f\u6d3b\u73fe\u8c61\u5c0d\u7167\uff0c\u627e\u56de\u5c0d\u4e16\u754c\u904b\u4f5c\u7684\u597d\u5947\u5fc3\uff0c\u5b78\u7fd2\u6703\u66f4\u6709\u52d5\u529b\u3002\",\n        \"\u5148\u5f9e\u8a18\u9304\u4f60\u89c0\u5bdf\u5230\u7684\u7d30\u7bc0\u958b\u59cb\u3002\u7576\u4f60\u958b\u59cb\u597d\u5947\u300e\u9019\u662f\u5728\u505a\u4ec0\u9ebc\uff1f\u300f\u6642\uff0c\u4f60\u5c31\u8de8\u51fa\u4e86\u7b2c\u4e00\u6b65\u3002\"\n      ]\n    }\n  };\n\n  var subData = adviceDb[subject] || adviceDb['\u81ea\u7136'];\n  var list = subData[zoneType] || subData['improving'];\n  var seed = (subject.charCodeAt(0) + Math.floor(score)) % list.length;\n  return list[seed] || list[0];\n}\n";
+
     // 初始化頁面
     window.addEventListener('DOMContentLoaded', () => {
-      // 檢查網址參數是否直接帶入 Token (家長掃碼情境)
       const urlParams = new URLSearchParams(window.location.search);
       const token = urlParams.get('token');
 
@@ -696,12 +801,11 @@
       } else {
         if (activeApiUrl) {
           document.getElementById('apiEndpointInput').value = activeApiUrl;
-          document.getElementById('quickApiInput').value = activeApiUrl;
           runApiCheck(false);
         } else {
-          // 預設渲染示範列印卡片
           cachedStudents = DEMO_STUDENTS;
           renderPrintCards(cachedStudents);
+          updatePreviewStudentOptions(cachedStudents);
         }
         loadPreviewForSelectedStudent();
       }
@@ -728,222 +832,11 @@
       }
     }
 
-    // 複製 GAS 後端程式碼
+    // 一鍵複製最新 GAS 後端程式碼
     function copyGasCode() {
-      const code = `/**
- * MPScore - 智慧學生成績與學習診斷系統 (Google Apps Script 後端)
- * 欄位：【學生名冊】A:班級, B:座號, C:姓名, D:專屬代碼, E:啟用狀態
- * 【成績明細】A:座號, B:學年度, C:學期, D:考試名稱, E:科目, F:個人得分, G:班級平均, H:PR值, I:解讀評語
- */
-function onOpen() {
-  var ui = SpreadsheetApp.getUi();
-  ui.createMenu('⚡ MPScore 工具')
-    .addItem('🛠️ 一鍵自動建立標準分頁與欄位 (全新空白表專用)', 'setupStandardSheets')
-    .addSeparator()
-    .addItem('🔑 一鍵為全班產生防偽代碼 (Token)', 'generateTokensForStudents')
-    .addItem('📊 自動計算班級平均與 PR 值', 'autoCalculateStats')
-    .addToUi();
-}
-
-function setupStandardSheets() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var ui = SpreadsheetApp.getUi();
-
-  var sSheet = ss.getSheetByName('學生名冊') || ss.getSheets()[0];
-  sSheet.setName('學生名冊');
-  sSheet.getRange(1, 1, 1, 5).setValues([['班級', '座號', '姓名', '專屬代碼', '啟用狀態']])
-    .setBackground('#312e81').setFontColor('#ffffff').setFontWeight('bold').setHorizontalAlignment('center');
-
-  if (sSheet.getLastRow() <= 1) {
-    sSheet.getRange(2, 1, 3, 5).setValues([
-      ['701', '01', '王小明', 'DEMO1', true],
-      ['701', '02', '李小華', 'DEMO2', true],
-      ['701', '03', '張小美', 'DEMO3', true]
-    ]);
-  }
-
-  var scSheet = ss.getSheetByName('成績明細') || ss.insertSheet('成績明細');
-  scSheet.getRange(1, 1, 1, 9).setValues([['座號', '學年度', '學期', '考試名稱', '科目', '個人得分', '班級平均', 'PR值', '解讀評語']])
-    .setBackground('#1e1b4b').setFontColor('#ffffff').setFontWeight('bold').setHorizontalAlignment('center');
-
-  if (scSheet.getLastRow() <= 1) {
-    scSheet.getRange(2, 1, 8, 9).setValues([
-      ['01', '112', '1', '第一次段考', '國文', 88, 78.5, 82, '閱讀理解能力出色'],
-      ['01', '112', '1', '第一次段考', '英語', 92, 75.0, 89, '聽力表現優異'],
-      ['01', '112', '1', '第一次段考', '數學', 74, 72.0, 60, '加強驗算'],
-      ['01', '112', '1', '第一次段考', '自然', 85, 70.2, 80, '實驗題型佳'],
-      ['01', '112', '1', '第二次段考', '國文', 90, 79.0, 85, '寫作進步'],
-      ['01', '112', '1', '第二次段考', '英語', 95, 76.2, 93, '語感敏銳'],
-      ['01', '112', '1', '第二次段考', '數學', 86, 73.0, 78, '大幅躍進！'],
-      ['01', '112', '1', '第二次段考', '自然', 88, 71.5, 84, '靈活應用']
-    ]);
-  }
-  ui.alert('🎉 建置完成！已自動建立【學生名冊】與【成績明細】(含兩次段考對比範例)！');
-}
-
-function doGet(e) {
-  var params = e ? e.parameter : {};
-  var action = params.action || (params.token ? 'query' : 'ping');
-  var output = {};
-  try {
-    if (action === 'ping') output = checkSystemStatus();
-    else if (action === 'query') output = getStudentScoreByToken(params.token);
-    else if (action === 'getStudentsForPrint') output = getStudentListForTeacher();
-    else if (action === 'appendExamScores') {
-      var body = params.payload || (e && e.postData && e.postData.contents ? e.postData.contents : '');
-      output = appendExamScores(body);
-    } else output = { success: false, message: '未知的操作請求' };
-  } catch(err) {
-    output = { success: false, message: '錯誤: ' + err.toString() };
-  }
-  return ContentService.createTextOutput(JSON.stringify(output)).setMimeType(ContentService.MimeType.JSON);
-}
-function doPost(e) { return doGet(e); }
-
-function appendExamScores(payloadStr) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var scSheet = ss.getSheetByName('成績明細');
-  if (!scSheet) return { success: false, message: '找不到【成績明細】分頁' };
-  var payload = typeof payloadStr === 'string' ? JSON.parse(payloadStr) : payloadStr;
-  var rows = payload.rows;
-  if (!rows || rows.length === 0) return { success: false, message: '成績列表為空' };
-  var newRows = [];
-  for (var i = 0; i < rows.length; i++) {
-    var r = rows[i];
-    newRows.push([r.seatNumber, r.year, r.semester, r.examName, r.subject, Number(r.score)||0, r.average?Number(r.average):'', r.pr?Number(r.pr):'', r.diagnosis||'']);
-  }
-  var startRow = scSheet.getLastRow() + 1;
-  scSheet.getRange(startRow, 1, newRows.length, newRows[0].length).setValues(newRows);
-  return { success: true, count: newRows.length };
-}
-
-function checkSystemStatus() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sSheet = ss.getSheetByName('學生名冊');
-  var scSheet = ss.getSheetByName('成績明細');
-  if (!sSheet || !scSheet) return { success: false, message: '需有【學生名冊】與【成績明細】分頁' };
-  return { success: true, message: '連線正常！', sheetTitle: ss.getName(), studentCount: Math.max(0, sSheet.getLastRow() - 1), scoreCount: Math.max(0, scSheet.getLastRow() - 1) };
-}
-
-function getStudentScoreByToken(token) {
-  if (!token) return { success: false, message: '請提供查詢代碼' };
-  token = token.toString().trim();
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sSheet = ss.getSheetByName('學生名冊');
-  var scSheet = ss.getSheetByName('成績明細');
-  var sData = sSheet.getDataRange().getValues();
-  var student = null;
-  for (var i = 1; i < sData.length; i++) {
-    if (sData[i][3] && sData[i][3].toString().trim() === token) {
-      if (sData[i][4] === false) return { success: false, message: '帳號已停用' };
-      student = { className: sData[i][0].toString(), seatNumber: sData[i][1].toString(), name: sData[i][2], studentId: sData[i][0] + '-' + sData[i][1] };
-      break;
-    }
-  }
-  if (!student) return { success: false, message: '查無此代碼，請確認是否輸入正確' };
-
-  var scData = scSheet.getDataRange().getValues();
-  var headers = scData[0].map(function(h) { return h.toString().trim(); });
-  var colIndex = {
-    seat: headers.indexOf('座號'), year: headers.indexOf('學年度'), semester: headers.indexOf('學期'),
-    examName: headers.indexOf('考試名稱'), subject: headers.indexOf('科目'), score: headers.indexOf('個人得分'),
-    average: headers.indexOf('班級平均'), pr: headers.indexOf('PR值'), diagnosis: headers.indexOf('解讀評語')
-  };
-  if (colIndex.seat === -1) colIndex.seat = 0;
-
-  var poolMap = {};
-  for (var k = 1; k < scData.length; k++) {
-    var kKey = scData[k][colIndex.examName] + '_' + scData[k][colIndex.subject];
-    if (!poolMap[kKey]) poolMap[kKey] = [];
-    var sc = Number(scData[k][colIndex.score]);
-    if (!isNaN(sc)) poolMap[kKey].push(sc);
-  }
-
-  var records = [];
-  for (var j = 1; j < scData.length; j++) {
-    var r = scData[j];
-    if (r[colIndex.seat].toString().trim() === student.seatNumber.trim()) {
-      var sVal = Number(r[colIndex.score]) || 0;
-      var aVal = Number(r[colIndex.average]) || 0;
-      var pVal = Number(r[colIndex.pr]) || 0;
-      var kKeyMatch = r[colIndex.examName] + '_' + r[colIndex.subject];
-      if ((!pVal || pVal <= 0) && poolMap[kKeyMatch] && poolMap[kKeyMatch].length > 1) {
-        var pool = poolMap[kKeyMatch], below = 0, eq = 0;
-        for (var p = 0; p < pool.length; p++) {
-          if (pool[p] < sVal) below++;
-          else if (pool[p] === sVal) eq++;
-        }
-        pVal = Math.round(((below + 0.5 * eq) / pool.length) * 100);
-      }
-      records.push({
-        year: r[colIndex.year], semester: r[colIndex.semester], examName: r[colIndex.examName],
-        examKey: r[colIndex.year] + '-' + r[colIndex.semester] + ' ' + r[colIndex.examName],
-        subject: r[colIndex.subject], score: sVal, average: aVal, pr: pVal, diagnosis: r[colIndex.diagnosis] || ''
-      });
-    }
-  }
-  return { success: true, student: student, records: records };
-}
-
-function getStudentListForTeacher() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName('學生名冊');
-  var data = sheet.getDataRange().getValues();
-  var list = [];
-  for (var i = 1; i < data.length; i++) {
-    if (data[i][2] && data[i][3]) list.push({ className: data[i][0].toString(), seatNumber: data[i][1].toString(), name: data[i][2], token: data[i][3].toString().trim(), studentId: data[i][0] + '-' + data[i][1] });
-  }
-  return { success: true, students: list };
-}
-
-function generateTokensForStudents() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName('學生名冊');
-  var data = sheet.getDataRange().getValues();
-  var chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
-  var c = 0;
-  for (var i = 1; i < data.length; i++) {
-    if (!data[i][3] || data[i][3].toString().trim() === '') {
-      var tok = '';
-      for (var k = 0; k < 6; k++) tok += chars.charAt(Math.floor(Math.random() * chars.length));
-      sheet.getRange(i + 1, 4).setValue(tok);
-      sheet.getRange(i + 1, 5).setValue(true);
-      c++;
-    }
-  }
-  SpreadsheetApp.getUi().alert('完成！已為 ' + c + ' 位學生生成代碼。');
-}
-
-function autoCalculateStats() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var scSheet = ss.getSheetByName('成績明細');
-  if (!scSheet) return;
-  var data = scSheet.getDataRange().getValues();
-  var headers = data[0].map(function(h) { return h.toString().trim(); });
-  var avgCol = headers.indexOf('班級平均'), prCol = headers.indexOf('PR值'), scoreCol = headers.indexOf('個人得分'), examCol = headers.indexOf('考試名稱'), subjCol = headers.indexOf('科目');
-  var groupMap = {};
-  for (var i = 1; i < data.length; i++) {
-    var key = data[i][examCol] + '_' + data[i][subjCol], sc = Number(data[i][scoreCol]);
-    if (!groupMap[key]) groupMap[key] = [];
-    if (!isNaN(sc)) groupMap[key].push(sc);
-  }
-  for (var j = 1; j < data.length; j++) {
-    var list = groupMap[data[j][examCol] + '_' + data[j][subjCol]];
-    if (list && list.length > 0) {
-      var sum = list.reduce(function(a, b) { return a + b; }, 0);
-      if (avgCol !== -1) scSheet.getRange(j + 1, avgCol + 1).setValue(Math.round((sum / list.length) * 10) / 10);
-      var myScore = Number(data[j][scoreCol]), below = 0, eq = 0;
-      for (var p = 0; p < list.length; p++) {
-        if (list[p] < myScore) below++; else if (list[p] === myScore) eq++;
-      }
-      if (prCol !== -1) scSheet.getRange(j + 1, prCol + 1).setValue(Math.round(((below + 0.5 * eq) / list.length) * 100));
-    }
-  }
-  SpreadsheetApp.getUi().alert('班級平均與 PR 值已更新！');
-}`;
-      navigator.clipboard.writeText(code).then(() => {
+      navigator.clipboard.writeText(GAS_CODE_CONTENT).then(() => {
         const btn = document.getElementById('copyCodeBtn');
-        btn.innerHTML = '<span>✅ 已成功複製到剪貼簿！</span>';
+        btn.innerHTML = '<span>✅ 已成功複製最新後端程式碼！</span>';
         btn.classList.replace('bg-indigo-500', 'bg-emerald-600');
         setTimeout(() => {
           btn.innerHTML = '<span>📋 一鍵複製完整程式碼</span>';
@@ -957,7 +850,6 @@ function autoCalculateStats() {
       const urlInput = document.getElementById('apiEndpointInput');
       const url = urlInput.value.trim();
       const resBox = document.getElementById('checkResultBox');
-      const banner = document.getElementById('connectionBanner');
 
       if (!url) {
         if (showAlert) alert('請先貼上 Apps Script 網頁應用程式網址！');
@@ -965,7 +857,7 @@ function autoCalculateStats() {
       }
 
       resBox.className = 'p-4 rounded-xl text-xs border mt-4 bg-slate-100 text-slate-700 flex items-center gap-2';
-      resBox.innerHTML = '<span class="inline-block animate-spin rounded-full h-4 w-4 border-2 border-indigo-600 border-t-transparent"></span> 連線檢測中，請稍候...';
+      resBox.innerHTML = '<span class="inline-block animate-spin rounded-full h-4 w-4 border-2 border-indigo-600 border-t-transparent"></span> 連線檢測中，正在解析試算表分頁與學生名冊...';
       resBox.classList.remove('hidden');
 
       try {
@@ -977,19 +869,26 @@ function autoCalculateStats() {
           activeApiUrl = url;
           localStorage.setItem('mpscore_gas_url', url);
 
-          // 更新導航列狀態標籤
           const navBadge = document.getElementById('navStatusBadge');
           if (navBadge) {
             navBadge.className = 'text-[11px] bg-emerald-50 text-emerald-700 px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1 border border-emerald-200';
             navBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span><span>已連線：${data.sheetTitle || '線上試算表'}</span>`;
           }
 
+          const tabsText = data.examTabs && data.examTabs.length > 0 
+            ? data.examTabs.map(t => `<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold">【${t}】</span>`).join(' ')
+            : '<span class="text-slate-400">尚未建立考試分頁</span>';
+
           resBox.className = 'p-5 rounded-2xl text-xs border mt-4 bg-emerald-50 border-emerald-200 text-emerald-900 space-y-3';
           resBox.innerHTML = `
             <div class="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <div class="font-bold text-sm text-emerald-900">🎉 連線成功！Google 試算表已就緒</div>
-                <div class="text-xs text-emerald-700 mt-0.5">試算表名稱：<b>${data.sheetTitle || '線上試算表'}</b> ‧ 已讀取到 <b>${data.studentCount}</b> 位學生、<b>${data.scoreCount}</b> 筆成績紀錄。</div>
+                <div class="font-bold text-sm text-emerald-900">🎉 連線成功！試算表架構檢測完全正常</div>
+                <div class="text-xs text-emerald-700 mt-1 space-y-1">
+                  <div>• 試算表名稱：<b>${data.sheetTitle || '線上試算表'}</b> ‧ 名冊學生人數：<b>${data.studentCount}</b> 位</div>
+                  <div>• 已偵測到的考試分頁：${tabsText}</div>
+                  <div class="text-indigo-900 font-semibold">⚡ 全自動計算引擎已啟用：各科平均、個人排名與 PR 值將由系統即時精算！</div>
+                </div>
               </div>
               <button onclick="switchTab('printCenter')" class="text-xs font-bold bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 rounded-xl transition shadow-sm flex items-center gap-1">
                 <span>前往第 4 步：列印小卡 ➔</span>
@@ -997,7 +896,6 @@ function autoCalculateStats() {
             </div>
           `;
           
-          // 自動同步名冊
           syncStudentsFromApi(false);
         } else {
           throw new Error(data.message || '連線測試失敗');
@@ -1007,28 +905,16 @@ function autoCalculateStats() {
         resBox.innerHTML = `
           <div class="font-bold text-sm text-rose-900 mb-1">❌ 連線失敗 (${err.message})</div>
           <div class="space-y-1.5 mt-2 text-slate-700 text-xs leading-relaxed">
-            <div><b>常見原因 1（最常見）</b>：此 Apps Script 所屬的試算表若是剛才複製的範本並已被關閉或刪除，該網址會失效（回傳 404 找不到檔案）。</div>
-            <div><b>常見原因 2</b>：在點擊「新部署」時，【誰可以存取】若未設定為<b>【所有人 (Anyone)】</b>，Google 會阻擋存取。</div>
-            <div class="p-2 bg-white/80 rounded border border-rose-200 text-indigo-900 font-bold mt-1">
-              👉 解決方法：請開啟一張全新的空白試算表（在網址列打 <code class="bg-indigo-50 px-1 py-0.5 rounded text-indigo-700">sheets.new</code>），點擴充功能貼上最新程式碼，重新點「部署 > 新部署 (選所有人)」，取得全新有效網址即可！
-            </div>
+            <div><b>常見原因 1</b>：在點擊「新部署」時，【誰可以存取】若未設定為<b>【所有人 (Anyone)】</b>，Google 會阻擋瀏覽器連線。</div>
+            <div><b>常見原因 2</b>：試算表缺少名為<b>【學生名冊】</b>的分頁。請點選試算表選單【⚡ MPScore 工具 > 🛠️ 一鍵自動建立標準分頁範本】即可！</div>
           </div>
         `;
       }
     }
 
-    function testQuickConnection() {
-      const url = document.getElementById('quickApiInput').value.trim();
-      document.getElementById('apiEndpointInput').value = url;
-      runApiCheck(true);
-    }
-
     // 從 API 同步學生名單以供列印
     async function syncStudentsFromApi(alertSuccess = true) {
-      if (!activeApiUrl) {
-        alert('請先在第 3 步完成連線檢測！');
-        return;
-      }
+      if (!activeApiUrl) return;
       try {
         const syncUrl = activeApiUrl + (activeApiUrl.includes('?') ? '&' : '?') + 'action=getStudentsForPrint';
         const resp = await fetch(syncUrl);
@@ -1039,8 +925,6 @@ function autoCalculateStats() {
           renderPrintCards(cachedStudents);
           updatePreviewStudentOptions(cachedStudents);
           if (alertSuccess) alert(`✨ 成功同步 ${data.students.length} 位學生名冊！`);
-        } else {
-          alert('試算表內尚未填入學生或代碼尚未生成，請使用試算表選單【⚡ MPScore 工具】產生代碼。');
         }
       } catch(e) {
         console.error(e);
@@ -1055,7 +939,7 @@ function autoCalculateStats() {
       students.forEach(st => {
         const opt = document.createElement('option');
         opt.value = st.token;
-        opt.innerText = `${st.className} 班 ${st.seatNumber || ''} 號 ${st.name} (Token: ${st.token})`;
+        opt.innerText = `${st.className} 班 ${st.seatNumber || ''} 號 ${st.name} (代碼: ${st.token})`;
         sel.appendChild(opt);
       });
       loadPreviewForSelectedStudent();
@@ -1090,8 +974,7 @@ function autoCalculateStats() {
 
           <div class="flex items-center justify-between gap-4 my-1">
             <div class="space-y-1">
-              <div class="text-base font-black text-slate-900">${st.name} <span class="text-xs font-normal text-slate-500">${st.seatNumber ? `(${st.seatNumber}號)` : ''}</span></div>
-              <div class="text-xs text-slate-500">學號：<span class="font-mono text-slate-700">${st.studentId}</span></div>
+              <div class="text-base font-black text-slate-900">${st.name} <span class="text-xs font-normal text-slate-500">(${st.seatNumber}號)</span></div>
               <div class="text-xs text-indigo-900 font-bold bg-indigo-50 px-2 py-1 rounded inline-block">
                 查詢代碼：<span class="font-mono text-sm tracking-widest text-indigo-600">${st.token}</span>
               </div>
@@ -1111,7 +994,6 @@ function autoCalculateStats() {
 
         grid.appendChild(card);
 
-        // 使用 qrcodejs 生成清晰 QR Code
         setTimeout(() => {
           new QRCode(document.getElementById(cardId), {
             text: queryUrl,
@@ -1127,84 +1009,109 @@ function autoCalculateStats() {
       renderPrintCards(cachedStudents);
     }
 
-    // 儲存外部解讀平台 API 網址
-    function saveDiagApi() {
-      const val = document.getElementById('aiDiagApiInput').value.trim();
-      localStorage.setItem('mpscore_diag_api', val);
-      alert('已成功儲存成績單解讀平台 API 設定！');
+    // ==========================================
+    // 原始成績線上自動試算小幫手
+    // ==========================================
+    function fillSampleScoresData() {
+      const rows = DEMO_RAW_EXAM1.map(st => `${st.seat}\t${st.name}\t${st.scores['國語']}\t${st.scores['數學']}\t${st.scores['社會']}\t${st.scores['英文']}\t${st.scores['自然']}`);
+      document.getElementById('rawExcelInput').value = "座號\t姓名\t國語\t數學\t社會\t英文\t自然\n" + rows.join('\n');
+      calculateRawScoresOnline();
     }
 
-    // 橫式成績轉置小幫手 (更新為 座號, 學年度, 學期, 考試名稱, 科目, 個人得分, 班級平均, PR值, 解讀評語)
-    function convertHorizontalScores() {
-      const raw = document.getElementById('rawExcelInput').value.trim();
-      if (!raw) {
-        alert('請先在左側貼上 Excel 橫式成績表格！');
+    function calculateRawScoresOnline() {
+      const text = document.getElementById('rawExcelInput').value.trim();
+      const resBox = document.getElementById('calcPreviewResult');
+      if (!text) {
+        alert('請先貼上成績資料！');
         return;
       }
 
-      const year = document.getElementById('toolYear').value;
-      const sem = document.getElementById('toolSemester').value;
-      const examName = document.getElementById('toolExamName').value;
-
-      const lines = raw.split('\n').map(l => l.trim()).filter(l => l);
+      const lines = text.split('\n').map(l => l.trim()).filter(l => l);
       if (lines.length < 2) {
-        alert('格式不符：需包含標題列與至少一列學生資料');
+        alert('至少需包含標題列與 1 筆學生分數！');
         return;
       }
 
-      const headers = lines[0].split('\t').length > 1 ? lines[0].split('\t') : lines[0].split(/[\s,]+/);
-      const subjectHeaders = headers.slice(2);
-
-      let outputRows = ['座號\t學年度\t學期\t考試名稱\t科目\t個人得分\t班級平均\tPR值\t解讀評語'];
+      const header = lines[0].split(/[\t,]+/).map(h => h.trim());
+      const subCols = header.slice(2);
+      const students = [];
 
       for (let i = 1; i < lines.length; i++) {
-        const parts = lines[i].split('\t').length > 1 ? lines[i].split('\t') : lines[i].split(/[\s,]+/);
-        const seatNumber = parts[0] || (i < 10 ? '0' + i : '' + i);
-
-        subjectHeaders.forEach((subj, subIdx) => {
-          const score = parts[2 + subIdx] || '0';
-          // PR值保留空白，由系統/網站自動計算
-          outputRows.push(`${seatNumber}\t${year}\t${sem}\t${examName}\t${subj}\t${score}\t\t\t表現良好，持續精進。`);
+        const parts = lines[i].split(/[\t,]+/).map(p => p.trim());
+        const seat = parts[0];
+        const name = parts[1];
+        const scMap = {};
+        let total = 0, count = 0;
+        subCols.forEach((sub, sIdx) => {
+          const val = Number(parts[2 + sIdx]) || 0;
+          scMap[sub] = val;
+          total += val;
+          count++;
         });
+        students.push({ seat, name, scores: scMap, avg: count > 0 ? (total / count) : 0 });
       }
 
-      document.getElementById('convertedOutput').value = outputRows.join('\n');
-    }
+      // 計算排名
+      students.sort((a, b) => b.avg - a.avg);
+      students.forEach((st, idx) => st.rank = idx + 1);
 
-    function copyConvertedData() {
-      const text = document.getElementById('convertedOutput').value;
-      if (!text) return;
-      navigator.clipboard.writeText(text).then(() => {
-        const btn = document.getElementById('copyConvertedBtn');
-        btn.innerText = '已複製！';
-        setTimeout(() => btn.innerText = '複製結果', 2000);
+      // 計算各科班平均
+      const subAvgs = {};
+      subCols.forEach(sub => {
+        const sum = students.reduce((acc, st) => acc + st.scores[sub], 0);
+        subAvgs[sub] = (sum / students.length).toFixed(2);
       });
-    }
 
-    function fillSampleExcelData() {
-      document.getElementById('rawExcelInput').value = 
-`座號\t姓名\t國文\t英語\t數學\t自然\t社會
-01\t王小明\t85\t92\t74\t88\t80
-02\t李小華\t90\t88\t95\t84\t86
-03\t張小美\t78\t82\t80\t76\t79`;
+      let out = `
+        <div class="bg-indigo-50 p-3 rounded-lg border border-indigo-200">
+          <div class="font-bold text-indigo-950 mb-1">🎉 全自動試算完成 (共 ${students.length} 位學生)</div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-1 text-[11px] text-indigo-800">
+            ${subCols.map(s => `<div>• <b>${s}</b> 班均: ${subAvgs[s]} 分</div>`).join('')}
+          </div>
+        </div>
+        <div class="font-bold text-slate-800 text-xs">前 5 名學生自動排名與總平均預覽：</div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-[11px] border-collapse bg-white rounded border border-slate-200 text-center">
+            <thead class="bg-slate-100 text-slate-700 font-bold">
+              <tr>
+                <th class="p-1 border">名次</th>
+                <th class="p-1 border">座號</th>
+                <th class="p-1 border">姓名</th>
+                <th class="p-1 border">個人平均</th>
+                ${subCols.map(s => `<th class="p-1 border">${s}</th>`).join('')}
+              </tr>
+            </thead>
+            <tbody>
+              ${students.slice(0, 5).map(st => `
+                <tr>
+                  <td class="p-1 border font-black text-amber-600">第 ${st.rank} 名</td>
+                  <td class="p-1 border">${st.seat}</td>
+                  <td class="p-1 border font-bold">${st.name}</td>
+                  <td class="p-1 border font-bold text-indigo-600">${st.avg.toFixed(2)}</td>
+                  ${subCols.map(s => `<td class="p-1 border">${st.scores[s]}</td>`).join('')}
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+      resBox.innerHTML = out;
     }
 
     function downloadCsvTemplates() {
-      // 1. 學生名冊
-      const studentCsv = "班級,座號,姓名,專屬代碼,啟用狀態\n701,01,王小明,,TRUE\n701,02,李小華,,TRUE\n701,03,張小美,,TRUE";
-      const blob1 = new Blob(["\uFEFF" + studentCsv], { type: 'text/csv;charset=utf-8;' });
+      const rosterCsv = ["班級,座號,姓名,專屬代碼,啟用狀態", "701,01,陳小明,DEMO01,TRUE", "701,02,陳小華,DEMO02,TRUE"].join('\n');
+      const blob1 = new Blob(["\uFEFF" + rosterCsv], { type: 'text/csv;charset=utf-8;' });
       const link1 = document.createElement("a");
       link1.href = URL.createObjectURL(blob1);
       link1.download = "學生名冊範本.csv";
       link1.click();
 
-      // 2. 成績明細 (延遲 300ms 下載第二個檔案)
       setTimeout(() => {
-        const scoreCsv = "座號,學年度,學期,考試名稱,科目,個人得分,班級平均,PR值,解讀評語\n01,112,1,第一次段考,國文,88,78.5,82,閱讀理解能力出色\n01,112,1,第一次段考,英語,92,75.0,89,聽力表現優異\n01,112,1,第一次段考,數學,74,72.0,60,基礎概念扎實\n01,112,1,第一次段考,自然,85,70.2,80,實驗題型佳\n01,112,1,第二次段考,國文,90,79.0,85,寫作持續進步\n01,112,1,第二次段考,英語,95,76.2,93,語感敏銳\n01,112,1,第二次段考,數學,86,73.0,78,大幅躍進\n01,112,1,第二次段考,自然,88,71.5,84,原理靈活應用";
-        const blob2 = new Blob(["\uFEFF" + scoreCsv], { type: 'text/csv;charset=utf-8;' });
+        const examCsv = ["座號,姓名,國語,數學,社會,英文,自然", "01,陳小明,88,70,77,100,57", "02,陳小華,86,74,81,79,69"].join('\n');
+        const blob2 = new Blob(["\uFEFF" + examCsv], { type: 'text/csv;charset=utf-8;' });
         const link2 = document.createElement("a");
         link2.href = URL.createObjectURL(blob2);
-        link2.download = "成績明細範本.csv";
+        link2.download = "考試分頁成績範本(僅需原始分數).csv";
         link2.click();
       }, 300);
     }
@@ -1229,7 +1136,6 @@ function autoCalculateStats() {
     async function doParentQuery() {
       const token = document.getElementById('parentTokenInput').value.trim();
       const errBox = document.getElementById('parentErrorMsg');
-      const resBox = document.getElementById('parentScoreResult');
 
       if (!token) {
         errBox.innerText = '請輸入 6 碼查詢代碼';
@@ -1238,16 +1144,15 @@ function autoCalculateStats() {
       }
       errBox.classList.add('hidden');
 
-      // 若有設定 GAS 網址則呼叫真實 API，否則使用展示數據
       if (activeApiUrl) {
         try {
           const qUrl = activeApiUrl + (activeApiUrl.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(token);
           const resp = await fetch(qUrl);
           const data = await resp.json();
           if (data.success) {
-            renderParentView(data.student, data.records);
+            renderParentDashboard(data.student, data.exams || transformFlatRecordsToExams(data.records));
           } else {
-            errBox.innerText = data.message || '查無此代碼';
+            errBox.innerText = data.message || '查無此代碼，請確認代碼是否輸入正確';
             errBox.classList.remove('hidden');
           }
         } catch (e) {
@@ -1255,144 +1160,186 @@ function autoCalculateStats() {
           errBox.classList.remove('hidden');
         }
       } else {
-        // 展示模式
+        // 展示模式：使用真實班級 24 人兩次考試數據運算
         const demoSt = DEMO_STUDENTS.find(s => s.token.toUpperCase() === token.toUpperCase()) || DEMO_STUDENTS[0];
-        renderParentView(demoSt, DEMO_SCORES);
+        const computedExams = buildDemoExamsForStudent(demoSt);
+        renderParentDashboard(demoSt, computedExams);
       }
     }
 
-    function renderParentView(student, records) {
+    // 將示範原始分數即時精算成兩次考試的完整報告
+    function buildDemoExamsForStudent(student) {
+      const calcExam = (title, sheetName, rawList) => {
+        const subs = ['國語', '數學', '社會', '英文', '自然'];
+        const totalCount = rawList.length;
+        
+        // 各科班平均
+        const subAvgs = {};
+        subs.forEach(s => {
+          const sum = rawList.reduce((acc, st) => acc + st.scores[s], 0);
+          subAvgs[s] = Math.round((sum / totalCount) * 100) / 100;
+        });
+
+        // 排名與個人平均
+        const ranked = rawList.map(st => {
+          const myScores = subs.map(s => st.scores[s]);
+          const myAvg = myScores.reduce((a, b) => a + b, 0) / subs.length;
+          return { seat: st.seat, name: st.name, avg: Math.round(myAvg * 100) / 100, scores: st.scores };
+        }).sort((a, b) => b.avg - a.avg);
+
+        const myEntry = ranked.find(r => r.seat === student.seatNumber) || ranked[0];
+        const myRank = ranked.findIndex(r => r.seat === student.seatNumber) + 1;
+        const classOverallAvg = Math.round((ranked.reduce((a, b) => a + b.avg, 0) / totalCount) * 100) / 100;
+
+        // 各科 PR 與建議
+        const subjectsResult = subs.map(s => {
+          const score = myEntry.scores[s];
+          const cAvg = subAvgs[s];
+          const allS = rawList.map(st => st.scores[s]);
+          const below = allS.filter(v => v < score).length;
+          const equal = allS.filter(v => v === score).length;
+          const pr = Math.round(((below + 0.5 * equal) / totalCount) * 100);
+
+          let zone = '穩健', zoneStatus = '穩健發揮區間', zoneType = 'leading';
+          if (pr >= 75) { zone = '精熟'; zoneStatus = '精熟表現區間'; zoneType = 'leading'; }
+          else if (pr >= 50) { zone = '穩健'; zoneStatus = '穩健發揮區間'; zoneType = 'leading'; }
+          else if (pr >= 25) { zone = '努力'; zoneStatus = '努力成長區間'; zoneType = 'improving'; }
+          else { zone = '開發'; zoneStatus = '開發潛力區間'; zoneType = 'improving'; }
+
+          const advicePool = GRADE_INTERPR_ADVICE[s] || GRADE_INTERPR_ADVICE['國語'];
+          const list = advicePool[zoneType];
+          const pick = list[(s.charCodeAt(0) + Math.floor(score)) % list.length];
+
+          return {
+            name: s,
+            score: score,
+            classAverage: cAvg,
+            diff: Math.round((score - cAvg) * 100) / 100,
+            pr: pr,
+            zone: zone,
+            zoneStatus: zoneStatus,
+            advice: pick
+          };
+        });
+
+        return {
+          examTitle: title,
+          sheetName: sheetName,
+          studentAverage: myEntry.avg,
+          studentRank: myRank,
+          totalStudents: totalCount,
+          classOverallAverage: classOverallAvg,
+          subjects: subjectsResult
+        };
+      };
+
+      return [
+        calcExam('114學年度第2學期期中考', '114-2期中考', DEMO_RAW_EXAM1),
+        calcExam('114學年度第2學期期末考', '114-2期末考', DEMO_RAW_EXAM2)
+      ];
+    }
+
+    function transformFlatRecordsToExams(records) {
+      if (!records || records.length === 0) return [];
+      const examMap = {};
+      records.forEach(r => {
+        const k = r.examName || r.examKey;
+        if (!examMap[k]) {
+          examMap[k] = {
+            examTitle: k,
+            sheetName: r.sheetName || k,
+            subjects: []
+          };
+        }
+        examMap[k].subjects.push({
+          name: r.subject,
+          score: r.score,
+          classAverage: r.average,
+          diff: Math.round((r.score - r.average) * 10) / 10,
+          pr: r.pr,
+          zone: r.zone || '穩健',
+          zoneStatus: r.zoneStatus || '穩健發揮區間',
+          advice: r.diagnosis
+        });
+      });
+      return Object.values(examMap);
+    }
+
+    // 渲染家長端完整數據儀表板
+    function renderParentDashboard(student, exams) {
+      currentStudentExams = exams;
       document.getElementById('pStudentName').innerText = student.name;
-      document.getElementById('pStudentId').innerText = student.studentId;
       document.getElementById('pClassName').innerText = student.className + ' 班';
+      document.getElementById('pSeatNumber').innerText = student.seatNumber;
 
-      currentParentRecords = records;
-
-      // 填充考試下拉選單
       const sel = document.getElementById('pExamSelect');
       sel.innerHTML = '';
-      const examKeys = [...new Set(records.map(r => r.examKey))];
-      examKeys.forEach((k, idx) => {
+      exams.forEach((ex, idx) => {
         const opt = document.createElement('option');
-        opt.value = k;
-        opt.innerText = k;
-        if (idx === examKeys.length - 1) opt.selected = true;
+        opt.value = idx;
+        opt.innerText = ex.examTitle;
+        if (idx === exams.length - 1) opt.selected = true;
         sel.appendChild(opt);
       });
 
-      renderParentTrend(records);
-      renderParentExamDetails();
+      renderSelectedExamView();
+      renderMultiExamTrend(exams);
       document.getElementById('parentScoreResult').classList.remove('hidden');
     }
 
-    // 一鍵將轉換後的考試成績批次新增寫入 Google 試算表最下方 (支援多次考試累加)
-    async function appendConvertedScoresToSheet() {
-      const outputText = document.getElementById('convertedOutput').value.trim();
-      if (!outputText) {
-        alert('請先點擊【⚡ 開始轉換成標準格式】！');
-        return;
-      }
-      if (!activeApiUrl) {
-        alert('尚未連線到 Google Apps Script！請先至【步驟 3】貼上網址並完成連線檢測。');
-        return;
-      }
+    function renderSelectedExamView() {
+      const selIdx = parseInt(document.getElementById('pExamSelect').value, 10) || 0;
+      const curExam = currentStudentExams[selIdx];
+      if (!curExam) return;
 
-      const lines = outputText.split('\n').filter(l => l.trim());
-      if (lines.length <= 1) {
-        alert('沒有有效的成績明細資料！');
-        return;
-      }
+      // 3 大指標更新
+      document.getElementById('pStudentAverage').innerText = curExam.studentAverage ? curExam.studentAverage.toFixed(1) + ' 分' : '--';
+      document.getElementById('pStudentRank').innerText = curExam.studentRank ? `第 ${curExam.studentRank} 名` : '--';
+      document.getElementById('pClassOverallAvg').innerText = curExam.classOverallAverage ? curExam.classOverallAverage.toFixed(1) + ' 分' : '--';
 
-      const rows = [];
-      for (let i = 1; i < lines.length; i++) {
-        const p = lines[i].split('\t');
-        rows.push({
-          seatNumber: p[0],
-          year: p[1],
-          semester: p[2],
-          examName: p[3],
-          subject: p[4],
-          score: p[5],
-          average: p[6],
-          pr: p[7],
-          diagnosis: p[8]
-        });
-      }
+      // 雷達圖
+      const labels = curExam.subjects.map(s => s.name);
+      const scores = curExam.subjects.map(s => s.score);
+      const avgs = curExam.subjects.map(s => s.classAverage);
+      renderParentRadar(labels, scores, avgs);
 
-      const btn = document.getElementById('appendScoresBtn');
-      const originalText = btn.innerHTML;
-      btn.innerHTML = '<span class="inline-block animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent"></span> 寫入中...';
-      btn.disabled = true;
-
-      try {
-        const targetUrl = activeApiUrl + (activeApiUrl.includes('?') ? '&' : '?') + 'action=appendExamScores';
-        const resp = await fetch(targetUrl, {
-          method: 'POST',
-          body: JSON.stringify({ rows: rows })
-        });
-        const res = await resp.json();
-        if (res.success) {
-          alert(`🎉 成功！已在試算表【成績明細】下方接續寫入 ${res.count} 筆成績！\n原有的舊考試資料完整保留，系統已自動建立不同考試對比！`);
-        } else {
-          alert('寫入失敗: ' + (res.message || '未知錯誤'));
-        }
-      } catch (err) {
-        alert('連線失敗: ' + err.message);
-      } finally {
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-      }
-    }
-
-    function renderParentExamDetails() {
-      const selectedKey = document.getElementById('pExamSelect').value;
-      const currentList = currentParentRecords.filter(r => r.examKey === selectedKey);
-
-      // --- 跨次考試成長對比運算 ---
-      const examKeys = [...new Set(currentParentRecords.map(r => r.examKey))];
-      const currentIdx = examKeys.indexOf(selectedKey);
+      // 本次 vs 上次 跨次對比
+      const compCard = document.getElementById('pComparisonCard');
       const compList = document.getElementById('pComparisonList');
       const compBadge = document.getElementById('pComparisonBadge');
       const prevName = document.getElementById('pPrevExamName');
 
-      if (currentIdx > 0) {
-        const prevKey = examKeys[currentIdx - 1];
-        const prevList = currentParentRecords.filter(r => r.examKey === prevKey);
-        prevName.innerText = `(與前次【${prevKey}】對比)`;
-
-        let curTotal = 0, prevTotal = 0, matchedCount = 0;
+      if (selIdx > 0) {
+        const prevExam = currentStudentExams[selIdx - 1];
+        prevName.innerText = `(與【${prevExam.sheetName || prevExam.examTitle}】對比)`;
         compList.innerHTML = '';
 
-        currentList.forEach(cItem => {
-          const pItem = prevList.find(p => p.subject === cItem.subject);
-          if (pItem) {
-            matchedCount++;
-            curTotal += cItem.score;
-            prevTotal += pItem.score;
-            const delta = cItem.score - pItem.score;
-            let deltaTag = '';
-            if (delta > 0) {
-              deltaTag = `<span class="text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded">+${delta} 分 📈</span>`;
-            } else if (delta === 0) {
-              deltaTag = `<span class="text-slate-500 font-bold bg-slate-100 px-1.5 py-0.5 rounded">持平 ➖</span>`;
-            } else {
-              deltaTag = `<span class="text-rose-600 font-bold bg-rose-50 px-1.5 py-0.5 rounded">${delta} 分 📉</span>`;
-            }
+        let curTotal = 0, prevTotal = 0, matched = 0;
+        curExam.subjects.forEach(cSub => {
+          const pSub = prevExam.subjects.find(p => p.name === cSub.name);
+          if (pSub) {
+            matched++;
+            curTotal += cSub.score;
+            prevTotal += pSub.score;
+            const delta = Math.round((cSub.score - pSub.score) * 10) / 10;
+            let tag = delta > 0 
+              ? `<span class="text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded">+${delta} 分 📈</span>`
+              : (delta === 0 ? `<span class="text-slate-500 font-bold bg-slate-100 px-1.5 py-0.5 rounded">持平 ➖</span>` : `<span class="text-rose-600 font-bold bg-rose-50 px-1.5 py-0.5 rounded">${delta} 分 📉</span>`);
 
             compList.innerHTML += `
               <div class="p-2 bg-slate-50 rounded-lg flex items-center justify-between border border-slate-200">
-                <span class="font-bold text-slate-700">${cItem.subject}</span>
+                <span class="font-bold text-slate-700">${cSub.name}</span>
                 <div class="flex items-center gap-1.5">
-                  <span class="text-slate-400 text-[11px]">${pItem.score} ➔ ${cItem.score}</span>
-                  ${deltaTag}
+                  <span class="text-slate-400 text-[11px]">${pSub.score} ➔ ${cSub.score}</span>
+                  ${tag}
                 </div>
               </div>
             `;
           }
         });
 
-        if (matchedCount > 0) {
-          const avgDelta = ((curTotal - prevTotal) / matchedCount).toFixed(1);
+        if (matched > 0) {
+          const avgDelta = ((curTotal - prevTotal) / matched).toFixed(1);
           if (avgDelta > 0) {
             compBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200';
             compBadge.innerText = `總平均成長 +${avgDelta} 分 🌟`;
@@ -1404,100 +1351,52 @@ function autoCalculateStats() {
             compBadge.innerText = `總平均微幅波動 ${avgDelta} 分`;
           }
         }
+        compCard.classList.remove('hidden');
       } else {
         prevName.innerText = '(首筆考試基準)';
         compBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500';
-        compBadge.innerText = '首筆考試基準';
-        compList.innerHTML = `
-          <div class="col-span-2 text-center py-2 text-slate-400 text-xs">
-            此為目前的初始基準考試。在發布後續考試（如：第二次段考）後，系統將自動在此呈現每科進退步成長軌跡！
-          </div>
-        `;
+        compBadge.innerText = '初始基準考試';
+        compList.innerHTML = '<div class="col-span-2 text-center py-2 text-slate-400 text-xs">此為初始基準考試。建立下一分頁（如期末考）後，系統將自動在此呈現每科進退步成長軌跡！</div>';
       }
 
+      // 成績表
       const table = document.getElementById('pScoreTable');
       const diagList = document.getElementById('pDiagnosisList');
       table.innerHTML = '';
       diagList.innerHTML = '';
 
-      const labels = [];
-      const scores = [];
-      const avgs = [];
+      curExam.subjects.forEach(sub => {
+        const diffBadge = sub.diff >= 0
+          ? `<span class="text-emerald-700 font-bold">+${sub.diff}</span>`
+          : `<span class="text-rose-600 font-bold">${sub.diff}</span>`;
 
-      currentList.forEach(item => {
-        labels.push(item.subject);
-        scores.push(item.score);
-        avgs.push(item.average);
-
-        const diff = item.score - item.average;
-        const diffBadge = diff >= 0
-          ? `<span class="text-emerald-700 font-bold">+${diff.toFixed(1)}</span>`
-          : `<span class="text-rose-600 font-bold">${diff.toFixed(1)}</span>`;
-
-        const prDisplay = (item.pr && item.pr > 0) ? `<span class="bg-indigo-50 text-indigo-700 font-bold px-1.5 py-0.5 rounded text-[11px]">PR ${item.pr}</span>` : '-';
+        const prBadge = sub.pr ? `<span class="bg-indigo-50 text-indigo-700 font-bold px-1.5 py-0.5 rounded text-[11px]">PR ${sub.pr}</span>` : '-';
 
         table.innerHTML += `
           <tr class="hover:bg-slate-50">
-            <td class="py-2.5 px-3 font-bold text-slate-800">${item.subject}</td>
-            <td class="py-2.5 px-3 text-center font-black text-indigo-600 text-sm">${item.score}</td>
-            <td class="py-2.5 px-3 text-center text-slate-400">${item.average || '-'}</td>
-            <td class="py-2.5 px-3 text-center">${prDisplay}</td>
+            <td class="py-2.5 px-3 font-bold text-slate-800">${sub.name}</td>
+            <td class="py-2.5 px-3 text-center font-black text-indigo-600 text-sm">${sub.score}</td>
+            <td class="py-2.5 px-3 text-center text-slate-400">${sub.classAverage}</td>
+            <td class="py-2.5 px-3 text-center">${prBadge}</td>
             <td class="py-2.5 px-3 text-center">${diffBadge}</td>
           </tr>
         `;
 
-        // 整合 GradeInterpr 教育顧問分析邏輯
-        let zoneTitle = '穩健發揮區間';
         let zoneBadgeClass = 'bg-blue-50 text-blue-700 border-blue-200';
-        let zoneDesc = '你在班上的成績在中段區間，持續努力穩健學習，下次會有大大的進步。';
-        let adviceCategory = 'leading';
-
-        const prVal = Number(item.pr) || 0;
-        if (prVal >= 75 || diff >= 10) {
-          zoneTitle = '精熟表現區間';
-          zoneBadgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
-          zoneDesc = '在全班排名前列，考試成績優異，維持好習慣持續保持！';
-          adviceCategory = 'leading';
-        } else if (prVal >= 50 || diff >= 0) {
-          zoneTitle = '穩健發揮區間';
-          zoneBadgeClass = 'bg-blue-50 text-blue-700 border-blue-200';
-          zoneDesc = '各項核心概念掌握良好，持續穩紮穩打向前進。';
-          adviceCategory = 'leading';
-        } else if (prVal >= 25 || diff >= -10) {
-          zoneTitle = '努力成長區間';
-          zoneBadgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
-          zoneDesc = '部分單元題型多留意驗算與練習，加強複習即可顯著提升。';
-          adviceCategory = 'improving';
-        } else {
-          zoneTitle = '開發潛力區間';
-          zoneBadgeClass = 'bg-rose-50 text-rose-700 border-rose-200';
-          zoneDesc = '擁有很大成長潛力，建議針對核心基礎概念釐清，多做基本題練習。';
-          adviceCategory = 'improving';
-        }
-
-        // 取得專屬學科建議 (自 GradeInterpr 資料庫)
-        const subjKey = item.subject.replace('科', '');
-        const advicePool = GRADE_INTERPR_ADVICE[subjKey] || GRADE_INTERPR_ADVICE['國語'];
-        const adviceList = advicePool ? advicePool[adviceCategory] : ["持續保持熱忱，穩紮穩打。"];
-        const advicePick = adviceList[(item.subject.charCodeAt(0) + Math.floor(item.score)) % adviceList.length];
-
-        // 優先讀取試算表自訂評語，若無則採用 GradeInterpr 產出
-        const customOrAiDiag = (item.diagnosis && item.diagnosis.trim() !== '' && item.diagnosis !== '表現良好，持續精進。') 
-          ? item.diagnosis 
-          : `${zoneDesc} 【專家精進處方】：${advicePick}`;
+        if (sub.zone === '精熟') zoneBadgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+        else if (sub.zone === '努力') zoneBadgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
+        else if (sub.zone === '開發') zoneBadgeClass = 'bg-rose-50 text-rose-700 border-rose-200';
 
         diagList.innerHTML += `
           <div class="p-3 bg-white rounded-xl border border-slate-200 shadow-sm space-y-1.5">
             <div class="flex items-center justify-between">
-              <span class="font-bold text-xs text-slate-800">【${item.subject}】得分 <span class="text-indigo-600 font-black">${item.score}</span> 分</span>
-              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border ${zoneBadgeClass}">${zoneTitle}</span>
+              <span class="font-bold text-xs text-slate-800">【${sub.name}】得分 <span class="text-indigo-600 font-black">${sub.score}</span> 分 (班均 ${sub.classAverage})</span>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border ${zoneBadgeClass}">${sub.zoneStatus || sub.zone}</span>
             </div>
-            <div class="text-slate-600 leading-relaxed text-[11px]">${customOrAiDiag}</div>
+            <div class="text-slate-600 leading-relaxed text-[11px]">${sub.advice}</div>
           </div>
         `;
       });
-
-      renderParentRadar(labels, scores, avgs);
     }
 
     function renderParentRadar(labels, scores, avgs) {
@@ -1518,7 +1417,7 @@ function autoCalculateStats() {
               pointBackgroundColor: 'rgba(79, 70, 229, 1)'
             },
             {
-              label: '班級平均',
+              label: '班級各科平均',
               data: avgs,
               backgroundColor: 'rgba(148, 163, 184, 0.2)',
               borderColor: 'rgba(148, 163, 184, 1)',
@@ -1540,31 +1439,41 @@ function autoCalculateStats() {
       });
     }
 
-    function renderParentTrend(records) {
+    function renderMultiExamTrend(exams) {
       const ctx = document.getElementById('pTrendChart').getContext('2d');
       if (pTrendInst) pTrendInst.destroy();
 
-      const examKeys = [...new Set(records.map(r => r.examKey))];
-      const subjects = [...new Set(records.map(r => r.subject))];
+      const examLabels = exams.map(e => e.sheetName || e.examTitle);
+      const subNames = ['國語', '數學', '社會', '英文', '自然'];
       const colors = ['#4f46e5', '#06b6d4', '#10b981', '#f59e0b', '#ec4899'];
 
-      const datasets = subjects.map((subj, idx) => {
-        const data = examKeys.map(k => {
-          const rec = records.find(r => r.examKey === k && r.subject === subj);
-          return rec ? rec.score : null;
-        });
+      const datasets = subNames.map((s, idx) => {
         return {
-          label: subj,
-          data: data,
+          label: s,
+          data: exams.map(e => {
+            const f = e.subjects.find(sub => sub.name === s);
+            return f ? f.score : null;
+          }),
           borderColor: colors[idx % colors.length],
           backgroundColor: colors[idx % colors.length],
           tension: 0.3
         };
       });
 
+      // 加上總平均線
+      datasets.push({
+        label: '個人總平均',
+        data: exams.map(e => e.studentAverage),
+        borderColor: '#1e1b4b',
+        borderWidth: 3,
+        borderDash: [4, 4],
+        pointRadius: 4,
+        tension: 0.2
+      });
+
       pTrendInst = new Chart(ctx, {
         type: 'line',
-        data: { labels: examKeys, datasets: datasets },
+        data: { labels: examLabels, datasets: datasets },
         options: {
           responsive: true,
           maintainAspectRatio: false,
@@ -1574,33 +1483,42 @@ function autoCalculateStats() {
       });
     }
 
-    // 教師後台沙盒模擬
+    // 沙盒模式模擬
     function loadPreviewForSelectedStudent() {
+      const sel = document.getElementById('previewStudentSelect');
+      const token = sel && sel.value ? sel.value : 'DEMO01';
+      const demoSt = DEMO_STUDENTS.find(s => s.token === token) || DEMO_STUDENTS[0];
+      const exams = buildDemoExamsForStudent(demoSt);
+      const cur = exams[exams.length - 1];
+
       const box = document.getElementById('sandboxMobileView');
       box.innerHTML = `
         <div class="bg-indigo-600 text-white rounded-xl p-3 flex justify-between items-center">
           <div>
-            <div class="font-black text-sm">王小明 (示範生)</div>
-            <div class="text-[10px] text-indigo-200">701 班 ‧ 學號 112001</div>
+            <div class="font-black text-sm">${demoSt.name} (座號 ${demoSt.seatNumber})</div>
+            <div class="text-[10px] text-indigo-200">班級：${demoSt.className} ‧ 名次：第 ${cur.studentRank} 名 / 24人</div>
           </div>
-          <span class="text-[10px] bg-indigo-500 px-2 py-0.5 rounded">112-1 第二次段考</span>
+          <span class="text-[10px] bg-indigo-500 px-2 py-0.5 rounded font-bold">個人平均: ${cur.studentAverage}分</span>
         </div>
 
         <div class="bg-white p-3 rounded-xl border border-slate-200">
-          <div class="font-bold text-[11px] text-slate-700 mb-1">🎯 各科能力雷達圖 (示範)</div>
-          <div class="text-center py-4 bg-slate-50 rounded-lg text-slate-400 text-[10px]">
-            [此處將動態呈現國、英、數、自、社雷達圖]
+          <div class="font-bold text-[11px] text-slate-700 mb-1 flex justify-between">
+            <span>🎯 各科雷達圖 (個人 vs 班平均)</span>
+            <span class="text-indigo-600 font-bold">${cur.examTitle}</span>
+          </div>
+          <div class="text-center py-2 bg-slate-50 rounded-lg text-slate-500 text-[10px]">
+            國語: ${cur.subjects[0].score}分 (班均 ${cur.subjects[0].classAverage}) ‧ PR ${cur.subjects[0].pr}<br>
+            英文: ${cur.subjects[3].score}分 (班均 ${cur.subjects[3].classAverage}) ‧ PR ${cur.subjects[3].pr}
           </div>
         </div>
 
-        <div class="bg-white p-3 rounded-xl border border-slate-200 space-y-2">
-          <div class="font-bold text-[11px] text-slate-800">💡 學習診斷處方箋 (來自解讀平台)</div>
-          <div class="p-2 bg-slate-50 rounded-lg border-l-2 border-indigo-500 text-[11px]">
-            <b>【國文 90分】</b> 文言文題型表現亮眼，寫作能力持續進步。
-          </div>
-          <div class="p-2 bg-slate-50 rounded-lg border-l-2 border-indigo-500 text-[11px]">
-            <b>【數學 86分】</b> 計算錯誤率明顯下降，本次進步幅度顯著！
-          </div>
+        <div class="bg-white p-3 rounded-xl border border-slate-200 space-y-1.5">
+          <div class="font-bold text-[11px] text-slate-800">💡 學習診斷處方 (GradeInterpr 平台)</div>
+          ${cur.subjects.slice(0, 3).map(s => `
+            <div class="p-2 bg-slate-50 rounded-lg border-l-2 border-indigo-500 text-[11px]">
+              <b>【${s.name} ${s.score}分】</b> ${s.advice}
+            </div>
+          `).join('')}
         </div>
       `;
     }
