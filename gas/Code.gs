@@ -21,6 +21,7 @@ function onOpen() {
     .addItem('🔄 從最新考試分頁同步名冊至【學生名冊】', 'syncStudentsFromExamSheet')
     .addItem('🔑 一鍵為全班產生防偽查詢代碼 (Token)', 'generateTokensForStudents')
     .addSeparator()
+    .addItem('📐 一鍵自動美化所有分頁與最佳欄寬 (立即修復文字擠壓)', 'autoFormatAndResizeAllSheets')
     .addItem('📊 預覽全班成績統計分析與各科平均', 'previewClassStatistics')
     .addToUi();
 }
@@ -71,8 +72,21 @@ function setupStandardSheets() {
   ];
   if (sSheet.getLastRow() <= 1) {
     sSheet.getRange(2, 1, sampleRoster.length, 5).setValues(sampleRoster);
-    sSheet.autoResizeColumns(1, 5);
   }
+  sSheet.setColumnWidth(1, 90);  // 班級
+  sSheet.setColumnWidth(2, 80);  // 座號
+  sSheet.setColumnWidth(3, 120); // 姓名
+  sSheet.setColumnWidth(4, 130); // 專屬代碼
+  sSheet.setColumnWidth(5, 100); // 啟用狀態
+  sSheet.setRowHeight(1, 36);
+  var sLastRow = Math.max(2, sSheet.getLastRow());
+  for (var sr = 2; sr <= sLastRow; sr++) {
+    sSheet.setRowHeight(sr, 28);
+  }
+  sSheet.getRange(1, 1, sLastRow, 5)
+    .setVerticalAlignment('middle')
+    .setHorizontalAlignment('center');
+  sSheet.setFrozenRows(1);
 
   // 2. 建立第 1 次考試分頁【114-1期中考】(依楊老師真實成績單格式)
     var exam1Data = [
@@ -157,7 +171,22 @@ function formatExamSheet(sheet, examTitle, rowsData) {
       .setHorizontalAlignment('center');
   }
 
-  sheet.autoResizeColumns(1, headers.length);
+  // 設置寬敞舒適的固定欄寬與列高，杜絕字體擠壓或截斷
+  sheet.setColumnWidth(1, 80);  // 座號
+  sheet.setColumnWidth(2, 120); // 姓名 (完整顯示3-4字)
+  for (var c = 3; c <= headers.length; c++) {
+    sheet.setColumnWidth(c, 95); // 科目成績欄 (大字清晰)
+  }
+  sheet.setRowHeight(1, 40); // 考試大標題列
+  sheet.setRowHeight(2, 34); // 欄位標題列
+  var curLastRow = Math.max(2, sheet.getLastRow());
+  for (var r = 3; r <= curLastRow; r++) {
+    sheet.setRowHeight(r, 28);
+  }
+  sheet.getRange(1, 1, curLastRow, headers.length)
+    .setVerticalAlignment('middle')
+    .setHorizontalAlignment('center');
+  sheet.setFrozenRows(2);
 }
 
 /**
@@ -1077,7 +1106,95 @@ function appendExamScores(body) {
 // ========================================================
 // 核心模組導出 (供 Loader.gs 自動熱更新引導器調用)
 // ========================================================
+
+/**
+ * 📐 一鍵自動美化所有分頁與最佳欄寬 (立即修復文字擠壓、欄寬過窄)
+ * 自動辨識【學生名冊】與所有【考試分頁】，將姓名拓寬至120px、科目95px、凍結標題列並垂直置中
+ */
+function autoFormatAndResizeAllSheets() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheets = ss.getSheets();
+  var updatedCount = 0;
+
+  for (var i = 0; i < sheets.length; i++) {
+    var sheet = sheets[i];
+    var sName = sheet.getName();
+    if (sName.startsWith('_')) continue;
+
+    if (sName === '學生名冊') {
+      sheet.setColumnWidth(1, 90);  // 班級
+      sheet.setColumnWidth(2, 80);  // 座號
+      sheet.setColumnWidth(3, 120); // 姓名
+      sheet.setColumnWidth(4, 130); // 專屬代碼
+      sheet.setColumnWidth(5, 100); // 啟用狀態
+      sheet.setRowHeight(1, 36);
+      
+      var lastRow = Math.max(2, sheet.getLastRow());
+      sheet.getRange(1, 1, lastRow, 5)
+        .setVerticalAlignment('middle')
+        .setHorizontalAlignment('center');
+      for (var r = 2; r <= lastRow; r++) {
+        sheet.setRowHeight(r, 28);
+      }
+      sheet.setFrozenRows(1);
+      updatedCount++;
+    } else {
+      var data = sheet.getDataRange().getValues();
+      if (data.length < 2) continue;
+
+      var headerRowIdx = 1;
+      if (data.length > 0 && (data[0].join(' ').indexOf('座號') !== -1 || data[0].join(' ').indexOf('姓名') !== -1)) {
+        headerRowIdx = 0;
+      }
+
+      var headerRow = data[headerRowIdx];
+      var numCols = headerRow.length;
+
+      for (var c = 0; c < numCols; c++) {
+        var hText = (headerRow[c] || '').toString().trim();
+        if (hText.indexOf('座號') !== -1) {
+          sheet.setColumnWidth(c + 1, 80);
+        } else if (hText.indexOf('姓名') !== -1) {
+          sheet.setColumnWidth(c + 1, 120);
+        } else if (hText.indexOf('班級') !== -1) {
+          sheet.setColumnWidth(c + 1, 90);
+        } else if (hText) {
+          sheet.setColumnWidth(c + 1, 95);
+        }
+      }
+
+      if (headerRowIdx === 1) {
+        sheet.setRowHeight(1, 40);
+        sheet.setRowHeight(2, 34);
+        sheet.setFrozenRows(2);
+      } else {
+        sheet.setRowHeight(1, 34);
+        sheet.setFrozenRows(1);
+      }
+
+      var maxRow = Math.max(headerRowIdx + 1, sheet.getLastRow());
+      sheet.getRange(1, 1, maxRow, numCols)
+        .setVerticalAlignment('middle')
+        .setHorizontalAlignment('center');
+
+      for (var r2 = headerRowIdx + 2; r2 <= maxRow; r2++) {
+        sheet.setRowHeight(r2, 28);
+      }
+      updatedCount++;
+    }
+  }
+
+  SpreadsheetApp.getUi().alert(
+    '🎉 美化完成！\n\n' +
+    '已為您自動優化全表 ' + updatedCount + ' 個分頁的欄寬與列高：\n' +
+    '• 姓名欄位已拓寬至 120px，中文字不再被截斷！\n' +
+    '• 各科成績欄位已等距舒展開 (95px)，數值清晰不擠壓。\n' +
+    '• 標題列已固定凍結，上下滾動更清晰！'
+  );
+}
+
 var MPScoreEngine = {
+  autoFormatAndResizeAllSheets: autoFormatAndResizeAllSheets,
   setupStandardSheets: setupStandardSheets,
   createNewExamSheetFromRoster: createNewExamSheetFromRoster,
   syncStudentsFromExamSheet: syncStudentsFromExamSheet,
