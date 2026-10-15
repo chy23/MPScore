@@ -1,111 +1,96 @@
 /**
  * MPScore - 智慧學生成績與學習診斷系統 (Google Apps Script 後端)
- * 專為不擅長資訊的老師設計，極致簡化、高資安防護
+ * 配合自訂欄位順序：
+ * 【學生名冊】A: 班級, B: 座號, C: 姓名, D: 專屬代碼, E: 啟用狀態
+ * 【成績明細】動態欄位辨識（支援 座號、學年度、學期、考試名稱、科目、個人得分、班級平均、PR值、解讀評語）
  */
 
-// 1. 設定試算表自訂選單（讓老師在試算表上一鍵操作）
 function onOpen() {
   var ui = SpreadsheetApp.getUi();
   ui.createMenu('⚡ MPScore 工具')
     .addItem('🔑 一鍵為全班產生防偽代碼 (Token)', 'generateTokensForStudents')
-    .addItem('📊 自動計算班級平均並填入', 'autoCalculateAverages')
+    .addItem('📊 自動計算班級平均與 PR 值', 'autoCalculateStats')
     .addToUi();
 }
 
-// 2. Web API 入口 (支援 GET 查詢與跨網域 CORS)
 function doGet(e) {
-  var output = {};
   var params = e ? e.parameter : {};
   var action = params.action || (params.token ? 'query' : 'ping');
+  var output = {};
 
   try {
     if (action === 'ping') {
-      // 測試連線狀態
       output = checkSystemStatus();
     } else if (action === 'query') {
-      // 家長查詢個別成績 (安全過濾)
       output = getStudentScoreByToken(params.token);
     } else if (action === 'getStudentsForPrint') {
-      // 教師端列印 QR Code 用 (需驗證管理密碼或預設金鑰)
-      output = getStudentListForTeacher(params.adminKey);
+      output = getStudentListForTeacher();
     } else {
       output = { success: false, message: '未知的操作請求' };
     }
   } catch (err) {
-    output = { success: false, message: '系統處理錯誤: ' + err.toString() };
+    output = { success: false, message: '系統錯誤: ' + err.toString() };
   }
 
   return ContentService.createTextOutput(JSON.stringify(output))
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-// 支援 POST 請求
 function doPost(e) {
   return doGet(e);
 }
 
-/**
- * 檢查系統連線狀態
- */
 function checkSystemStatus() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var studentSheet = ss.getSheetByName('學生名冊');
-  var scoreSheet = ss.getSheetByName('成績明細');
+  var sSheet = ss.getSheetByName('學生名冊');
+  var scSheet = ss.getSheetByName('成績明細');
 
-  if (!studentSheet || !scoreSheet) {
-    return {
-      success: false,
-      message: '工作表名稱不完整！必須包含【學生名冊】與【成績明細】兩個分頁。'
-    };
+  if (!sSheet || !scSheet) {
+    return { success: false, message: '工作表分頁需有名為【學生名冊】與【成績明細】' };
   }
-
-  var studentCount = Math.max(0, studentSheet.getLastRow() - 1);
-  var scoreCount = Math.max(0, scoreSheet.getLastRow() - 1);
 
   return {
     success: true,
-    message: '連線正常！系統已就緒。',
+    message: '連線正常！系統已就緒',
     sheetTitle: ss.getName(),
-    studentCount: studentCount,
-    scoreCount: scoreCount
+    studentCount: Math.max(0, sSheet.getLastRow() - 1),
+    scoreCount: Math.max(0, scSheet.getLastRow() - 1)
   };
 }
 
 /**
- * 家長安全查詢：依 Token 讀取單一生歷年成績 (資安核心：絕不洩漏他人成績)
+ * 依據專屬 Token 查詢該名學生歷年成績
  */
 function getStudentScoreByToken(token) {
-  if (!token) {
-    return { success: false, message: '請提供專屬查詢代碼！' };
-  }
+  if (!token) return { success: false, message: '請提供專屬查詢代碼' };
   token = token.toString().trim();
 
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var studentSheet = ss.getSheetByName('學生名冊');
-  var scoreSheet = ss.getSheetByName('成績明細');
+  var sSheet = ss.getSheetByName('學生名冊');
+  var scSheet = ss.getSheetByName('成績明細');
 
-  if (!studentSheet || !scoreSheet) {
-    return { success: false, message: '試算表分頁設定不正確，請洽任課老師。' };
+  if (!sSheet || !scSheet) {
+    return { success: false, message: '試算表分頁設定不正確' };
   }
 
-  // 1. 尋找學生名冊 (A:學號, B:姓名, C:班級, D:座號, E:專屬代碼, F:啟用狀態)
-  var studentData = studentSheet.getDataRange().getValues();
+  // 1. 學生名冊欄位：A:班級, B:座號, C:姓名, D:專屬代碼, E:啟用狀態
+  var sData = sSheet.getDataRange().getValues();
   var student = null;
 
-  for (var i = 1; i < studentData.length; i++) {
-    var row = studentData[i];
-    var rowToken = row[4] ? row[4].toString().trim() : '';
-    var isEnabled = row[5];
+  for (var i = 1; i < sData.length; i++) {
+    var row = sData[i];
+    var rowToken = row[3] ? row[3].toString().trim() : ''; // D 欄: 專屬代碼
+    var isEnabled = row[4]; // E 欄: 啟用狀態
 
     if (rowToken === token) {
       if (isEnabled === false) {
-        return { success: false, message: '此學生帳號目前已被設為停用。' };
+        return { success: false, message: '此代碼帳號已被停用。' };
       }
       student = {
-        studentId: row[0].toString().trim(),
-        name: row[1],
-        className: row[2],
-        seatNumber: row[3]
+        className: row[0].toString().trim(),
+        seatNumber: row[1].toString().trim(),
+        name: row[2].toString().trim(),
+        studentId: (row[0] + '-' + (row[1] < 10 && row[1].length === 1 ? '0' + row[1] : row[1]))
       };
       break;
     }
@@ -115,26 +100,101 @@ function getStudentScoreByToken(token) {
     return { success: false, message: '驗證失敗：查無此代碼，請確認是否輸入正確。' };
   }
 
-  // 2. 抓取該學生「歷年所有成績明細」
-  var scoreData = scoreSheet.getDataRange().getValues();
+  // 2. 抓取成績明細
+  var scData = scSheet.getDataRange().getValues();
+  if (scData.length <= 1) {
+    return { success: true, student: student, records: [] };
+  }
+
+  // 智慧欄位索引判定
+  var headers = scData[0].map(function(h) { return h.toString().trim(); });
+  var colIndex = {
+    seat: headers.indexOf('座號'),
+    className: headers.indexOf('班級'),
+    year: headers.indexOf('學年度'),
+    semester: headers.indexOf('學期'),
+    examName: headers.indexOf('考試名稱'),
+    subject: headers.indexOf('科目'),
+    score: headers.indexOf('個人得分'),
+    average: headers.indexOf('班級平均'),
+    pr: headers.indexOf('PR值'),
+    diagnosis: headers.indexOf('解讀評語')
+  };
+
+  // 若沒找到座號標題，預設嘗試從前幾欄推斷
+  if (colIndex.seat === -1 && colIndex.className === -1) {
+    colIndex.seat = 0; // 假定第 1 欄為座號
+  }
+
+  // 收集全班各科目成績，以便在 PR 欄空白時自動即時計算 PR
+  var examSubjectPool = {};
+
+  for (var k = 1; k < scData.length; k++) {
+    var rowK = scData[k];
+    var eKey = (colIndex.year !== -1 ? rowK[colIndex.year] : '') + '_' +
+               (colIndex.semester !== -1 ? rowK[colIndex.semester] : '') + '_' +
+               (colIndex.examName !== -1 ? rowK[colIndex.examName] : '') + '_' +
+               (colIndex.subject !== -1 ? rowK[colIndex.subject] : '');
+    var sc = Number(colIndex.score !== -1 ? rowK[colIndex.score] : 0);
+
+    if (!examSubjectPool[eKey]) examSubjectPool[eKey] = [];
+    if (!isNaN(sc)) examSubjectPool[eKey].push(sc);
+  }
+
+  // 撈取該學生的成績
   var records = [];
+  var targetSeat = student.seatNumber;
+  var targetClass = student.className;
 
-  // [0:學號, 1:學年度, 2:學期, 3:考試名稱, 4:科目, 5:個人得分, 6:班級平均, 7:PR值, 8:解讀評語]
-  for (var j = 1; j < scoreData.length; j++) {
-    var sRow = scoreData[j];
-    var sId = sRow[0].toString().trim();
+  for (var j = 1; j < scData.length; j++) {
+    var r = scData[j];
+    
+    // 比對學生：若有班級與座號就同時比對，否則比對座號
+    var rowSeat = colIndex.seat !== -1 ? r[colIndex.seat].toString().trim() : '';
+    var rowClass = colIndex.className !== -1 ? r[colIndex.className].toString().trim() : '';
+    
+    var isMatch = false;
+    if (colIndex.className !== -1 && colIndex.seat !== -1) {
+      isMatch = (rowClass === targetClass && rowSeat === targetSeat);
+    } else if (colIndex.seat !== -1) {
+      isMatch = (rowSeat === targetSeat);
+    }
 
-    if (sId === student.studentId) {
+    if (isMatch) {
+      var scoreVal = Number(colIndex.score !== -1 ? r[colIndex.score] : 0) || 0;
+      var avgVal = Number(colIndex.average !== -1 ? r[colIndex.average] : 0) || 0;
+      var prVal = Number(colIndex.pr !== -1 ? r[colIndex.pr] : 0) || 0;
+
+      // 如果試算表 PR 值未填，自動透過同科全體得分計算 PR
+      var eKeyMatch = (colIndex.year !== -1 ? r[colIndex.year] : '') + '_' +
+                      (colIndex.semester !== -1 ? r[colIndex.semester] : '') + '_' +
+                      (colIndex.examName !== -1 ? r[colIndex.examName] : '') + '_' +
+                      (colIndex.subject !== -1 ? r[colIndex.subject] : '');
+      
+      if ((!prVal || prVal <= 0) && examSubjectPool[eKeyMatch] && examSubjectPool[eKeyMatch].length > 1) {
+        var pool = examSubjectPool[eKeyMatch];
+        var belowCount = 0;
+        var equalCount = 0;
+        for (var p = 0; p < pool.length; p++) {
+          if (pool[p] < scoreVal) belowCount++;
+          else if (pool[p] === scoreVal) equalCount++;
+        }
+        // 常模百分等級公式: (低於人數 + 0.5 * 同分人數) / 總人數 * 100
+        prVal = Math.round(((belowCount + 0.5 * equalCount) / pool.length) * 100);
+      }
+
       records.push({
-        year: sRow[1],
-        semester: sRow[2],
-        examName: sRow[3],
-        examKey: sRow[1] + '-' + sRow[2] + ' ' + sRow[3],
-        subject: sRow[4],
-        score: Number(sRow[5]) || 0,
-        average: Number(sRow[6]) || 0,
-        pr: Number(sRow[7]) || 0,
-        diagnosis: sRow[8] || '學習態度良好，請持續保持！'
+        year: colIndex.year !== -1 ? r[colIndex.year] : '',
+        semester: colIndex.semester !== -1 ? r[colIndex.semester] : '',
+        examName: colIndex.examName !== -1 ? r[colIndex.examName] : '',
+        examKey: (colIndex.year !== -1 ? r[colIndex.year] : '') + '-' +
+                 (colIndex.semester !== -1 ? r[colIndex.semester] : '') + ' ' +
+                 (colIndex.examName !== -1 ? r[colIndex.examName] : ''),
+        subject: colIndex.subject !== -1 ? r[colIndex.subject] : '',
+        score: scoreVal,
+        average: avgVal,
+        pr: prVal,
+        diagnosis: (colIndex.diagnosis !== -1 ? r[colIndex.diagnosis] : '') || ''
       });
     }
   }
@@ -147,25 +207,26 @@ function getStudentScoreByToken(token) {
 }
 
 /**
- * 教師端取得全班學生清單 (供自動產生 QR Code 列印小卡)
+ * 取得全班學生清單 (供列印 QR Code 小卡)
  */
-function getStudentListForTeacher(adminKey) {
+function getStudentListForTeacher() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var studentSheet = ss.getSheetByName('學生名冊');
-  if (!studentSheet) return { success: false, message: '找不到【學生名冊】工作表' };
+  var sheet = ss.getSheetByName('學生名冊');
+  if (!sheet) return { success: false, message: '找不到【學生名冊】工作表' };
 
-  var data = studentSheet.getDataRange().getValues();
+  var data = sheet.getDataRange().getValues();
   var students = [];
 
+  // A: 班級, B: 座號, C: 姓名, D: 專屬代碼, E: 啟用狀態
   for (var i = 1; i < data.length; i++) {
     var row = data[i];
-    if (row[0] && row[4]) {
+    if (row[2] && row[3]) { // 有姓名與代碼
       students.push({
-        studentId: row[0].toString(),
-        name: row[1],
-        className: row[2],
-        seatNumber: row[3],
-        token: row[4].toString().trim()
+        className: row[0].toString().trim(),
+        seatNumber: row[1].toString().trim(),
+        name: row[2].toString().trim(),
+        token: row[3].toString().trim(),
+        studentId: row[0] + '-' + (row[1] < 10 && row[1].length === 1 ? '0' + row[1] : row[1])
       });
     }
   }
@@ -177,13 +238,13 @@ function getStudentListForTeacher(adminKey) {
 }
 
 /**
- * 試算表內一鍵生成隨機防偽 Token (6 碼隨機英文數字，避免混淆字元)
+ * 自動為全班生成 6 碼隨機 Token (填入 D 欄，並在 E 欄設為 TRUE)
  */
 function generateTokensForStudents() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheetByName('學生名冊');
   if (!sheet) {
-    SpreadsheetApp.getUi().alert('找不到【學生名冊】工作表，請先建立！');
+    SpreadsheetApp.getUi().alert('找不到【學生名冊】工作表！');
     return;
   }
 
@@ -192,53 +253,74 @@ function generateTokensForStudents() {
   var updated = 0;
 
   for (var i = 1; i < data.length; i++) {
-    var existingToken = data[i][4];
+    var existingToken = data[i][3]; // D 欄是索引 3
     if (!existingToken || existingToken.toString().trim() === '') {
       var token = '';
       for (var c = 0; c < 6; c++) {
         token += chars.charAt(Math.floor(Math.random() * chars.length));
       }
-      sheet.getRange(i + 1, 5).setValue(token);
-      sheet.getRange(i + 1, 6).setValue(true);
+      sheet.getRange(i + 1, 4).setValue(token); // 填入 D 欄
+      sheet.getRange(i + 1, 5).setValue(true);  // 填入 E 欄 (TRUE)
       updated++;
     }
   }
 
-  SpreadsheetApp.getUi().alert('✨ 成功！已為 ' + updated + ' 位尚未有代碼的學生生成專屬代碼。');
+  SpreadsheetApp.getUi().alert('✨ 成功！已為 ' + updated + ' 位學生生成專屬查詢代碼。');
 }
 
 /**
- * 自動為成績明細表計算班級平均 (可選輔助工具)
+ * 自動計算班級平均與 PR 值並回填試算表 (輔助工具)
  */
-function autoCalculateAverages() {
+function autoCalculateStats() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var scoreSheet = ss.getSheetByName('成績明細');
-  if (!scoreSheet) return;
+  var scSheet = ss.getSheetByName('成績明細');
+  if (!scSheet) return;
 
-  var data = scoreSheet.getDataRange().getValues();
+  var data = scSheet.getDataRange().getValues();
   if (data.length <= 1) return;
 
-  // 依據 (學年度 + 學期 + 考試名稱 + 科目) 計算平均
-  var sumMap = {};
-  var countMap = {};
+  var headers = data[0].map(function(h) { return h.toString().trim(); });
+  var avgCol = headers.indexOf('班級平均');
+  var prCol = headers.indexOf('PR值');
+  var scoreCol = headers.indexOf('個人得分');
+  var subjCol = headers.indexOf('科目');
+  var examCol = headers.indexOf('考試名稱');
 
+  if (scoreCol === -1 || subjCol === -1) {
+    SpreadsheetApp.getUi().alert('找不到【個人得分】或【科目】欄位！');
+    return;
+  }
+
+  // 分群計算
+  var groupMap = {};
   for (var i = 1; i < data.length; i++) {
-    var key = data[i][1] + '|' + data[i][2] + '|' + data[i][3] + '|' + data[i][4];
-    var score = Number(data[i][5]);
-    if (!isNaN(score)) {
-      sumMap[key] = (sumMap[key] || 0) + score;
-      countMap[key] = (countMap[key] || 0) + 1;
-    }
+    var key = data[i][examCol] + '_' + data[i][subjCol];
+    var sc = Number(data[i][scoreCol]);
+    if (!groupMap[key]) groupMap[key] = [];
+    if (!isNaN(sc)) groupMap[key].push(sc);
   }
 
-  // 填回班級平均
+  // 回填平均與 PR
   for (var j = 1; j < data.length; j++) {
-    var k = data[j][1] + '|' + data[j][2] + '|' + data[j][3] + '|' + data[j][4];
-    if (countMap[k]) {
-      var avg = Math.round((sumMap[k] / countMap[k]) * 10) / 10;
-      scoreSheet.getRange(j + 1, 7).setValue(avg);
+    var k = data[j][examCol] + '_' + data[j][subjCol];
+    var list = groupMap[k];
+    if (list && list.length > 0) {
+      // 平均
+      var sum = list.reduce(function(a, b) { return a + b; }, 0);
+      var avg = Math.round((sum / list.length) * 10) / 10;
+      if (avgCol !== -1) scSheet.getRange(j + 1, avgCol + 1).setValue(avg);
+
+      // PR
+      var myScore = Number(data[j][scoreCol]);
+      var below = 0, equal = 0;
+      for (var p = 0; p < list.length; p++) {
+        if (list[p] < myScore) below++;
+        else if (list[p] === myScore) equal++;
+      }
+      var pr = Math.round(((below + 0.5 * equal) / list.length) * 100);
+      if (prCol !== -1) scSheet.getRange(j + 1, prCol + 1).setValue(pr);
     }
   }
 
-  SpreadsheetApp.getUi().alert('✨ 班級平均已自動計算並更新完畢！');
+  SpreadsheetApp.getUi().alert('✨ 班級平均與 PR 值已全數計算並更新完成！');
 }

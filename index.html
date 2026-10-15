@@ -163,8 +163,11 @@
 
         <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-4 flex flex-col md:flex-row items-center justify-between gap-4">
           <div>
-            <div class="font-bold text-sm text-slate-800">📄 標準試算表結構說明</div>
-            <div class="text-xs text-slate-500 mt-1">學生名冊：學號、姓名、班級、座號、專屬代碼、啟用狀態 | 成績明細：學號、學年度、學期、考試、科目、得分、班平均、PR、評語</div>
+            <div class="font-bold text-sm text-slate-800">📄 依您的需求設定之標準試算表結構</div>
+            <div class="text-xs text-slate-500 mt-1.5 space-y-1">
+              <div>• <b>【學生名冊】</b>：A: 班級 | B: 座號 | C: 姓名 | D: 專屬代碼 (系統自動產生) | E: 啟用狀態 (TRUE)</div>
+              <div>• <b>【成績明細】</b>：座號 | 學年度 | 學期 | 考試名稱 | 科目 | 個人得分 | 班級平均 | PR值 (可由網站自動計算) | 解讀評語</div>
+            </div>
           </div>
           <div class="flex gap-2">
             <button onclick="downloadCsvTemplates()" class="text-xs font-semibold bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 px-3 py-2 rounded-lg transition shadow-sm">
@@ -184,7 +187,7 @@
           <h2 class="text-lg font-bold text-slate-900">在試算表貼上後端程式碼 (只需做一次)</h2>
         </div>
         <p class="text-sm text-slate-600 mb-4">
-          這段程式碼就像試算表的「安全守門員」，負責在後端過濾成績，確保學生無法看到其他人的成績。請依下列圖解三步驟操作：
+          這段程式碼負責在後端過濾成績，確保學生無法看到其他人的成績。請依下列圖解三步驟操作：
         </p>
 
         <!-- 圖解步驟 -->
@@ -221,18 +224,39 @@
       <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
         <div class="flex items-center gap-3 mb-2">
           <span class="w-7 h-7 rounded-full bg-indigo-100 text-indigo-700 font-bold text-sm flex items-center justify-center">3</span>
-          <h2 class="text-lg font-bold text-slate-900">連線檢測與設定</h2>
+          <h2 class="text-lg font-bold text-slate-900">連線檢測與解讀平台設定</h2>
         </div>
         <p class="text-sm text-slate-600 mb-4">
-          將部署完成後取得的網址（格式為：<code class="text-xs text-indigo-600 font-mono bg-indigo-50 px-1 py-0.5 rounded">https://script.google.com/macros/s/.../exec</code>）貼入下方進行驗證：
+          將部署完成後取得的網址貼入下方進行驗證，您也可以在此設定「成績單解讀平台」的連線網址：
         </p>
 
-        <div class="flex flex-col md:flex-row gap-3 mb-3">
-          <input type="text" id="apiEndpointInput" placeholder="請貼上您的 Apps Script 網頁應用程式網址..." 
-                 class="flex-1 px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-mono">
-          <button onclick="runApiCheck()" id="apiCheckBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-3 rounded-xl transition text-sm flex items-center justify-center gap-2">
-            <span>⚡ 進行連線檢測</span>
-          </button>
+        <div class="space-y-3 mb-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">1. Apps Script 網頁應用程式網址 (必填)：</label>
+            <div class="flex flex-col md:flex-row gap-2">
+              <input type="text" id="apiEndpointInput" placeholder="https://script.google.com/macros/s/.../exec" 
+                     class="flex-1 px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs font-mono">
+              <button onclick="runApiCheck()" id="apiCheckBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-2.5 rounded-xl transition text-xs flex items-center justify-center gap-2">
+                <span>⚡ 連線檢測</span>
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">
+              2. 成績單解讀平台 API 網址 (選填，若有外部解讀網站可在此串接)：
+            </label>
+            <div class="flex gap-2">
+              <input type="text" id="aiDiagApiInput" placeholder="例如：https://your-diagnostic-service.com/api/getFeedback" 
+                     class="flex-1 px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs font-mono">
+              <button onclick="saveDiagApi()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl transition text-xs">
+                儲存設定
+              </button>
+            </div>
+            <p class="text-[11px] text-slate-400 mt-1">
+              💡 若未設定外部解讀 API，系統會優先讀取試算表中的【解讀評語】欄位；若試算表未填，網站會啟動內建學習診斷引擎自動給予適性建議。
+            </p>
+          </div>
         </div>
 
         <!-- 檢測結果區塊 -->
@@ -469,6 +493,7 @@
                 <th class="py-2 px-3">科目</th>
                 <th class="py-2 px-3 text-center">得分</th>
                 <th class="py-2 px-3 text-center">班均</th>
+                <th class="py-2 px-3 text-center">PR 值</th>
                 <th class="py-2 px-3 text-center">差額</th>
               </tr>
             </thead>
@@ -830,7 +855,14 @@ function generateTokensForStudents() {
       renderPrintCards(cachedStudents);
     }
 
-    // 橫式成績轉置小幫手
+    // 儲存外部解讀平台 API 網址
+    function saveDiagApi() {
+      const val = document.getElementById('aiDiagApiInput').value.trim();
+      localStorage.setItem('mpscore_diag_api', val);
+      alert('已成功儲存成績單解讀平台 API 設定！');
+    }
+
+    // 橫式成績轉置小幫手 (更新為 座號, 學年度, 學期, 考試名稱, 科目, 個人得分, 班級平均, PR值, 解讀評語)
     function convertHorizontalScores() {
       const raw = document.getElementById('rawExcelInput').value.trim();
       if (!raw) {
@@ -848,21 +880,19 @@ function generateTokensForStudents() {
         return;
       }
 
-      // 解析標題列 (預期例如：座號 姓名 國文 英文 數學...)
       const headers = lines[0].split('\t').length > 1 ? lines[0].split('\t') : lines[0].split(/[\s,]+/);
-      const subjectHeaders = headers.slice(2); // 從第 3 欄起為科目
+      const subjectHeaders = headers.slice(2);
 
-      let outputRows = ['學號\t學年度\t學期\t考試名稱\t科目\t個人得分\t班級平均\tPR值\t成績解讀與診斷建議'];
+      let outputRows = ['座號\t學年度\t學期\t考試名稱\t科目\t個人得分\t班級平均\tPR值\t解讀評語'];
 
       for (let i = 1; i < lines.length; i++) {
         const parts = lines[i].split('\t').length > 1 ? lines[i].split('\t') : lines[i].split(/[\s,]+/);
-        const seatOrId = parts[0] || (i < 10 ? '0' + i : '' + i);
-        const name = parts[1] || '學生';
+        const seatNumber = parts[0] || (i < 10 ? '0' + i : '' + i);
 
         subjectHeaders.forEach((subj, subIdx) => {
           const score = parts[2 + subIdx] || '0';
-          // 格式: 學號, 學年度, 學期, 考試名稱, 科目, 個人得分, 班級平均, PR值, 評語
-          outputRows.push(`${seatOrId}\t${year}\t${sem}\t${examName}\t${subj}\t${score}\t\t\t表現良好，持續精進。`);
+          // PR值保留空白，由系統/網站自動計算
+          outputRows.push(`${seatNumber}\t${year}\t${sem}\t${examName}\t${subj}\t${score}\t\t\t表現良好，持續精進。`);
         });
       }
 
@@ -882,13 +912,14 @@ function generateTokensForStudents() {
     function fillSampleExcelData() {
       document.getElementById('rawExcelInput').value = 
 `座號\t姓名\t國文\t英語\t數學\t自然\t社會
-112001\t王小明\t85\t92\t74\t88\t80
-112002\t李小華\t90\t88\t95\t84\t86
-112003\t張小美\t78\t82\t80\t76\t79`;
+01\t王小明\t85\t92\t74\t88\t80
+02\t李小華\t90\t88\t95\t84\t86
+03\t張小美\t78\t82\t80\t76\t79`;
     }
 
     function downloadCsvTemplates() {
-      const studentCsv = "學號,姓名,班級,座號,專屬代碼,啟用狀態\n112001,王小明,701,01,,TRUE\n112002,李小華,701,02,,TRUE";
+      // 學生名冊：A:班級, B:座號, C:姓名, D:專屬代碼, E:啟用狀態
+      const studentCsv = "班級,座號,姓名,專屬代碼,啟用狀態\n701,01,王小明,,TRUE\n701,02,李小華,,TRUE";
       const blob = new Blob(["\uFEFF" + studentCsv], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
@@ -995,19 +1026,33 @@ function generateTokensForStudents() {
           ? `<span class="text-emerald-700 font-bold">+${diff.toFixed(1)}</span>`
           : `<span class="text-rose-600 font-bold">${diff.toFixed(1)}</span>`;
 
+        const prDisplay = (item.pr && item.pr > 0) ? `<span class="bg-indigo-50 text-indigo-700 font-bold px-1.5 py-0.5 rounded text-[11px]">PR ${item.pr}</span>` : '-';
+
         table.innerHTML += `
           <tr class="hover:bg-slate-50">
             <td class="py-2.5 px-3 font-bold text-slate-800">${item.subject}</td>
             <td class="py-2.5 px-3 text-center font-black text-indigo-600 text-sm">${item.score}</td>
             <td class="py-2.5 px-3 text-center text-slate-400">${item.average || '-'}</td>
+            <td class="py-2.5 px-3 text-center">${prDisplay}</td>
             <td class="py-2.5 px-3 text-center">${diffBadge}</td>
           </tr>
         `;
 
+        let diagnosisText = item.diagnosis;
+        if (!diagnosisText || diagnosisText === '') {
+          if (diff >= 10) diagnosisText = '表現突出優異，大幅領先班級平均，建議可挑戰進階思考題。';
+          else if (diff >= 0) diagnosisText = '概念掌握良好，成績穩定高於平均，持續保持穩紮穩打。';
+          else if (diff >= -10) diagnosisText = '基礎尚可，部分細微題型或計算多留意，加強複習即可顯著提升。';
+          else diagnosisText = '此單元核心概念建議預先安排重點輔導與觀念釐清，多做基礎習題練習。';
+        }
+
         diagList.innerHTML += `
           <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200">
-            <div class="font-bold text-indigo-700 mb-0.5">【${item.subject}】得分 ${item.score} 分</div>
-            <div class="text-slate-600 leading-relaxed text-[11px]">${item.diagnosis}</div>
+            <div class="font-bold text-indigo-700 mb-0.5 flex justify-between">
+              <span>【${item.subject}】得分 ${item.score} 分</span>
+              <span class="text-[10px] text-slate-400 font-normal">${diff >= 0 ? '高於平均' : '低於平均'}</span>
+            </div>
+            <div class="text-slate-600 leading-relaxed text-[11px]">${diagnosisText}</div>
           </div>
         `;
       });
