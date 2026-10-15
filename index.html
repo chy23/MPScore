@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MPScore - 智慧學生成績與學習診斷平台</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js 圖表庫 -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- QRCode.js 本機快速生成 QR Code -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
+    body {
+      font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    
+    /* A4 列印排版樣式 */
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #printArea, #printArea * {
+        visibility: visible;
+      }
+      #printArea {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        background: white !important;
+        padding: 0 !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .page-break {
+        page-break-after: always;
+      }
+      .card-item {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+
+  <!-- ==================== 頂部主導航列 ==================== -->
+  <header class="no-print bg-white border-b border-slate-200 sticky top-0 z-40">
+    <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-black text-xl shadow-sm">
+          M
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-extrabold text-slate-900 text-lg tracking-tight">MPScore</span>
+            <span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full font-semibold border border-indigo-200/50">教師引導後台</span>
+          </div>
+          <p class="text-xs text-slate-400">專為老師設計的成績發布、診斷與 QR Code 列印系統</p>
+        </div>
+      </div>
+
+      <!-- 導航分頁 -->
+      <nav class="hidden md:flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-sm font-medium text-slate-600">
+        <button onclick="switchTab('wizard')" id="tabBtn-wizard" class="tab-btn px-4 py-1.5 rounded-lg bg-white text-indigo-700 font-bold shadow-sm transition">
+          🚀 4 步設定精靈
+        </button>
+        <button onclick="switchTab('dataHelper')" id="tabBtn-dataHelper" class="tab-btn px-4 py-1.5 rounded-lg hover:text-slate-900 transition">
+          🔄 成績轉置小幫手
+        </button>
+        <button onclick="switchTab('printCenter')" id="tabBtn-printCenter" class="tab-btn px-4 py-1.5 rounded-lg hover:text-slate-900 transition">
+          🖨️ QR Code 列印中心
+        </button>
+        <button onclick="switchTab('previewSandbox')" id="tabBtn-previewSandbox" class="tab-btn px-4 py-1.5 rounded-lg hover:text-slate-900 transition">
+          📱 家長端預覽
+        </button>
+      </nav>
+
+      <!-- 快捷切換 -->
+      <div class="flex items-center gap-2">
+        <button onclick="enterParentMode()" class="text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-lg transition flex items-center gap-1.5">
+          <span>👨‍👩‍👧 切換至家長查詢視角</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== 教師端控制主畫面 ==================== -->
+  <main id="teacherApp" class="max-w-6xl mx-auto px-4 py-8">
+
+    <!-- 頂部連線狀態徽章 (全局連動) -->
+    <div id="connectionBanner" class="no-print mb-8 p-4 rounded-2xl border transition-all duration-300 bg-amber-50/70 border-amber-200 text-amber-900 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <span class="w-3 h-3 rounded-full bg-amber-500 animate-pulse"></span>
+        <div>
+          <div class="font-bold text-sm">尚未與 Google 試算表連線</div>
+          <div class="text-xs text-amber-700">請跟隨下方【第 1 與第 2 步驟】，貼上您的 Apps Script 發布網址即可完成連線。</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <input type="text" id="quickApiInput" placeholder="在此貼上 Apps Script 網址" class="text-xs px-3 py-1.5 rounded-lg border border-amber-300 bg-white w-64 focus:outline-none">
+        <button onclick="testQuickConnection()" class="text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 rounded-lg transition">
+          測試連線
+        </button>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 分頁 1: 4 步引導精靈 (Setup Wizard)       -->
+    <!-- ========================================== -->
+    <section id="tabContent-wizard" class="tab-content space-y-8">
+      
+      <!-- 步驟導覽進度條 -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-white p-4 rounded-xl border border-indigo-200 shadow-sm flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-indigo-600 text-white font-bold flex items-center justify-center text-sm">1</div>
+          <div>
+            <div class="text-xs text-slate-400 font-medium">第 1 步</div>
+            <div class="text-sm font-bold text-slate-800">建立試算表範本</div>
+          </div>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-slate-200 text-slate-700 font-bold flex items-center justify-center text-sm">2</div>
+          <div>
+            <div class="text-xs text-slate-400 font-medium">第 2 步</div>
+            <div class="text-sm font-bold text-slate-800">貼上並發布程式</div>
+          </div>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-slate-200 text-slate-700 font-bold flex items-center justify-center text-sm">3</div>
+          <div>
+            <div class="text-xs text-slate-400 font-medium">第 3 步</div>
+            <div class="text-sm font-bold text-slate-800">連線與資料檢核</div>
+          </div>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-slate-200 text-slate-700 font-bold flex items-center justify-center text-sm">4</div>
+          <div>
+            <div class="text-xs text-slate-400 font-medium">第 4 步</div>
+            <div class="text-sm font-bold text-slate-800">列印 QR Code 小卡</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 步驟 1 卡片 -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+        <div class="flex items-start justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <span class="w-7 h-7 rounded-full bg-indigo-100 text-indigo-700 font-bold text-sm flex items-center justify-center">1</span>
+            <h2 class="text-lg font-bold text-slate-900">建立專屬的 Google 試算表</h2>
+          </div>
+          <span class="text-xs bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full font-semibold border border-emerald-200">免手刻欄位</span>
+        </div>
+        <p class="text-sm text-slate-600 mt-2 mb-4 leading-relaxed">
+          為了讓您免去手動打標題的麻煩，您可以直接複製標準格式的試算表範本。試算表內已預設好兩個核心分頁：<span class="font-bold text-indigo-600">【學生名冊】</span> 與 <span class="font-bold text-indigo-600">【成績明細】</span>。
+        </p>
+
+        <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-4 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div>
+            <div class="font-bold text-sm text-slate-800">📄 標準試算表結構說明</div>
+            <div class="text-xs text-slate-500 mt-1">學生名冊：學號、姓名、班級、座號、專屬代碼、啟用狀態 | 成績明細：學號、學年度、學期、考試、科目、得分、班平均、PR、評語</div>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="downloadCsvTemplates()" class="text-xs font-semibold bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 px-3 py-2 rounded-lg transition shadow-sm">
+              下載空白 CSV 範本檔
+            </button>
+            <a href="https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/copy" target="_blank" class="text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition shadow-sm flex items-center gap-1">
+              <span>一鍵建立試算表副本</span> ↗
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 步驟 2 卡片 -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+        <div class="flex items-center gap-3 mb-2">
+          <span class="w-7 h-7 rounded-full bg-indigo-100 text-indigo-700 font-bold text-sm flex items-center justify-center">2</span>
+          <h2 class="text-lg font-bold text-slate-900">在試算表貼上後端程式碼 (只需做一次)</h2>
+        </div>
+        <p class="text-sm text-slate-600 mb-4">
+          這段程式碼就像試算表的「安全守門員」，負責在後端過濾成績，確保學生無法看到其他人的成績。請依下列圖解三步驟操作：
+        </p>
+
+        <!-- 圖解步驟 -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div class="bg-indigo-50/50 rounded-xl p-4 border border-indigo-100">
+            <div class="text-xs font-bold text-indigo-700 mb-1">動作 A</div>
+            <div class="text-sm font-bold text-slate-800 mb-1">開啟 Apps Script</div>
+            <p class="text-xs text-slate-500 leading-relaxed">在您的 Google 試算表上方選單，點選 <span class="bg-white px-1.5 py-0.5 rounded border text-slate-700 font-mono font-semibold">擴充功能</span> > <span class="bg-white px-1.5 py-0.5 rounded border text-slate-700 font-mono font-semibold">Apps Script</span>。</p>
+          </div>
+          <div class="bg-indigo-50/50 rounded-xl p-4 border border-indigo-100">
+            <div class="text-xs font-bold text-indigo-700 mb-1">動作 B</div>
+            <div class="text-sm font-bold text-slate-800 mb-1">複製並貼上程式碼</div>
+            <p class="text-xs text-slate-500 leading-relaxed">清空編輯器中原本的代碼，點擊下方按鈕複製後整段貼上，並按上方磁碟圖示儲存。</p>
+          </div>
+          <div class="bg-indigo-50/50 rounded-xl p-4 border border-indigo-100">
+            <div class="text-xs font-bold text-indigo-700 mb-1">動作 C</div>
+            <div class="text-sm font-bold text-slate-800 mb-1">部署為網頁應用程式</div>
+            <p class="text-xs text-slate-500 leading-relaxed">點右上角「部署」>「新部署」，選「網頁應用程式」，身分選「我」，存取選「所有人」。</p>
+          </div>
+        </div>
+
+        <!-- 複製代碼區 -->
+        <div class="flex items-center justify-between p-3 bg-slate-900 rounded-xl text-white">
+          <div class="text-xs text-slate-300 font-mono">
+            // MPScore 後端程式碼 (Code.gs)
+          </div>
+          <button onclick="copyGasCode()" id="copyCodeBtn" class="text-xs font-bold bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1.5 rounded-lg transition flex items-center gap-1">
+            <span>📋 一鍵複製完整程式碼</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 步驟 3 卡片 -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+        <div class="flex items-center gap-3 mb-2">
+          <span class="w-7 h-7 rounded-full bg-indigo-100 text-indigo-700 font-bold text-sm flex items-center justify-center">3</span>
+          <h2 class="text-lg font-bold text-slate-900">連線檢測與設定</h2>
+        </div>
+        <p class="text-sm text-slate-600 mb-4">
+          將部署完成後取得的網址（格式為：<code class="text-xs text-indigo-600 font-mono bg-indigo-50 px-1 py-0.5 rounded">https://script.google.com/macros/s/.../exec</code>）貼入下方進行驗證：
+        </p>
+
+        <div class="flex flex-col md:flex-row gap-3 mb-3">
+          <input type="text" id="apiEndpointInput" placeholder="請貼上您的 Apps Script 網頁應用程式網址..." 
+                 class="flex-1 px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-mono">
+          <button onclick="runApiCheck()" id="apiCheckBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-3 rounded-xl transition text-sm flex items-center justify-center gap-2">
+            <span>⚡ 進行連線檢測</span>
+          </button>
+        </div>
+
+        <!-- 檢測結果區塊 -->
+        <div id="checkResultBox" class="hidden p-4 rounded-xl text-sm border mt-4"></div>
+      </div>
+
+      <!-- 步驟 4 卡片 -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <span class="w-7 h-7 rounded-full bg-indigo-100 text-indigo-700 font-bold text-sm flex items-center justify-center">4</span>
+            <h2 class="text-lg font-bold text-slate-900">產製專屬 QR Code 通知單小卡</h2>
+          </div>
+          <button onclick="switchTab('printCenter')" class="text-xs font-bold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition border border-indigo-200">
+            前往列印中心 ➔
+          </button>
+        </div>
+        <p class="text-sm text-slate-600 mt-2">
+          連線成功後，系統能直接讀取名冊中的每位學生，一鍵在 A4 紙上排版成 8~10 張精緻的「家長查詢通知小卡」，含姓名、專屬 QR Code、備用代碼與操作教學。老師直接列印後裁切發給學生或貼在紙本成績單上即可！
+        </p>
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- 分頁 2: 成績轉置小幫手 (Data Formatter)   -->
+    <!-- ========================================== -->
+    <section id="tabContent-dataHelper" class="tab-content hidden space-y-6">
+      <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-lg font-bold text-slate-900">🔄 橫式成績轉【直式成績明細】小幫手</h2>
+          <span class="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-medium">常見痛點解方</span>
+        </div>
+        <p class="text-sm text-slate-600 mb-4 leading-relaxed">
+          學校教務處通常匯出的是「橫式表格」（座號、姓名、國文、英文、數學...排成同一列），但資料庫需要「直式記錄」。請將 Excel 的成績表格直接複製貼在左邊，系統會自動轉換為標準格式！
+        </p>
+
+        <!-- 考試設定 -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">學年度</label>
+            <input type="text" id="toolYear" value="112" class="w-full text-xs px-3 py-2 rounded-lg border border-slate-300">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">學期</label>
+            <input type="text" id="toolSemester" value="1" class="w-full text-xs px-3 py-2 rounded-lg border border-slate-300">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">考試名稱</label>
+            <input type="text" id="toolExamName" value="第一次段考" class="w-full text-xs px-3 py-2 rounded-lg border border-slate-300">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- 左側輸入 -->
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="text-xs font-bold text-slate-700">1. 從 Excel 貼上（含標題列）：</label>
+              <button onclick="fillSampleExcelData()" class="text-[11px] text-indigo-600 hover:underline">帶入範例數據</button>
+            </div>
+            <textarea id="rawExcelInput" rows="10" placeholder="座號	姓名	國文	英文	數學
+01	王小明	85	90	78
+02	李小華	92	88	95" class="w-full p-3 font-mono text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
+            <button onclick="convertHorizontalScores()" class="mt-2 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 rounded-xl text-xs transition">
+              ⚡ 開始轉換成標準格式
+            </button>
+          </div>
+
+          <!-- 右側輸出 -->
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="text-xs font-bold text-slate-700">2. 轉換結果（可直接複製貼入【成績明細】表）：</label>
+              <button onclick="copyConvertedData()" id="copyConvertedBtn" class="text-[11px] bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded hover:bg-indigo-100 font-bold">複製結果</button>
+            </div>
+            <textarea id="convertedOutput" rows="10" readonly placeholder="轉換後的直式資料將呈現於此..." class="w-full p-3 font-mono text-xs border border-slate-300 rounded-xl bg-slate-50 text-slate-600"></textarea>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- 分頁 3: QR Code 列印中心 (Print Center)    -->
+    <!-- ========================================== -->
+    <section id="tabContent-printCenter" class="tab-content hidden space-y-6">
+      
+      <div class="no-print bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+          <div>
+            <h2 class="text-lg font-bold text-slate-900">🖨️ 家長個別查詢小卡 A4 列印排版</h2>
+            <p class="text-xs text-slate-500 mt-1">系統自動排版為一頁 8 張小卡，裁切後發給家長或黏貼於紙本成績單。</p>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="syncStudentsFromApi()" class="text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 px-3 py-2 rounded-xl hover:bg-indigo-100 transition flex items-center gap-1">
+              <span>🔄 從試算表同步名單</span>
+            </button>
+            <button onclick="window.print()" class="text-xs font-bold bg-slate-900 hover:bg-black text-white px-4 py-2 rounded-xl transition flex items-center gap-1.5 shadow-sm">
+              <span>🖨️ 列印 A4 通知小卡</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 小卡標題自訂 -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs">
+          <div>
+            <label class="block font-bold text-slate-600 mb-1">學校/單位抬頭</label>
+            <input type="text" id="cardSchoolTitle" value="市立示範國民中學" oninput="updatePrintCards()" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-600 mb-1">通知單標題</label>
+            <input type="text" id="cardNoticeTitle" value="學期個別成績與學習診斷通知單" oninput="updatePrintCards()" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-600 mb-1">備註/導師叮嚀</label>
+            <input type="text" id="cardFootnote" value="請用手機相機掃描 QR Code 即可查看專屬雷達圖與解讀分析" oninput="updatePrintCards()" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300">
+          </div>
+        </div>
+      </div>
+
+      <!-- A4 列印預覽容器 -->
+      <div id="printArea" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+        <div id="cardsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- 小卡將由 JS 動態生成填入 -->
+          <div class="text-center py-12 text-slate-400 text-sm col-span-2">
+            目前尚未載入學生名單。請點選上方【從試算表同步名單】或先至【第 3 步】完成連線。
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- 分頁 4: 家長端手機即時預覽 (Live Sandbox)   -->
+    <!-- ========================================== -->
+    <section id="tabContent-previewSandbox" class="tab-content hidden space-y-6">
+      <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+          <div>
+            <h2 class="text-lg font-bold text-slate-900">📱 家長端視角即時沙盒 (Mobile Preview)</h2>
+            <p class="text-xs text-slate-500 mt-1">選取一位學生，親眼確認家長手機掃碼後看到的雷達圖、趨勢曲線與診斷評語。</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <label class="text-xs font-bold text-slate-600">測試學生：</label>
+            <select id="previewStudentSelect" onchange="loadPreviewForSelectedStudent()" class="text-xs font-semibold border border-slate-300 rounded-lg px-3 py-1.5 bg-white">
+              <option value="DEMO1">示範生：王小明 (Token: DEMO1)</option>
+              <option value="DEMO2">示範生：李小華 (Token: DEMO2)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 手機模型展示框 -->
+        <div class="max-w-[420px] mx-auto bg-slate-800 p-3 rounded-[36px] shadow-2xl border-4 border-slate-700">
+          <div class="bg-slate-50 rounded-[28px] overflow-hidden min-h-[620px] max-h-[700px] overflow-y-auto p-4 border border-slate-200 text-xs">
+            
+            <!-- 模擬手機畫面內嵌內容 -->
+            <div id="sandboxMobileView" class="space-y-4">
+              <div class="text-center py-8">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-indigo-600 border-t-transparent"></div>
+                <p class="text-xs text-slate-400 mt-2">載入預覽數據中...</p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== 純淨家長查詢前台 (Parent Portal) ==================== -->
+  <div id="parentPortal" class="hidden min-h-screen bg-slate-50 pb-16">
+    <header class="bg-indigo-700 text-white py-4 px-4 text-center shadow-md">
+      <div class="max-w-md mx-auto flex items-center justify-between">
+        <div class="text-left">
+          <h1 class="text-base font-bold tracking-tight" id="parentPortalTitle">個別成績與學習診斷系統</h1>
+          <p class="text-[11px] text-indigo-200">資安保護 ‧ 個別化學習成效回饋</p>
+        </div>
+        <button onclick="exitParentMode()" class="text-[11px] bg-indigo-600/60 hover:bg-indigo-600 text-indigo-100 px-2.5 py-1 rounded border border-indigo-400/40">
+          返回後台
+        </button>
+      </div>
+    </header>
+
+    <div class="max-w-md mx-auto px-4 mt-4 space-y-4">
+      
+      <!-- 代碼輸入卡 -->
+      <div id="parentLoginBox" class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+        <label class="block text-xs font-bold text-slate-700 mb-1.5 text-center">請輸入學生專屬 6 碼查詢代碼</label>
+        <div class="flex gap-2">
+          <input type="text" id="parentTokenInput" placeholder="例如：A8k9Zm" class="flex-1 px-3 py-2 text-center uppercase tracking-widest font-mono border border-slate-300 rounded-xl text-base font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <button onclick="doParentQuery()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-xl text-sm transition">
+            查詢
+          </button>
+        </div>
+        <div id="parentErrorMsg" class="text-red-500 text-xs text-center mt-2 hidden"></div>
+      </div>
+
+      <!-- 查詢結果區 (預設隱藏) -->
+      <div id="parentScoreResult" class="hidden space-y-4">
+        
+        <!-- 學生卡片 -->
+        <div class="bg-gradient-to-r from-indigo-600 to-indigo-800 text-white rounded-2xl p-4 shadow-md flex items-center justify-between">
+          <div>
+            <div class="text-xl font-black" id="pStudentName">--</div>
+            <div class="text-xs text-indigo-200 mt-0.5">學號：<span id="pStudentId">--</span> ‧ 班級：<span id="pClassName">--</span></div>
+          </div>
+          <select id="pExamSelect" onchange="renderParentExamDetails()" class="text-xs bg-white text-slate-800 font-bold px-2 py-1.5 rounded-lg focus:outline-none shadow-sm"></select>
+        </div>
+
+        <!-- 雷達圖 -->
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+          <div class="font-bold text-xs text-slate-700 mb-2 flex justify-between">
+            <span>🎯 本次各科雷達向度圖</span>
+            <span class="text-slate-400 font-normal">個人 vs 班級平均</span>
+          </div>
+          <div class="max-w-[260px] mx-auto aspect-square">
+            <canvas id="pRadarChart"></canvas>
+          </div>
+        </div>
+
+        <!-- 歷年趨勢圖 -->
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+          <div class="font-bold text-xs text-slate-700 mb-2">📈 歷次成績成長曲線</div>
+          <div class="h-[200px]">
+            <canvas id="pTrendChart"></canvas>
+          </div>
+        </div>
+
+        <!-- 數據列表 -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div class="p-3 border-b border-slate-100 font-bold text-xs text-slate-800">📋 本次成績明細</div>
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 text-slate-500">
+              <tr>
+                <th class="py-2 px-3">科目</th>
+                <th class="py-2 px-3 text-center">得分</th>
+                <th class="py-2 px-3 text-center">班均</th>
+                <th class="py-2 px-3 text-center">差額</th>
+              </tr>
+            </thead>
+            <tbody id="pScoreTable" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+
+        <!-- 診斷建議 -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
+          <div class="font-bold text-xs text-slate-800 mb-3">💡 學習診斷與精進建議</div>
+          <div id="pDiagnosisList" class="space-y-2.5 text-xs"></div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== JavaScript 核心邏輯 ==================== -->
+  <script>
+    // 預設示範數據 (提供無連線時的即時體驗)
+    const DEMO_STUDENTS = [
+      { studentId: '112001', name: '王小明', className: '701', seatNumber: '01', token: 'DEMO1' },
+      { studentId: '112002', name: '李小華', className: '701', seatNumber: '02', token: 'DEMO2' },
+      { studentId: '112003', name: '張小美', className: '701', seatNumber: '03', token: 'DEMO3' },
+      { studentId: '112004', name: '陳大文', className: '701', seatNumber: '04', token: 'DEMO4' }
+    ];
+
+    const DEMO_SCORES = [
+      { year: '112', semester: '1', examName: '第一次段考', examKey: '112-1 第一次段考', subject: '國文', score: 88, average: 78.5, pr: 82, diagnosis: '閱讀理解能力出色，成語與文意掌握度高。' },
+      { year: '112', semester: '1', examName: '第一次段考', examKey: '112-1 第一次段考', subject: '英語', score: 92, average: 75.0, pr: 89, diagnosis: '文法與詞彙量豐富，聽力表現優異。' },
+      { year: '112', semester: '1', examName: '第一次段考', examKey: '112-1 第一次段考', subject: '數學', score: 74, average: 72.0, pr: 60, diagnosis: '基礎代數概念扎實，但幾何計算過程需加強驗算。' },
+      { year: '112', semester: '1', examName: '第一次段考', examKey: '112-1 第一次段考', subject: '自然', score: 85, average: 70.2, pr: 80, diagnosis: '實驗題型理解力佳，圖表判讀迅速。' },
+      { year: '112', semester: '1', examName: '第二次段考', examKey: '112-1 第二次段考', subject: '國文', score: 90, average: 79.0, pr: 85, diagnosis: '文言文題型表現亮眼，寫作能力持續進步。' },
+      { year: '112', semester: '1', examName: '第二次段考', examKey: '112-1 第二次段考', subject: '英語', score: 95, average: 76.2, pr: 93, diagnosis: '整體語感敏銳，閱讀測驗全對。' },
+      { year: '112', semester: '1', examName: '第二次段考', examKey: '112-1 第二次段考', subject: '數學', score: 86, average: 73.0, pr: 78, diagnosis: '計算錯誤率明顯下降，本次進步幅度顯著！' },
+      { year: '112', semester: '1', examName: '第二次段考', examKey: '112-1 第二次段考', subject: '自然', score: 88, average: 71.5, pr: 84, diagnosis: '物理與化學原理應用靈活。' }
+    ];
+
+    let cachedStudents = [];
+    let activeApiUrl = localStorage.getItem('mpscore_gas_url') || '';
+    let currentParentRecords = [];
+    let pRadarInst = null;
+    let pTrendInst = null;
+
+    // 初始化頁面
+    window.addEventListener('DOMContentLoaded', () => {
+      // 檢查網址參數是否直接帶入 Token (家長掃碼情境)
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get('token');
+
+      if (token) {
+        enterParentMode(token);
+      } else {
+        if (activeApiUrl) {
+          document.getElementById('apiEndpointInput').value = activeApiUrl;
+          document.getElementById('quickApiInput').value = activeApiUrl;
+          runApiCheck(false);
+        } else {
+          // 預設渲染示範列印卡片
+          cachedStudents = DEMO_STUDENTS;
+          renderPrintCards(cachedStudents);
+        }
+        loadPreviewForSelectedStudent();
+      }
+    });
+
+    // 分頁切換
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-white', 'text-indigo-700', 'font-bold', 'shadow-sm');
+        btn.classList.add('text-slate-600');
+      });
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+
+      const activeBtn = document.getElementById('tabBtn-' + tabId);
+      if (activeBtn) {
+        activeBtn.classList.add('bg-white', 'text-indigo-700', 'font-bold', 'shadow-sm');
+        activeBtn.classList.remove('text-slate-600');
+      }
+      const targetContent = document.getElementById('tabContent-' + tabId);
+      if (targetContent) targetContent.classList.remove('hidden');
+
+      if (tabId === 'printCenter' && cachedStudents.length > 0) {
+        renderPrintCards(cachedStudents);
+      }
+    }
+
+    // 複製 GAS 後端程式碼
+    function copyGasCode() {
+      const code = `/**
+ * MPScore - 智慧學生成績與學習診斷系統 (Google Apps Script 後端)
+ */
+function onOpen() {
+  var ui = SpreadsheetApp.getUi();
+  ui.createMenu('⚡ MPScore 工具')
+    .addItem('🔑 一鍵為全班產生防偽代碼 (Token)', 'generateTokensForStudents')
+    .addItem('📊 自動計算班級平均並填入', 'autoCalculateAverages')
+    .addToUi();
+}
+function doGet(e) {
+  var params = e ? e.parameter : {};
+  var action = params.action || (params.token ? 'query' : 'ping');
+  var output = {};
+  try {
+    if (action === 'ping') output = checkSystemStatus();
+    else if (action === 'query') output = getStudentScoreByToken(params.token);
+    else if (action === 'getStudentsForPrint') output = getStudentListForTeacher(params.adminKey);
+    else output = { success: false, message: '未知的操作請求' };
+  } catch(err) {
+    output = { success: false, message: '錯誤: ' + err.toString() };
+  }
+  return ContentService.createTextOutput(JSON.stringify(output)).setMimeType(ContentService.MimeType.JSON);
+}
+function doPost(e) { return doGet(e); }
+function checkSystemStatus() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sSheet = ss.getSheetByName('學生名冊');
+  var scoreSheet = ss.getSheetByName('成績明細');
+  if (!sSheet || !scoreSheet) return { success: false, message: '需有【學生名冊】與【成績明細】分頁' };
+  return { success: true, message: '連線正常！', sheetTitle: ss.getName(), studentCount: Math.max(0, sSheet.getLastRow() - 1), scoreCount: Math.max(0, scoreSheet.getLastRow() - 1) };
+}
+function getStudentScoreByToken(token) {
+  if (!token) return { success: false, message: '請提供查詢代碼' };
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sSheet = ss.getSheetByName('學生名冊');
+  var scoreSheet = ss.getSheetByName('成績明細');
+  var sData = sSheet.getDataRange().getValues();
+  var student = null;
+  for (var i = 1; i < sData.length; i++) {
+    if (sData[i][4] && sData[i][4].toString().trim() === token.toString().trim()) {
+      if (sData[i][5] === false) return { success: false, message: '該帳號已停用' };
+      student = { studentId: sData[i][0].toString(), name: sData[i][1], className: sData[i][2], seatNumber: sData[i][3] };
+      break;
+    }
+  }
+  if (!student) return { success: false, message: '查無此代碼，請確認是否輸入正確' };
+  var records = [];
+  var scData = scoreSheet.getDataRange().getValues();
+  for (var j = 1; j < scData.length; j++) {
+    if (scData[j][0].toString().trim() === student.studentId) {
+      records.push({
+        year: scData[j][1], semester: scData[j][2], examName: scData[j][3],
+        examKey: scData[j][1] + '-' + scData[j][2] + ' ' + scData[j][3],
+        subject: scData[j][4], score: Number(scData[j][5])||0, average: Number(scData[j][6])||0, pr: Number(scData[j][7])||0,
+        diagnosis: scData[j][8] || '學習態度良好，請持續保持！'
+      });
+    }
+  }
+  return { success: true, student: student, records: records };
+}
+function getStudentListForTeacher() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sSheet = ss.getSheetByName('學生名冊');
+  var data = sSheet.getDataRange().getValues();
+  var list = [];
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][0] && data[i][4]) list.push({ studentId: data[i][0].toString(), name: data[i][1], className: data[i][2], seatNumber: data[i][3], token: data[i][4].toString().trim() });
+  }
+  return { success: true, students: list };
+}
+function generateTokensForStudents() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName('學生名冊');
+  var data = sheet.getDataRange().getValues();
+  var chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+  var c = 0;
+  for (var i = 1; i < data.length; i++) {
+    if (!data[i][4] || data[i][4].toString().trim() === '') {
+      var tok = '';
+      for (var k = 0; k < 6; k++) tok += chars.charAt(Math.floor(Math.random() * chars.length));
+      sheet.getRange(i + 1, 5).setValue(tok);
+      sheet.getRange(i + 1, 6).setValue(true);
+      c++;
+    }
+  }
+  SpreadsheetApp.getUi().alert('完成！已為 ' + c + ' 位學生生成代碼。');
+}`;
+      navigator.clipboard.writeText(code).then(() => {
+        const btn = document.getElementById('copyCodeBtn');
+        btn.innerHTML = '<span>✅ 已成功複製到剪貼簿！</span>';
+        btn.classList.replace('bg-indigo-500', 'bg-emerald-600');
+        setTimeout(() => {
+          btn.innerHTML = '<span>📋 一鍵複製完整程式碼</span>';
+          btn.classList.replace('bg-emerald-600', 'bg-indigo-500');
+        }, 3000);
+      });
+    }
+
+    // 進行 API 連線檢測
+    async function runApiCheck(showAlert = true) {
+      const urlInput = document.getElementById('apiEndpointInput');
+      const url = urlInput.value.trim();
+      const resBox = document.getElementById('checkResultBox');
+      const banner = document.getElementById('connectionBanner');
+
+      if (!url) {
+        if (showAlert) alert('請先貼上 Apps Script 網頁應用程式網址！');
+        return;
+      }
+
+      resBox.className = 'p-4 rounded-xl text-xs border mt-4 bg-slate-100 text-slate-700 flex items-center gap-2';
+      resBox.innerHTML = '<span class="inline-block animate-spin rounded-full h-4 w-4 border-2 border-indigo-600 border-t-transparent"></span> 連線檢測中，請稍候...';
+      resBox.classList.remove('hidden');
+
+      try {
+        const pingUrl = url + (url.includes('?') ? '&' : '?') + 'action=ping';
+        const resp = await fetch(pingUrl);
+        const data = await resp.json();
+
+        if (data.success) {
+          activeApiUrl = url;
+          localStorage.setItem('mpscore_gas_url', url);
+          document.getElementById('quickApiInput').value = url;
+
+          resBox.className = 'p-4 rounded-xl text-xs border mt-4 bg-emerald-50 border-emerald-200 text-emerald-800';
+          resBox.innerHTML = `
+            <div class="font-bold text-sm text-emerald-900 mb-1">🎉 連線成功！系統已就緒</div>
+            <div>試算表名稱：<b>${data.sheetTitle || '線上試算表'}</b> ‧ 已讀取到 <b>${data.studentCount}</b> 位學生、<b>${data.scoreCount}</b> 筆成績紀錄。</div>
+          `;
+
+          // 更新橫幅
+          banner.className = 'no-print mb-8 p-4 rounded-2xl border transition-all duration-300 bg-emerald-50 border-emerald-200 text-emerald-900 flex flex-wrap items-center justify-between gap-4';
+          banner.innerHTML = `
+            <div class="flex items-center gap-3">
+              <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+              <div>
+                <div class="font-bold text-sm">已與 Google 試算表連線成功</div>
+                <div class="text-xs text-emerald-700">${data.sheetTitle} (學生 ${data.studentCount} 人 ‧ 成績 ${data.scoreCount} 筆)</div>
+              </div>
+            </div>
+            <button onclick="syncStudentsFromApi()" class="text-xs font-bold bg-emerald-700 hover:bg-emerald-800 text-white px-3 py-1.5 rounded-lg transition">
+              同步名冊至列印中心
+            </button>
+          `;
+          
+          // 自動同步名冊
+          syncStudentsFromApi(false);
+        } else {
+          throw new Error(data.message || '連線測試失敗');
+        }
+      } catch (err) {
+        resBox.className = 'p-4 rounded-xl text-xs border mt-4 bg-rose-50 border-rose-200 text-rose-800';
+        resBox.innerHTML = `
+          <div class="font-bold text-sm text-rose-900 mb-1">❌ 連線失敗</div>
+          <div>原因：${err.message}</div>
+          <div class="mt-1 text-slate-500">小撇步：請確認部署時【誰可以存取】是否有設定為【所有人 (Anyone)】，否則 Google 會阻擋瀏覽器存取。</div>
+        `;
+      }
+    }
+
+    function testQuickConnection() {
+      const url = document.getElementById('quickApiInput').value.trim();
+      document.getElementById('apiEndpointInput').value = url;
+      runApiCheck(true);
+    }
+
+    // 從 API 同步學生名單以供列印
+    async function syncStudentsFromApi(alertSuccess = true) {
+      if (!activeApiUrl) {
+        alert('請先在第 3 步完成連線檢測！');
+        return;
+      }
+      try {
+        const syncUrl = activeApiUrl + (activeApiUrl.includes('?') ? '&' : '?') + 'action=getStudentsForPrint';
+        const resp = await fetch(syncUrl);
+        const data = await resp.json();
+
+        if (data.success && data.students && data.students.length > 0) {
+          cachedStudents = data.students;
+          renderPrintCards(cachedStudents);
+          updatePreviewStudentOptions(cachedStudents);
+          if (alertSuccess) alert(`✨ 成功同步 ${data.students.length} 位學生名冊！`);
+        } else {
+          alert('試算表內尚未填入學生或代碼尚未生成，請使用試算表選單【⚡ MPScore 工具】產生代碼。');
+        }
+      } catch(e) {
+        console.error(e);
+        if (alertSuccess) alert('同步失敗: ' + e.message);
+      }
+    }
+
+    // 更新預覽下拉選單
+    function updatePreviewStudentOptions(students) {
+      const sel = document.getElementById('previewStudentSelect');
+      sel.innerHTML = '';
+      students.forEach(st => {
+        const opt = document.createElement('option');
+        opt.value = st.token;
+        opt.innerText = `${st.className} 班 ${st.seatNumber || ''} 號 ${st.name} (Token: ${st.token})`;
+        sel.appendChild(opt);
+      });
+      loadPreviewForSelectedStudent();
+    }
+
+    // 渲染 A4 列印小卡
+    function renderPrintCards(students) {
+      const grid = document.getElementById('cardsGrid');
+      grid.innerHTML = '';
+
+      const schoolTitle = document.getElementById('cardSchoolTitle').value;
+      const noticeTitle = document.getElementById('cardNoticeTitle').value;
+      const footnote = document.getElementById('cardFootnote').value;
+      const baseUrl = window.location.origin + window.location.pathname;
+
+      students.forEach((st, idx) => {
+        const queryUrl = baseUrl + '?token=' + encodeURIComponent(st.token);
+        const cardId = 'qrcode-' + idx;
+
+        const card = document.createElement('div');
+        card.className = 'card-item border-2 border-dashed border-slate-300 rounded-2xl p-4 bg-white flex flex-col justify-between relative';
+        card.innerHTML = `
+          <div class="flex items-start justify-between border-b pb-2 mb-2">
+            <div>
+              <div class="text-[11px] font-bold text-indigo-700 tracking-wider">${schoolTitle}</div>
+              <div class="text-sm font-black text-slate-800">${noticeTitle}</div>
+            </div>
+            <div class="text-right">
+              <span class="text-xs font-bold bg-slate-100 text-slate-700 px-2 py-0.5 rounded">${st.className} 班</span>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between gap-4 my-1">
+            <div class="space-y-1">
+              <div class="text-base font-black text-slate-900">${st.name} <span class="text-xs font-normal text-slate-500">${st.seatNumber ? `(${st.seatNumber}號)` : ''}</span></div>
+              <div class="text-xs text-slate-500">學號：<span class="font-mono text-slate-700">${st.studentId}</span></div>
+              <div class="text-xs text-indigo-900 font-bold bg-indigo-50 px-2 py-1 rounded inline-block">
+                查詢代碼：<span class="font-mono text-sm tracking-widest text-indigo-600">${st.token}</span>
+              </div>
+            </div>
+
+            <!-- QR Code 容器 -->
+            <div class="flex flex-col items-center">
+              <div id="${cardId}" class="p-1 bg-white border border-slate-200 rounded-lg shadow-sm"></div>
+              <span class="text-[10px] text-slate-400 mt-1">相機掃描直達</span>
+            </div>
+          </div>
+
+          <div class="text-[10px] text-slate-400 border-t pt-2 mt-2 leading-tight">
+            ℹ️ ${footnote}
+          </div>
+        `;
+
+        grid.appendChild(card);
+
+        // 使用 qrcodejs 生成清晰 QR Code
+        setTimeout(() => {
+          new QRCode(document.getElementById(cardId), {
+            text: queryUrl,
+            width: 76,
+            height: 76,
+            correctLevel: QRCode.CorrectLevel.M
+          });
+        }, 50);
+      });
+    }
+
+    function updatePrintCards() {
+      renderPrintCards(cachedStudents);
+    }
+
+    // 橫式成績轉置小幫手
+    function convertHorizontalScores() {
+      const raw = document.getElementById('rawExcelInput').value.trim();
+      if (!raw) {
+        alert('請先在左側貼上 Excel 橫式成績表格！');
+        return;
+      }
+
+      const year = document.getElementById('toolYear').value;
+      const sem = document.getElementById('toolSemester').value;
+      const examName = document.getElementById('toolExamName').value;
+
+      const lines = raw.split('\n').map(l => l.trim()).filter(l => l);
+      if (lines.length < 2) {
+        alert('格式不符：需包含標題列與至少一列學生資料');
+        return;
+      }
+
+      // 解析標題列 (預期例如：座號 姓名 國文 英文 數學...)
+      const headers = lines[0].split('\t').length > 1 ? lines[0].split('\t') : lines[0].split(/[\s,]+/);
+      const subjectHeaders = headers.slice(2); // 從第 3 欄起為科目
+
+      let outputRows = ['學號\t學年度\t學期\t考試名稱\t科目\t個人得分\t班級平均\tPR值\t成績解讀與診斷建議'];
+
+      for (let i = 1; i < lines.length; i++) {
+        const parts = lines[i].split('\t').length > 1 ? lines[i].split('\t') : lines[i].split(/[\s,]+/);
+        const seatOrId = parts[0] || (i < 10 ? '0' + i : '' + i);
+        const name = parts[1] || '學生';
+
+        subjectHeaders.forEach((subj, subIdx) => {
+          const score = parts[2 + subIdx] || '0';
+          // 格式: 學號, 學年度, 學期, 考試名稱, 科目, 個人得分, 班級平均, PR值, 評語
+          outputRows.push(`${seatOrId}\t${year}\t${sem}\t${examName}\t${subj}\t${score}\t\t\t表現良好，持續精進。`);
+        });
+      }
+
+      document.getElementById('convertedOutput').value = outputRows.join('\n');
+    }
+
+    function copyConvertedData() {
+      const text = document.getElementById('convertedOutput').value;
+      if (!text) return;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.getElementById('copyConvertedBtn');
+        btn.innerText = '已複製！';
+        setTimeout(() => btn.innerText = '複製結果', 2000);
+      });
+    }
+
+    function fillSampleExcelData() {
+      document.getElementById('rawExcelInput').value = 
+`座號\t姓名\t國文\t英語\t數學\t自然\t社會
+112001\t王小明\t85\t92\t74\t88\t80
+112002\t李小華\t90\t88\t95\t84\t86
+112003\t張小美\t78\t82\t80\t76\t79`;
+    }
+
+    function downloadCsvTemplates() {
+      const studentCsv = "學號,姓名,班級,座號,專屬代碼,啟用狀態\n112001,王小明,701,01,,TRUE\n112002,李小華,701,02,,TRUE";
+      const blob = new Blob(["\uFEFF" + studentCsv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "學生名冊範本.csv";
+      link.click();
+    }
+
+    // ==========================================
+    // 家長端視角與沙盒預覽處理
+    // ==========================================
+    function enterParentMode(token = '') {
+      document.getElementById('teacherApp').classList.add('hidden');
+      document.getElementById('parentPortal').classList.remove('hidden');
+      if (token) {
+        document.getElementById('parentTokenInput').value = token;
+        doParentQuery();
+      }
+    }
+
+    function exitParentMode() {
+      document.getElementById('parentPortal').classList.add('hidden');
+      document.getElementById('teacherApp').classList.remove('hidden');
+    }
+
+    async function doParentQuery() {
+      const token = document.getElementById('parentTokenInput').value.trim();
+      const errBox = document.getElementById('parentErrorMsg');
+      const resBox = document.getElementById('parentScoreResult');
+
+      if (!token) {
+        errBox.innerText = '請輸入 6 碼查詢代碼';
+        errBox.classList.remove('hidden');
+        return;
+      }
+      errBox.classList.add('hidden');
+
+      // 若有設定 GAS 網址則呼叫真實 API，否則使用展示數據
+      if (activeApiUrl) {
+        try {
+          const qUrl = activeApiUrl + (activeApiUrl.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(token);
+          const resp = await fetch(qUrl);
+          const data = await resp.json();
+          if (data.success) {
+            renderParentView(data.student, data.records);
+          } else {
+            errBox.innerText = data.message || '查無此代碼';
+            errBox.classList.remove('hidden');
+          }
+        } catch (e) {
+          errBox.innerText = '連線異常，請確認網路或聯絡老師';
+          errBox.classList.remove('hidden');
+        }
+      } else {
+        // 展示模式
+        const demoSt = DEMO_STUDENTS.find(s => s.token.toUpperCase() === token.toUpperCase()) || DEMO_STUDENTS[0];
+        renderParentView(demoSt, DEMO_SCORES);
+      }
+    }
+
+    function renderParentView(student, records) {
+      document.getElementById('pStudentName').innerText = student.name;
+      document.getElementById('pStudentId').innerText = student.studentId;
+      document.getElementById('pClassName').innerText = student.className + ' 班';
+
+      currentParentRecords = records;
+
+      // 填充考試下拉選單
+      const sel = document.getElementById('pExamSelect');
+      sel.innerHTML = '';
+      const examKeys = [...new Set(records.map(r => r.examKey))];
+      examKeys.forEach((k, idx) => {
+        const opt = document.createElement('option');
+        opt.value = k;
+        opt.innerText = k;
+        if (idx === examKeys.length - 1) opt.selected = true;
+        sel.appendChild(opt);
+      });
+
+      renderParentTrend(records);
+      renderParentExamDetails();
+      document.getElementById('parentScoreResult').classList.remove('hidden');
+    }
+
+    function renderParentExamDetails() {
+      const selectedKey = document.getElementById('pExamSelect').value;
+      const currentList = currentParentRecords.filter(r => r.examKey === selectedKey);
+
+      const table = document.getElementById('pScoreTable');
+      const diagList = document.getElementById('pDiagnosisList');
+      table.innerHTML = '';
+      diagList.innerHTML = '';
+
+      const labels = [];
+      const scores = [];
+      const avgs = [];
+
+      currentList.forEach(item => {
+        labels.push(item.subject);
+        scores.push(item.score);
+        avgs.push(item.average);
+
+        const diff = item.score - item.average;
+        const diffBadge = diff >= 0
+          ? `<span class="text-emerald-700 font-bold">+${diff.toFixed(1)}</span>`
+          : `<span class="text-rose-600 font-bold">${diff.toFixed(1)}</span>`;
+
+        table.innerHTML += `
+          <tr class="hover:bg-slate-50">
+            <td class="py-2.5 px-3 font-bold text-slate-800">${item.subject}</td>
+            <td class="py-2.5 px-3 text-center font-black text-indigo-600 text-sm">${item.score}</td>
+            <td class="py-2.5 px-3 text-center text-slate-400">${item.average || '-'}</td>
+            <td class="py-2.5 px-3 text-center">${diffBadge}</td>
+          </tr>
+        `;
+
+        diagList.innerHTML += `
+          <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200">
+            <div class="font-bold text-indigo-700 mb-0.5">【${item.subject}】得分 ${item.score} 分</div>
+            <div class="text-slate-600 leading-relaxed text-[11px]">${item.diagnosis}</div>
+          </div>
+        `;
+      });
+
+      renderParentRadar(labels, scores, avgs);
+    }
+
+    function renderParentRadar(labels, scores, avgs) {
+      const ctx = document.getElementById('pRadarChart').getContext('2d');
+      if (pRadarInst) pRadarInst.destroy();
+
+      pRadarInst = new Chart(ctx, {
+        type: 'radar',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: '個人得分',
+              data: scores,
+              backgroundColor: 'rgba(79, 70, 229, 0.25)',
+              borderColor: 'rgba(79, 70, 229, 1)',
+              borderWidth: 2,
+              pointBackgroundColor: 'rgba(79, 70, 229, 1)'
+            },
+            {
+              label: '班級平均',
+              data: avgs,
+              backgroundColor: 'rgba(148, 163, 184, 0.2)',
+              borderColor: 'rgba(148, 163, 184, 1)',
+              borderWidth: 1.5,
+              borderDash: [3, 3]
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          scales: {
+            r: { min: 0, max: 100, ticks: { display: false, stepSize: 25 } }
+          },
+          plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } }
+          }
+        }
+      });
+    }
+
+    function renderParentTrend(records) {
+      const ctx = document.getElementById('pTrendChart').getContext('2d');
+      if (pTrendInst) pTrendInst.destroy();
+
+      const examKeys = [...new Set(records.map(r => r.examKey))];
+      const subjects = [...new Set(records.map(r => r.subject))];
+      const colors = ['#4f46e5', '#06b6d4', '#10b981', '#f59e0b', '#ec4899'];
+
+      const datasets = subjects.map((subj, idx) => {
+        const data = examKeys.map(k => {
+          const rec = records.find(r => r.examKey === k && r.subject === subj);
+          return rec ? rec.score : null;
+        });
+        return {
+          label: subj,
+          data: data,
+          borderColor: colors[idx % colors.length],
+          backgroundColor: colors[idx % colors.length],
+          tension: 0.3
+        };
+      });
+
+      pTrendInst = new Chart(ctx, {
+        type: 'line',
+        data: { labels: examKeys, datasets: datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: { y: { min: 0, max: 100 } },
+          plugins: { legend: { position: 'bottom', labels: { boxWidth: 8, font: { size: 9 } } } }
+        }
+      });
+    }
+
+    // 教師後台沙盒模擬
+    function loadPreviewForSelectedStudent() {
+      const box = document.getElementById('sandboxMobileView');
+      box.innerHTML = `
+        <div class="bg-indigo-600 text-white rounded-xl p-3 flex justify-between items-center">
+          <div>
+            <div class="font-black text-sm">王小明 (示範生)</div>
+            <div class="text-[10px] text-indigo-200">701 班 ‧ 學號 112001</div>
+          </div>
+          <span class="text-[10px] bg-indigo-500 px-2 py-0.5 rounded">112-1 第二次段考</span>
+        </div>
+
+        <div class="bg-white p-3 rounded-xl border border-slate-200">
+          <div class="font-bold text-[11px] text-slate-700 mb-1">🎯 各科能力雷達圖 (示範)</div>
+          <div class="text-center py-4 bg-slate-50 rounded-lg text-slate-400 text-[10px]">
+            [此處將動態呈現國、英、數、自、社雷達圖]
+          </div>
+        </div>
+
+        <div class="bg-white p-3 rounded-xl border border-slate-200 space-y-2">
+          <div class="font-bold text-[11px] text-slate-800">💡 學習診斷處方箋 (來自解讀平台)</div>
+          <div class="p-2 bg-slate-50 rounded-lg border-l-2 border-indigo-500 text-[11px]">
+            <b>【國文 90分】</b> 文言文題型表現亮眼，寫作能力持續進步。
+          </div>
+          <div class="p-2 bg-slate-50 rounded-lg border-l-2 border-indigo-500 text-[11px]">
+            <b>【數學 86分】</b> 計算錯誤率明顯下降，本次進步幅度顯著！
+          </div>
+        </div>
+      `;
+    }
+  </script>
+</body>
+</html>
