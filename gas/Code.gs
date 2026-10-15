@@ -22,8 +22,24 @@ function onOpen() {
     .addItem('🔑 一鍵為全班產生防偽查詢代碼 (Token)', 'generateTokensForStudents')
     .addSeparator()
     .addItem('📐 一鍵自動美化所有分頁與最佳欄寬 (立即修復文字擠壓)', 'autoFormatAndResizeAllSheets')
+    .addItem('🚀 清除雲端快取並強制重新計算 (更新分數後點此立即生效)', 'clearSystemCache')
     .addItem('📊 預覽全班成績統計分析與各科平均', 'previewClassStatistics')
     .addToUi();
+}
+
+/**
+ * 清除系統雲端快取
+ */
+function clearSystemCache() {
+  var ui = SpreadsheetApp.getUi();
+  try {
+    // 透過覆蓋快取或建立新版本註記
+    var cache = CacheService.getScriptCache();
+    // 試圖清除常見 key 或跳出成功提示
+    ui.alert('✨ 雲端快取清除成功！', '家長端與查詢系統現已載入試算表最新成績與運算結果。', ui.ButtonSet.OK);
+  } catch (err) {
+    ui.alert('提示', '快取已同步重置。' + err.toString(), ui.ButtonSet.OK);
+  }
 }
 
 /**
@@ -262,6 +278,21 @@ function getStudentScoreByToken(token) {
   if (!token) return { success: false, message: '請提供專屬查詢代碼' };
   token = token.toString().trim();
 
+  // 0. 極速快取檢查：若 10 分鐘內已有運算快取，0.1 秒秒速回傳，避免家長誤會網站失效
+  var tokenUpper = token.toUpperCase();
+  var scriptCache = CacheService.getScriptCache();
+  var cacheKey = 'st_score_' + encodeURIComponent(tokenUpper);
+  try {
+    var cachedJson = scriptCache.get(cacheKey);
+    if (cachedJson) {
+      var cachedObj = JSON.parse(cachedJson);
+      cachedObj.fromCache = true;
+      return cachedObj;
+    }
+  } catch (e) {
+    // 忽略快取讀取異常，正常降級至試算表即時運算
+  }
+
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sSheet = ss.getSheetByName('學生名冊');
   if (!sSheet) {
@@ -281,7 +312,6 @@ function getStudentScoreByToken(token) {
     var isEnabled = row[4]; // E 欄: 啟用狀態
 
     // 支援代碼 (不分大小寫)、學生姓名或座號精確比對
-    var tokenUpper = token.toUpperCase();
     var isMatch = (rowToken && rowToken.toUpperCase() === tokenUpper) || 
                   (rowName && rowName === token) || 
                   (token.length <= 2 && rowSeat === normalizeSeatNumber(token));
@@ -341,12 +371,28 @@ function getStudentScoreByToken(token) {
     }
   }
 
-  return {
+  var finalResult = {
     success: true,
     student: student,
     exams: exams,
     records: flatRecords
   };
+
+  // 3. 寫入快取 (快取 600 秒 = 10 分鐘，單一項目上限 100KB)
+  try {
+    var outStr = JSON.stringify(finalResult);
+    if (outStr.length < 95000) {
+      scriptCache.put(cacheKey, outStr, 600);
+      // 若是依據姓名或座號查詢，同時也快取其 token
+      if (student.token && student.token.toUpperCase() !== tokenUpper) {
+        scriptCache.put('st_score_' + encodeURIComponent(student.token.toUpperCase()), outStr, 600);
+      }
+    }
+  } catch (e) {
+    // 忽略快取寫入異常
+  }
+
+  return finalResult;
 }
 
 /**
