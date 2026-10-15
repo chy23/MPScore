@@ -64,9 +64,15 @@
           <p class="text-[11px] text-slate-500 font-medium">看見孩子的每一步進步 ‧ 親師同心伴讀</p>
         </div>
       </div>
-      <div class="flex items-center gap-1.5 text-[11px] text-emerald-800 bg-emerald-50/90 px-3 py-1 rounded-full border border-emerald-200 font-semibold shadow-2xs">
-        <span>🔒</span>
-        <span>專屬安心查詢</span>
+      <div class="flex items-center gap-2">
+        <button onclick="openParentStatsHelpModal()" class="text-[11px] font-bold text-amber-900 bg-amber-50 hover:bg-amber-100 px-2.5 py-1 rounded-full border border-amber-200 transition active:scale-95 flex items-center gap-1 shadow-2xs cursor-pointer">
+          <span>✨</span>
+          <span>新統計方法說明</span>
+        </button>
+        <div class="flex items-center gap-1 text-[11px] text-emerald-800 bg-emerald-50/90 px-2.5 py-1 rounded-full border border-emerald-200 font-semibold shadow-2xs">
+          <span>🔒</span>
+          <span>安心查詢</span>
+        </div>
       </div>
     </div>
   </header>
@@ -246,11 +252,27 @@
             </div>
             <div class="text-[10px] text-slate-400 mt-0.5">呈現當次選取科目的班級成績真實分佈 ‧ 學生個人得分落點</div>
           </div>
-          <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200" id="pPrCurveBadge">--</span>
+          <div class="flex items-center gap-1.5">
+            <button onclick="openParentStatsHelpModal()" class="text-[10px] font-bold text-indigo-600 bg-indigo-50/80 hover:bg-indigo-100 px-2 py-0.5 rounded-full border border-indigo-200 transition active:scale-95 flex items-center gap-0.5 cursor-pointer">
+              <span>ℹ️</span> 說明
+            </button>
+            <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200" id="pPrCurveBadge">--</span>
+          </div>
         </div>
 
         <!-- 科目切換頁籤 (Apple Segmented Control) -->
         <div id="pPrCurveTabs" class="flex flex-wrap gap-1.5 bg-slate-100/80 p-1 rounded-2xl"></div>
+
+        <!-- 跨次考試疊加控制列 (Apple HIG Segmented/Dropdown) -->
+        <div class="flex items-center justify-between gap-2 px-2.5 py-1.5 bg-slate-50/90 rounded-2xl border border-slate-200/60 text-xs">
+          <div class="flex items-center gap-1.5 font-bold text-slate-700">
+            <span class="text-sm">🔄</span>
+            <span>跨次曲線疊加：</span>
+          </div>
+          <select id="pPrCurveCompareSelect" onchange="onParentPrCurveOverlayChange(this.value)" class="text-xs bg-white border border-slate-200 font-bold text-slate-700 rounded-xl px-2.5 py-1 focus:ring-2 focus:ring-indigo-400 focus:outline-none shadow-2xs cursor-pointer">
+            <option value="-1">📌 不疊加 (單次檢視)</option>
+          </select>
+        </div>
 
         <!-- SVG 曲線圖容器 -->
         <div id="pPrCurveContainer" class="bg-slate-100/80 rounded-2xl p-4 border border-slate-200/80 space-y-3"></div>
@@ -304,6 +326,127 @@
     <div class="font-medium text-slate-500">🌱 MPScore 學生學習成長手札 ‧ 看見每個孩子的亮點</div>
     <div class="text-[10px] text-slate-400">專屬加密保護 ‧ 僅能依個別專屬代碼或姓名查詢個別紀錄</div>
   </footer>
+
+  <!-- ==================== 家長端：新統計方法與圖表說明彈窗 ==================== -->
+  <div id="parentStatsHelpModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden border border-slate-100 animate-in fade-in zoom-in duration-200">
+      
+      <!-- Modal 標題列 -->
+      <div class="bg-gradient-to-r from-indigo-900 via-indigo-800 to-slate-900 text-white p-5 flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-amber-400 text-slate-900 flex items-center justify-center font-black text-lg shadow-sm">
+            ✨
+          </div>
+          <div>
+            <h3 class="text-base font-black tracking-tight flex items-center gap-2">
+              <span>學習成長手札 · 新統計方法導覽</span>
+            </h3>
+            <p class="text-xs text-indigo-200 mt-0.5">以正向成長思維，看見孩子的真實學習定位與進步足跡</p>
+          </div>
+        </div>
+        <button onclick="closeParentStatsHelpModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-slate-200 hover:text-white flex items-center justify-center font-bold text-sm transition active:scale-90 cursor-pointer">
+          ✕
+        </button>
+      </div>
+
+      <!-- Modal 內容區 -->
+      <div class="p-5 overflow-y-auto space-y-4 text-xs leading-relaxed text-slate-700 bg-slate-50/50">
+        
+        <!-- 核心精神 -->
+        <div class="p-3.5 bg-gradient-to-r from-amber-50 to-indigo-50/60 rounded-2xl border border-amber-200/70 text-slate-800 space-y-1">
+          <div class="font-bold text-indigo-950 flex items-center gap-1.5 text-xs">
+            <span>🌱</span> 為什麼我們要導入全新統計視覺化？
+          </div>
+          <p class="text-[11px] text-slate-600 leading-relaxed">
+            親愛的家長您好！單一的分數往往容易受試卷難易度影響，傳統排名也容易引發不必要的同儕焦慮。本系統全面導入現代統計視覺化與<b>正向成長心態（Growth Mindset）</b>，幫助您看見孩子在全班中的真實常模落點，以及更重要的——<b>與過去的自己比較、看見每一步前進的軌跡</b>。
+          </p>
+        </div>
+
+        <!-- 1. 跨次考試曲線疊加與落點位移 -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-200/70 space-y-2 shadow-2xs">
+          <div class="flex items-center gap-2 text-indigo-900 font-bold text-xs">
+            <span class="p-1 rounded-lg bg-indigo-100 text-indigo-700">🔄</span>
+            <span>1. 跨次考試曲線疊加與落點位移（最新功能！）</span>
+          </div>
+          <p class="text-slate-600 text-[11px]">
+            在單科成績分佈曲線圖中，您可以點選「跨次曲線疊加」選單，將<b>期中考與期末考（或歷次考試）</b>的分佈走勢疊合在同一張圖上進行直觀對比：
+          </p>
+          <ul class="list-disc list-inside space-y-1 text-slate-600 text-[11px] pl-1">
+            <li><b>湛藍實線（本次） vs 琥珀虛線（對比）</b>：直觀看見全班整體成績高峰的位移，了解兩次考試的難易度變動。</li>
+            <li><b>個人落點雙圖釘與位移弧線</b>：清晰呈現孩子得分與 PR 值的成長跨距（例如：▲ +6分、PR +8），看見孩子的實質努力。</li>
+            <li><b>全班平均線對比</b>：看見班級整體水準升降與孩子相對位置的實質突破。</li>
+          </ul>
+        </div>
+
+        <!-- 2. 單科成績落點與真實班級分佈曲線 (KDE) -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-200/70 space-y-2 shadow-2xs">
+          <div class="flex items-center gap-2 text-indigo-900 font-bold text-xs">
+            <span class="p-1 rounded-lg bg-indigo-100 text-indigo-700">🔔</span>
+            <span>2. 單科真實成績分佈曲線（核密度 KDE 分析）</span>
+          </div>
+          <p class="text-slate-600 text-[11px]">
+            本系統捨棄了抽象且不符合真實課堂的理論常態鐘形曲線，改以<b>當次全班同學真實作答分數</b>進行「核密度估計（Kernel Density Estimation）」：
+          </p>
+          <ul class="list-disc list-inside space-y-1 text-slate-600 text-[11px] pl-1">
+            <li><b>真實 0~100 分數軸</b>：橫軸為真實分數，波峰高低代表該分數段人數聚集密集度（試卷難易度一目了然）。</li>
+            <li><b>及格 60 分線與班均引線</b>：一眼看清水準門檻與班級平均位置。</li>
+            <li><b>個人得分圖釘</b>：清楚標明孩子所在位置與全班多數同學之聚落關係。</li>
+          </ul>
+        </div>
+
+        <!-- 3. 建議幾何盒鬚圖 (Boxplot) -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-200/70 space-y-2 shadow-2xs">
+          <div class="flex items-center gap-2 text-indigo-900 font-bold text-xs">
+            <span class="p-1 rounded-lg bg-indigo-100 text-indigo-700">📦</span>
+            <span>3. 建議幾何盒鬚圖（Boxplot）與 4 大正向成長區間</span>
+          </div>
+          <p class="text-slate-600 text-[11px]">
+            盒鬚圖運用統計學五數摘要（全班最高、Q3 前標、中位數、Q1 後標、全班最低），將班級表現劃分為 4 個正面鼓勵的學習區間，消除冰冷診斷字眼：
+          </p>
+          <div class="grid grid-cols-2 gap-2 pt-1 text-[11px]">
+            <div class="p-2.5 bg-emerald-50/80 rounded-xl border border-emerald-200 text-emerald-900">
+              <b>🌟 卓越精熟</b> (PR 75 以上)<br><span class="text-[10px] text-emerald-700">掌握度極佳，鼓勵自主拓展與深化探究。</span>
+            </div>
+            <div class="p-2.5 bg-blue-50/80 rounded-xl border border-blue-200 text-blue-900">
+              <b>🌿 穩健發揮</b> (PR 50~74)<br><span class="text-[10px] text-blue-700">基底厚實穩定，強化細緻度即可更上層樓。</span>
+            </div>
+            <div class="p-2.5 bg-amber-50/80 rounded-xl border border-amber-200 text-amber-900">
+              <b>💪 潛力蓄力</b> (PR 25~49)<br><span class="text-[10px] text-amber-700">具備良好成長動能，針對核心觀念打底。</span>
+            </div>
+            <div class="p-2.5 bg-rose-50/80 rounded-xl border border-rose-200 text-rose-900">
+              <b>🌱 紮根啟航</b> (PR 25 以下)<br><span class="text-[10px] text-rose-700">建立興趣與親近感，先從最喜歡的小單元起步。</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. 多元學科雷達圖與適性學習處方 -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-200/70 space-y-2 shadow-2xs">
+          <div class="flex items-center gap-2 text-indigo-900 font-bold text-xs">
+            <span class="p-1 rounded-lg bg-indigo-100 text-indigo-700">🎯</span>
+            <span>4. 多元學科能力雷達圖與 GradeInterpr 專家處方</span>
+          </div>
+          <p class="text-slate-600 text-[11px]">
+            多邊形雷達圖呈現孩子在各領域的平衡發展，系統更結合楊家驊老師 <b>GradeInterpr</b> 學習診斷資料庫，自動為各科提供親切、具體的伴讀引導處方，給予孩子正向賦能。
+          </p>
+        </div>
+
+        <!-- 5. 正確看待 PR 值 -->
+        <div class="p-3.5 bg-indigo-50/80 rounded-2xl border border-indigo-200/80 text-slate-700 text-[11px] leading-relaxed">
+          <b class="text-indigo-950 block mb-1">💡 親師伴讀小溫馨：如何正確解讀 PR 值？</b>
+          百分等級（PR）代表在 100 位同學中相對超越的人數。例如 PR 70 代表超越約 70% 的同儕；PR 50 即代表位於班級正中間。請多給予肯定，著重孩子自己的縱向進步，親師攜手成為孩子最溫暖的後盾！
+        </div>
+
+      </div>
+
+      <!-- Modal 底部按鈕 -->
+      <div class="p-4 bg-white border-t border-slate-100 flex justify-end shrink-0">
+        <button onclick="closeParentStatsHelpModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-2.5 rounded-2xl text-xs transition active:scale-95 shadow-sm cursor-pointer">
+          我了解了，返回成績手札
+        </button>
+      </div>
+
+    </div>
+  </div>
 
   <script>
     // 示範 24 人真實原始成績 (第 1 次考試: 114學年度第2學期期中考)
@@ -1055,6 +1198,25 @@
     }
 
     let parentPrCurveSubIdx = 0;
+    let parentPrCurveCompareExamIdx = -1;
+
+    function openParentStatsHelpModal() {
+      const m = document.getElementById('parentStatsHelpModal');
+      if (m) m.classList.remove('hidden');
+    }
+
+    function closeParentStatsHelpModal() {
+      const m = document.getElementById('parentStatsHelpModal');
+      if (m) m.classList.add('hidden');
+    }
+
+    function onParentPrCurveOverlayChange(val) {
+      parentPrCurveCompareExamIdx = parseInt(val, 10);
+      const sel = document.getElementById('pExamSelect');
+      const curIdx = sel ? parseInt(sel.value, 10) : 0;
+      const curExam = currentStudentExams[curIdx];
+      renderParentPrCurve(curExam);
+    }
 
     function getSubjectScoreSamples(sub) {
       if (sub.allScores && Array.isArray(sub.allScores) && sub.allScores.length > 0) {
@@ -1136,41 +1298,292 @@
       }
 
       const activeSub = subs[parentPrCurveSubIdx];
+
+      // 2. 跨次考試疊加下拉選單處理
+      const sel = document.getElementById('pExamSelect');
+      const curExamIdx = sel ? parseInt(sel.value, 10) : (currentStudentExams.indexOf(curExam) !== -1 ? currentStudentExams.indexOf(curExam) : 0);
+      if (parentPrCurveCompareExamIdx === curExamIdx) {
+        parentPrCurveCompareExamIdx = -1;
+      }
+
+      const compSelect = document.getElementById('pPrCurveCompareSelect');
+      if (compSelect) {
+        compSelect.innerHTML = '';
+        const defOpt = document.createElement('option');
+        defOpt.value = '-1';
+        defOpt.innerText = '📌 不疊加 (單次檢視)';
+        compSelect.appendChild(defOpt);
+
+        let hasOther = false;
+        if (currentStudentExams && currentStudentExams.length > 1) {
+          currentStudentExams.forEach((ex, idx) => {
+            if (idx !== curExamIdx) {
+              hasOther = true;
+              const opt = document.createElement('option');
+              opt.value = idx;
+              opt.innerText = `🔄 疊加：${ex.examTitle || ex.sheetName}`;
+              if (idx === parentPrCurveCompareExamIdx) opt.selected = true;
+              compSelect.appendChild(opt);
+            }
+          });
+        }
+        if (!hasOther) {
+          const opt = document.createElement('option');
+          opt.value = '-1';
+          opt.innerText = '💡 累積兩次以上考試即可開啟疊加';
+          opt.disabled = true;
+          compSelect.appendChild(opt);
+        }
+        compSelect.value = (parentPrCurveCompareExamIdx >= 0 && parentPrCurveCompareExamIdx < currentStudentExams.length && parentPrCurveCompareExamIdx !== curExamIdx)
+          ? parentPrCurveCompareExamIdx : '-1';
+      }
+
+      const isComparing = parentPrCurveCompareExamIdx >= 0 && parentPrCurveCompareExamIdx < currentStudentExams.length && parentPrCurveCompareExamIdx !== curExamIdx;
+      const compExam = isComparing ? currentStudentExams[parentPrCurveCompareExamIdx] : null;
+      const compSub = (compExam && compExam.subjects) ? compExam.subjects.find(s => s.name === activeSub.name) : null;
+
       const badgeEl = document.getElementById('pPrCurveBadge');
-      if (badgeEl) {
-        badgeEl.innerText = `${activeSub.name}：${activeSub.score}分 (PR ${activeSub.pr})`;
-      }
 
-      // 2. 計算該科實際班級成績分佈核密度 (KDE)
-      const samples = getSubjectScoreSamples(activeSub);
-      const { points, maxDensity, modeScore } = computeScoreKDE(samples);
-
-      // 3. SVG 座標映射：X 軸為分數 0 ~ 100 分，Y 軸為分佈密度
-      const getX = score => 35 + (Math.max(0, Math.min(100, score)) / 100) * 530;
-      const getY = density => 160 - (density / maxDensity) * 120;
-
-      let pathD = `M ${getX(0).toFixed(1)} 160`;
-      for (let s = 0; s <= 100; s += 1) {
-        pathD += ` L ${getX(s).toFixed(1)} ${getY(points[s].density).toFixed(1)}`;
-      }
-      pathD += ` L ${getX(100).toFixed(1)} 160 Z`;
+      // 3. 計算本次考試 KDE
+      const curSamples = getSubjectScoreSamples(activeSub);
+      const curKde = computeScoreKDE(curSamples);
 
       const score = activeSub.score !== undefined ? activeSub.score : 0;
       const cAvg = activeSub.classAverage !== undefined ? activeSub.classAverage : 75;
       const med = activeSub.median !== undefined ? activeSub.median : cAvg;
       const pr = activeSub.pr !== undefined ? activeSub.pr : 50;
 
-      // 學生得分落點座標
+      // 4. 若開啟疊加且找到對應科目，進入雙曲線渲染
+      if (isComparing && compSub) {
+        const compSamples = getSubjectScoreSamples(compSub);
+        const compKde = computeScoreKDE(compSamples);
+
+        const compScore = compSub.score !== undefined ? compSub.score : 0;
+        const compCAvg = compSub.classAverage !== undefined ? compSub.classAverage : 75;
+        const compMed = compSub.median !== undefined ? compSub.median : compCAvg;
+        const compPr = compSub.pr !== undefined ? compSub.pr : 50;
+
+        const diffScore = Math.round((score - compScore) * 10) / 10;
+        const diffPr = pr - compPr;
+        const diffClassAvg = Math.round((cAvg - compCAvg) * 10) / 10;
+
+        if (badgeEl) {
+          badgeEl.innerText = `${activeSub.name}：${score}分 (本次) vs ${compScore}分 (對比)`;
+        }
+
+        const maxDensity = Math.max(curKde.maxDensity, compKde.maxDensity) || 1;
+        const getX = s => 35 + (Math.max(0, Math.min(100, s)) / 100) * 530;
+        const getY = d => 165 - (d / maxDensity) * 115;
+
+        // 本次路徑 (實線)
+        let pathCur = `M ${getX(0).toFixed(1)} 165`;
+        for (let s = 0; s <= 100; s += 1) {
+          pathCur += ` L ${getX(s).toFixed(1)} ${getY(curKde.points[s].density).toFixed(1)}`;
+        }
+        pathCur += ` L ${getX(100).toFixed(1)} 165 Z`;
+
+        // 對比路徑 (虛線)
+        let pathComp = `M ${getX(0).toFixed(1)} 165`;
+        for (let s = 0; s <= 100; s += 1) {
+          pathComp += ` L ${getX(s).toFixed(1)} ${getY(compKde.points[s].density).toFixed(1)}`;
+        }
+        pathComp += ` L ${getX(100).toFixed(1)} 165 Z`;
+
+        // 坐標
+        const stX = getX(score);
+        const stY = getY(curKde.points[Math.round(score)] ? curKde.points[Math.round(score)].density : maxDensity * 0.5);
+
+        const compStX = getX(compScore);
+        const compStY = getY(compKde.points[Math.round(compScore)] ? compKde.points[Math.round(compScore)].density : maxDensity * 0.5);
+
+        const curAvgX = getX(cAvg);
+        const curAvgY = getY(curKde.points[Math.round(cAvg)] ? curKde.points[Math.round(cAvg)].density : maxDensity * 0.6);
+
+        const compAvgX = getX(compCAvg);
+        const compAvgY = getY(compKde.points[Math.round(compCAvg)] ? compKde.points[Math.round(compCAvg)].density : maxDensity * 0.6);
+
+        // 避免圖釘氣泡碰撞
+        let curTagY = Math.max(16, stY - 18);
+        let compTagY = Math.max(16, compStY - 18);
+        if (Math.abs(stX - compStX) < 70) {
+          curTagY = 16;
+          compTagY = 38;
+        }
+        const curTagX = Math.max(50, Math.min(550, stX));
+        const compTagX = Math.max(50, Math.min(550, compStX));
+
+        // 跨次成長位移軌跡弧線
+        let trajectorySvg = '';
+        if (Math.abs(stX - compStX) >= 6) {
+          const midX = (stX + compStX) / 2;
+          const arcTopY = Math.max(16, Math.min(stY, compStY) - 24);
+          const isUp = diffScore >= 0;
+          const strokeCol = isUp ? '#059669' : '#e11d48';
+          const badgeCol = isUp ? '#059669' : '#e11d48';
+
+          trajectorySvg = `
+            <defs>
+              <marker id="pGrowthArrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="${strokeCol}" />
+              </marker>
+            </defs>
+            <path d="M ${compStX} ${compStY} Q ${midX} ${arcTopY} ${stX} ${stY}" fill="none" stroke="${strokeCol}" stroke-width="2" stroke-dasharray="3,3" marker-end="url(#pGrowthArrow)" />
+            <g transform="translate(${midX}, ${arcTopY - 6})">
+              <rect x="-42" y="-10" width="84" height="20" rx="10" fill="${badgeCol}" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.15))" />
+              <text x="0" y="4" font-size="9" font-weight="900" fill="#ffffff" text-anchor="middle">
+                ${isUp ? '▲ +' + diffScore : '▼ ' + diffScore}分 (PR ${diffPr >= 0 ? '+' + diffPr : diffPr})
+              </text>
+            </g>
+          `;
+        }
+
+        container.innerHTML = `
+          <div class="relative w-full">
+            <svg viewBox="0 0 600 215" class="w-full h-auto drop-shadow-sm select-none">
+              <defs>
+                <linearGradient id="pCurAreaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#4f46e5" stop-opacity="0.25" />
+                  <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.03" />
+                </linearGradient>
+                <linearGradient id="pCompAreaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.18" />
+                  <stop offset="100%" stop-color="#f59e0b" stop-opacity="0.02" />
+                </linearGradient>
+              </defs>
+
+              <!-- 垂直參考格線與及格線 (60 分) -->
+              ${[0, 20, 40, 60, 80, 100].map(v => `
+                <line x1="${getX(v)}" y1="30" x2="${getX(v)}" y2="165" stroke="${v === 60 ? '#f59e0b' : '#e2e8f0'}" stroke-width="${v === 60 ? '1.5' : '1'}" stroke-dasharray="${v === 60 ? '3,3' : '2,2'}" />
+              `).join('')}
+
+              <!-- 對比考試分佈曲線 (琥珀色虛線) -->
+              <path d="${pathComp}" fill="url(#pCompAreaGrad)" stroke="#f59e0b" stroke-width="2.5" stroke-dasharray="5,3.5" stroke-linecap="round" />
+
+              <!-- 本次考試分佈曲線 (湛藍實線) -->
+              <path d="${pathCur}" fill="url(#pCurAreaGrad)" stroke="#4f46e5" stroke-width="3" stroke-linecap="round" />
+
+              <!-- 分數基準軸 (X 軸) -->
+              <line x1="25" y1="165" x2="575" y2="165" stroke="#64748b" stroke-width="1.5" />
+
+              <!-- 分數刻度文字 -->
+              <text x="${getX(0)}" y="181" font-size="9" fill="#94a3b8" text-anchor="middle" font-weight="bold">0 分</text>
+              <text x="${getX(20)}" y="181" font-size="9" fill="#94a3b8" text-anchor="middle" font-weight="bold">20 分</text>
+              <text x="${getX(40)}" y="181" font-size="9" fill="#94a3b8" text-anchor="middle" font-weight="bold">40 分</text>
+              <text x="${getX(60)}" y="181" font-size="9" fill="#d97706" text-anchor="middle" font-black">及格 60</text>
+              <text x="${getX(80)}" y="181" font-size="9" fill="#94a3b8" text-anchor="middle" font-weight="bold">80 分</text>
+              <text x="${getX(100)}" y="181" font-size="9" fill="#059669" text-anchor="middle" font-black">100 分</text>
+
+              <!-- 對比班均標記線 -->
+              <line x1="${compAvgX}" y1="${compAvgY}" x2="${compAvgX}" y2="165" stroke="#f59e0b" stroke-width="1.8" stroke-dasharray="2,2" opacity="0.85" />
+              <circle cx="${compAvgX}" cy="${compAvgY}" r="4" fill="#ffffff" stroke="#f59e0b" stroke-width="2" />
+              <text x="${compAvgX}" y="${Math.min(155, compAvgY + 13)}" font-size="8.5" fill="#d97706" font-weight="bold" text-anchor="middle">對比均 ${compCAvg}</text>
+
+              <!-- 本次班均標記線 -->
+              <line x1="${curAvgX}" y1="${curAvgY}" x2="${curAvgX}" y2="165" stroke="#4f46e5" stroke-width="1.8" stroke-dasharray="3,3" />
+              <circle cx="${curAvgX}" cy="${curAvgY}" r="4.5" fill="#ffffff" stroke="#4f46e5" stroke-width="2" />
+              <text x="${curAvgX}" y="${Math.min(155, curAvgY + 13)}" font-size="8.5" fill="#4f46e5" font-weight="bold" text-anchor="middle">本次均 ${cAvg}</text>
+
+              <!-- 跨次位移軌跡弧線 -->
+              ${trajectorySvg}
+
+              <!-- 對比考試得分落點圖釘 -->
+              <line x1="${compStX}" y1="${compStY}" x2="${compStX}" y2="165" stroke="#f59e0b" stroke-width="2" stroke-dasharray="3,2" />
+              <circle cx="${compStX}" cy="${compStY}" r="6.5" fill="#ffffff" stroke="#f59e0b" stroke-width="2.5" />
+              <circle cx="${compStX}" cy="${compStY}" r="2.5" fill="#f59e0b" />
+              <g transform="translate(${compTagX}, ${compTagY})">
+                <rect x="-44" y="-12" width="88" height="20" rx="10" fill="#f59e0b" filter="drop-shadow(0 2px 4px rgba(245,158,11,0.25))" />
+                <text x="0" y="2" font-size="9" font-weight="900" fill="#ffffff" text-anchor="middle">📍 對比 ${compScore}分</text>
+              </g>
+
+              <!-- 本次考試得分落點圖釘 -->
+              <line x1="${stX}" y1="${stY}" x2="${stX}" y2="165" stroke="#4f46e5" stroke-width="2.5" />
+              <circle cx="${stX}" cy="${stY}" r="7" fill="#fbbf24" stroke="#4f46e5" stroke-width="3" />
+              <circle cx="${stX}" cy="${stY}" r="2.5" fill="#4f46e5" />
+              <g transform="translate(${curTagX}, ${curTagY})">
+                <rect x="-46" y="-12" width="92" height="20" rx="10" fill="#4f46e5" filter="drop-shadow(0 2px 5px rgba(79,70,229,0.3))" />
+                <text x="0" y="2" font-size="9.5" font-weight="900" fill="#ffffff" text-anchor="middle">📍 本次 ${score}分</text>
+              </g>
+            </svg>
+          </div>
+
+          <!-- 雙曲線圖例提示列 -->
+          <div class="flex flex-wrap items-center justify-between gap-2 px-3 py-1.5 bg-white/90 rounded-2xl border border-slate-200/70 text-[11px] shadow-2xs">
+            <div class="flex items-center gap-3">
+              <div class="flex items-center gap-1.5 font-black text-indigo-900">
+                <span class="w-3.5 h-1 bg-indigo-600 rounded-full inline-block"></span>
+                <span>本次：${curExam.examTitle || curExam.sheetName}</span>
+              </div>
+              <div class="flex items-center gap-1.5 font-bold text-amber-700">
+                <span class="w-3.5 h-0.5 border-t-2 border-dashed border-amber-500 inline-block"></span>
+                <span>對比：${compExam.examTitle || compExam.sheetName}</span>
+              </div>
+            </div>
+            <span class="font-black text-[10px] ${diffScore >= 0 ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-rose-700 bg-rose-50 border-rose-200'} border px-2.5 py-0.5 rounded-full">
+              ${diffScore >= 0 ? `▲ 進步 +${diffScore} 分 (PR ${diffPr >= 0 ? '+' + diffPr : diffPr})` : `▼ 變動 ${diffScore} 分 (PR ${diffPr >= 0 ? '+' + diffPr : diffPr})`}
+            </span>
+          </div>
+
+          <!-- 雙次關鍵指標對照膠囊列 -->
+          <div class="flex flex-wrap items-center justify-center gap-1.5 pt-0.5">
+            <span class="text-[10px] font-black text-indigo-900 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-full shadow-2xs">
+              📍 本次 ${score} 分 (PR ${pr} · 均 ${cAvg})
+            </span>
+            <span class="text-[10px] font-bold text-amber-900 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full shadow-2xs">
+              📍 對比 ${compScore} 分 (PR ${compPr} · 均 ${compCAvg})
+            </span>
+            <span class="text-[10px] font-bold ${diffClassAvg >= 0 ? 'text-blue-700 bg-blue-50 border-blue-200' : 'text-slate-600 bg-slate-50 border-slate-200'} border px-2.5 py-1 rounded-full shadow-2xs">
+              👥 班均差額 ${diffClassAvg >= 0 ? '+' + diffClassAvg : diffClassAvg} 分
+            </span>
+          </div>
+
+          <!-- 跨次分佈動態成長解讀卡 -->
+          <div class="p-3 bg-gradient-to-r from-amber-50/80 via-white to-indigo-50/70 rounded-2xl border border-amber-200/70 text-[11px] text-slate-700 leading-relaxed space-y-1.5 shadow-2xs">
+            <div class="font-bold text-slate-800 flex items-center justify-between">
+              <span class="flex items-center gap-1.5"><span class="text-sm">🔄</span> 【${activeSub.name}】跨次考試分佈疊加與學習足跡解讀</span>
+              <span class="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200/60">
+                ${diffScore >= 0 ? '穩步躍升' : '持續蓄力'}
+              </span>
+            </div>
+            <div class="text-slate-600">
+              圖表已疊合兩次考試班級分數分佈走向。全班平均由 <b>${compCAvg} 分</b> 移至 <b>${cAvg} 分</b>（高分聚集區由 ${compKde.modeScore} 分移至 ${curKde.modeScore} 分）。<br>
+              孩子本次得分 <b>${score} 分 (PR ${pr})</b>，相較上次 <b>${compScore} 分 (PR ${compPr})</b>，${diffScore >= 0 ? `成績提升了 <b>+${diffScore} 分</b>，在全班同儕百分等級超越幅度增加了 <b>+${diffPr} 個百分位</b>` : `調整了 <b>${diffScore} 分</b> (PR 變動 ${diffPr})`}！
+            </div>
+            ${activeSub.advice ? `<div class="text-[10px] text-indigo-900 bg-indigo-50/80 p-2 rounded-xl border border-indigo-100 font-medium">💡 適性引導：${activeSub.advice}</div>` : ''}
+          </div>
+        `;
+        return;
+      }
+
+      // 5. 單次考試常態渲染 (不疊加 或 對比考試無該科)
+      if (badgeEl) {
+        badgeEl.innerText = `${activeSub.name}：${score}分 (PR ${pr})`;
+      }
+
+      const getX = s => 35 + (Math.max(0, Math.min(100, s)) / 100) * 530;
+      const getY = d => 160 - (d / curKde.maxDensity) * 120;
+
+      let pathD = `M ${getX(0).toFixed(1)} 160`;
+      for (let s = 0; s <= 100; s += 1) {
+        pathD += ` L ${getX(s).toFixed(1)} ${getY(curKde.points[s].density).toFixed(1)}`;
+      }
+      pathD += ` L ${getX(100).toFixed(1)} 160 Z`;
+
       const stX = getX(score);
-      const stDensity = points[Math.round(score)] ? points[Math.round(score)].density : (maxDensity * 0.5);
+      const stDensity = curKde.points[Math.round(score)] ? curKde.points[Math.round(score)].density : (curKde.maxDensity * 0.5);
       const stY = getY(stDensity);
 
-      // 班級平均座標
       const avgX = getX(cAvg);
-      const avgDensity = points[Math.round(cAvg)] ? points[Math.round(cAvg)].density : (maxDensity * 0.7);
+      const avgDensity = curKde.points[Math.round(cAvg)] ? curKde.points[Math.round(cAvg)].density : (curKde.maxDensity * 0.7);
       const avgY = getY(avgDensity);
 
+      const missingNotice = (isComparing && compExam && !compSub)
+        ? `<div class="text-[10px] text-amber-800 bg-amber-50 p-2 rounded-xl border border-amber-200 font-bold mb-1">
+             ⚠️ 對比考試【${compExam.examTitle || compExam.sheetName}】未包含【${activeSub.name}】科目，目前僅呈現本次曲線。
+           </div>`
+        : '';
+
       container.innerHTML = `
+        ${missingNotice}
         <div class="relative w-full">
           <svg viewBox="0 0 600 205" class="w-full h-auto drop-shadow-sm select-none">
             <defs>
@@ -1253,7 +1666,7 @@
             </span>
           </div>
           <div class="text-slate-600">
-            曲線呈現當次全班同學在<b>【${activeSub.name}】</b>的真實分數分佈走勢（多數同學落在約 <b>${modeScore} 分</b> 區間）。
+            曲線呈現當次全班同學在<b>【${activeSub.name}】</b>的真實分數分佈走勢（多數同學落在約 <b>${curKde.modeScore} 分</b> 區間）。
             孩子本次得分 <b>${score} 分</b>，在全班同儕中相對超越約 <b>${pr}%</b> 的同學，處於<b>「${activeSub.zoneStatus || (activeSub.zone + '區間')}」</b>。
           </div>
           ${activeSub.advice ? `<div class="text-[10px] text-indigo-900 bg-indigo-50/80 p-2 rounded-xl border border-indigo-100 mt-1 font-medium">💡 適性引導：${activeSub.advice}</div>` : ''}
