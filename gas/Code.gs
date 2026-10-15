@@ -33,9 +33,18 @@ function onOpen() {
 function clearSystemCache() {
   var ui = SpreadsheetApp.getUi();
   try {
-    // 透過覆蓋快取或建立新版本註記
     var cache = CacheService.getScriptCache();
-    // 試圖清除常見 key 或跳出成功提示
+    var keys = [];
+    for (var i = 1; i <= 60; i++) {
+      var s = i < 10 ? '0' + i : '' + i;
+      keys.push('st_score_v3_DEMO' + s);
+      keys.push('st_score_v3_' + s);
+      keys.push('st_score_v2_DEMO' + s);
+      keys.push('st_score_v2_' + s);
+      keys.push('st_score_DEMO' + s);
+      keys.push('st_score_' + s);
+    }
+    cache.removeAll(keys);
     ui.alert('✨ 雲端快取清除成功！', '家長端與查詢系統現已載入試算表最新成績與運算結果。', ui.ButtonSet.OK);
   } catch (err) {
     ui.alert('提示', '快取已同步重置。' + err.toString(), ui.ButtonSet.OK);
@@ -281,7 +290,7 @@ function getStudentScoreByToken(token) {
   // 0. 極速快取檢查：若 10 分鐘內已有運算快取，0.1 秒秒速回傳，避免家長誤會網站失效
   var tokenUpper = token.toUpperCase();
   var scriptCache = CacheService.getScriptCache();
-  var cacheKey = 'st_score_' + encodeURIComponent(tokenUpper);
+  var cacheKey = 'st_score_v3_' + encodeURIComponent(tokenUpper);
   try {
     var cachedJson = scriptCache.get(cacheKey);
     if (cachedJson) {
@@ -385,7 +394,7 @@ function getStudentScoreByToken(token) {
       scriptCache.put(cacheKey, outStr, 600);
       // 若是依據姓名或座號查詢，同時也快取其 token
       if (student.token && student.token.toUpperCase() !== tokenUpper) {
-        scriptCache.put('st_score_' + encodeURIComponent(student.token.toUpperCase()), outStr, 600);
+        scriptCache.put('st_score_v3_' + encodeURIComponent(student.token.toUpperCase()), outStr, 600);
       }
     }
   } catch (e) {
@@ -393,6 +402,125 @@ function getStudentScoreByToken(token) {
   }
 
   return finalResult;
+}
+
+/**
+ * 智慧解析考試分頁的標題列、座號欄、姓名欄、班級欄與各科成績欄位
+ * 徹底解決多列標題、合併儲存格、班級欄位存在或欄位順序不同時的錯位問題！
+ */
+function detectExamSheetColumns(data) {
+  if (!data || data.length < 2) return null;
+
+  var maxScanRows = Math.min(5, data.length - 1);
+  var bestRowIdx = -1;
+  var bestScore = -1;
+
+  var commonSubjects = ['國語', '國文', '語文', '數學', '英語', '英文', '社會', '自然', '理化', '物理', '化學', '生物', '歷史', '地理', '公民', '資訊', '健體', '藝文', '科技'];
+
+  // 1. 智慧評分找出最佳標題列 (包含最多科目或座號/姓名關鍵字的那一列)
+  for (var r = 0; r <= maxScanRows; r++) {
+    var rowText = data[r].join(' ');
+    var score = 0;
+    if (rowText.indexOf('座號') !== -1 || rowText.indexOf('號碼') !== -1 || rowText.indexOf('學號') !== -1) score += 3;
+    if (rowText.indexOf('姓名') !== -1 || rowText.indexOf('學生') !== -1) score += 3;
+    if (rowText.indexOf('班級') !== -1) score += 2;
+    for (var s = 0; s < commonSubjects.length; s++) {
+      if (rowText.indexOf(commonSubjects[s]) !== -1) score += 2;
+    }
+    if (score > bestScore) {
+      bestScore = score;
+      bestRowIdx = r;
+    }
+  }
+
+  if (bestRowIdx === -1 || bestScore < 2) {
+    bestRowIdx = data.length > 1 && (data[0].join(' ').indexOf('座號') !== -1 || data[0].join(' ').indexOf('姓名') !== -1) ? 0 : 1;
+  }
+
+  // 2. 整合多列標題（若有合併儲存格，向前繼承座號、姓名或班級欄位標題）
+  var numCols = data[bestRowIdx].length;
+  var combinedHeaders = [];
+  for (var c = 0; c < numCols; c++) {
+    var val = (data[bestRowIdx][c] || '').toString().trim();
+    if (!val && bestRowIdx > 0) {
+      val = (data[bestRowIdx - 1][c] || '').toString().trim();
+    }
+    combinedHeaders.push(val);
+  }
+
+  var seatCol = -1;
+  var nameCol = -1;
+  var classCol = -1;
+
+  for (var c = 0; c < combinedHeaders.length; c++) {
+    var h = combinedHeaders[c].replace(/\s+/g, '');
+    if (!h) continue;
+    if (seatCol === -1 && (h.indexOf('座號') !== -1 || h === '號' || h === '號碼' || h === '學號')) {
+      seatCol = c;
+    } else if (nameCol === -1 && (h.indexOf('姓名') !== -1 || h === '學生' || h === '名' || h === '學生姓名')) {
+      nameCol = c;
+    } else if (classCol === -1 && (h.indexOf('班級') !== -1 || h === '班')) {
+      classCol = c;
+    }
+  }
+
+  // 3. 備援判定：若未標註文字，透過資料列特徵自動探測座號與姓名欄位
+  if (seatCol === -1 || nameCol === -1) {
+    var sampleRows = data.slice(bestRowIdx + 1, Math.min(bestRowIdx + 6, data.length));
+    for (var c = 0; c < numCols; c++) {
+      if (c === classCol) continue;
+      var isNumericSeat = sampleRows.length > 0 && sampleRows.every(function(row) {
+        var num = parseInt(row[c], 10);
+        return !isNaN(num) && num >= 1 && num <= 65;
+      });
+      var isChineseName = sampleRows.length > 0 && sampleRows.every(function(row) {
+        var txt = (row[c] || '').toString().trim();
+        return txt.length >= 2 && txt.length <= 4 && /^[\u4e00-\u9fa5]+$/.test(txt);
+      });
+
+      if (seatCol === -1 && isNumericSeat) seatCol = c;
+      else if (nameCol === -1 && isChineseName) nameCol = c;
+    }
+  }
+
+  if (seatCol === -1) seatCol = 0;
+  if (nameCol === -1) nameCol = (seatCol === 0 ? 1 : 0);
+
+  // 4. 辨識所有科目欄位 (排除座號、姓名、班級、統計、備註欄位)
+  var subjectCols = [];
+  var excludeKeywords = ['座號', '號碼', '學號', '姓名', '學生', '班級', '班', '平均', '總分', '排名', '名次', 'PR', '等第', '代碼', '狀態', '備註', '註記'];
+
+  for (var sc = 0; sc < numCols; sc++) {
+    if (sc === seatCol || sc === nameCol || sc === classCol) continue;
+    var hName = combinedHeaders[sc];
+    if (!hName) continue;
+
+    var cleanH = hName.replace(/\s+/g, '');
+    var isExcluded = excludeKeywords.some(function(k) { return cleanH.indexOf(k) !== -1; });
+    if (isExcluded) continue;
+
+    // 檢查底下資料是否包含有效數值
+    var hasNumbers = false;
+    for (var rCheck = bestRowIdx + 1; rCheck < Math.min(bestRowIdx + 10, data.length); rCheck++) {
+      var cellVal = data[rCheck][sc];
+      if (cellVal !== '' && cellVal !== null && cellVal !== undefined && !isNaN(Number(cellVal))) {
+        hasNumbers = true;
+        break;
+      }
+    }
+
+    if (hasNumbers || commonSubjects.some(function(s) { return cleanH.indexOf(s) !== -1; })) {
+      subjectCols.push({ index: sc, name: hName });
+    }
+  }
+
+  return {
+    headerRowIdx: bestRowIdx,
+    seatCol: seatCol,
+    nameCol: nameCol,
+    classCol: classCol,
+    subjectCols: subjectCols
+  };
 }
 
 /**
@@ -405,48 +533,20 @@ function analyzeExamSheet(sheet, student) {
   var sheetName = sheet.getName();
   var examTitle = sheetName;
 
-  // 1. 判定標題與欄位標題列
-  var headerRowIdx = 1; // 預設第 2 列 (索引 1)
-  if (data.length > 0) {
-    var row0Str = data[0].join(' ');
-    // 如果第 1 列就包含「座號」或「姓名」，代表沒有第 1 列合併大標題
-    if (row0Str.indexOf('座號') !== -1 || row0Str.indexOf('姓名') !== -1) {
-      headerRowIdx = 0;
-    } else {
-      // 第 1 列為考試名稱大標題
-      var titleCandidate = data[0][0] ? data[0][0].toString().trim() : '';
-      if (titleCandidate) examTitle = titleCandidate;
-      headerRowIdx = 1;
+  var colConfig = detectExamSheetColumns(data);
+  if (!colConfig || colConfig.subjectCols.length === 0) return null;
+
+  var headerRowIdx = colConfig.headerRowIdx;
+  var seatCol = colConfig.seatCol;
+  var nameCol = colConfig.nameCol;
+  var subjectCols = colConfig.subjectCols;
+
+  if (headerRowIdx > 0 && data[0][0]) {
+    var titleCandidate = data[0][0].toString().trim();
+    if (titleCandidate && titleCandidate.indexOf('座號') === -1 && titleCandidate.indexOf('姓名') === -1) {
+      examTitle = titleCandidate;
     }
   }
-
-  var headerRow = data[headerRowIdx].map(function(h) { return h.toString().trim(); });
-  var seatCol = -1;
-  var nameCol = -1;
-
-  for (var c = 0; c < headerRow.length; c++) {
-    if (headerRow[c].indexOf('座號') !== -1) seatCol = c;
-    else if (headerRow[c].indexOf('姓名') !== -1) nameCol = c;
-  }
-
-  if (seatCol === -1) seatCol = 0;
-  if (nameCol === -1 && headerRow.length > 1) nameCol = 1;
-
-  // 2. 辨識科目欄位（從姓名右側開始，到最後一個非平均/排名的有效欄位）
-  var subjectCols = [];
-  var startCol = Math.max(seatCol, nameCol) + 1;
-
-  for (var sc = startCol; sc < headerRow.length; sc++) {
-    var hName = headerRow[sc];
-    if (!hName) continue;
-    // 排除「平均」、「排名」或統計欄位（因為由網站自動精算）
-    if (hName === '平均' || hName === '總分' || hName === '排名' || hName === '名次') {
-      continue;
-    }
-    subjectCols.push({ index: sc, name: hName });
-  }
-
-  if (subjectCols.length === 0) return null;
 
   // 3. 收集所有學生的原始分數（自動排除底部的「平均」、「標準差」或空列）
   var studentsScores = [];
@@ -684,14 +784,19 @@ function getStudentListForTeacher() {
 
     var examStats = getExamAllStudentsStats(curSheet);
     if (examStats) {
-      examList.push(examStats.examTitle);
+      var primaryName = examStats.sheetName || examStats.examTitle;
+      if (examList.indexOf(primaryName) === -1) examList.push(primaryName);
+      if (examStats.examTitle && examStats.examTitle !== primaryName && examList.indexOf(examStats.examTitle) === -1) {
+        examList.push(examStats.examTitle);
+      }
+
       for (var stIdx = 0; stIdx < students.length; stIdx++) {
         var stSeat = students[stIdx].seatNumber;
         var stName = students[stIdx].name;
-        if (examStats.resultMap[stSeat]) {
-          students[stIdx].examStats[examStats.examTitle] = examStats.resultMap[stSeat];
-        } else if (stName && examStats.resultMap[stName]) {
-          students[stIdx].examStats[examStats.examTitle] = examStats.resultMap[stName];
+        var stStat = examStats.resultMap[stSeat] || (stName ? examStats.resultMap[stName] : null);
+        if (stStat) {
+          if (examStats.examTitle) students[stIdx].examStats[examStats.examTitle] = stStat;
+          if (examStats.sheetName) students[stIdx].examStats[examStats.sheetName] = stStat;
         }
       }
     }
@@ -713,29 +818,21 @@ function getExamAllStudentsStats(sheet) {
 
   var sheetName = sheet.getName();
   var examTitle = sheetName;
-  var headerRowIdx = 1;
-  if (data.length > 0 && (data[0].join(' ').indexOf('座號') !== -1 || data[0].join(' ').indexOf('姓名') !== -1)) {
-    headerRowIdx = 0;
-  } else if (data.length > 0 && data[0][0]) {
-    examTitle = data[0][0].toString().trim();
-  }
 
-  var headerRow = data[headerRowIdx].map(function(h) { return h.toString().trim(); });
-  var seatCol = 0, nameCol = 1;
-  for (var c = 0; c < headerRow.length; c++) {
-    if (headerRow[c].indexOf('座號') !== -1) seatCol = c;
-    else if (headerRow[c].indexOf('姓名') !== -1) nameCol = c;
-  }
+  var colConfig = detectExamSheetColumns(data);
+  if (!colConfig || colConfig.subjectCols.length === 0) return null;
 
-  var subjectCols = [];
-  var startCol = Math.max(seatCol, nameCol) + 1;
-  for (var sc = startCol; sc < headerRow.length; sc++) {
-    var hName = headerRow[sc];
-    if (hName && hName !== '平均' && hName !== '總分' && hName !== '排名' && hName !== '名次') {
-      subjectCols.push({ index: sc, name: hName });
+  var headerRowIdx = colConfig.headerRowIdx;
+  var seatCol = colConfig.seatCol;
+  var nameCol = colConfig.nameCol;
+  var subjectCols = colConfig.subjectCols;
+
+  if (headerRowIdx > 0 && data[0][0]) {
+    var titleCandidate = data[0][0].toString().trim();
+    if (titleCandidate && titleCandidate.indexOf('座號') === -1 && titleCandidate.indexOf('姓名') === -1) {
+      examTitle = titleCandidate;
     }
   }
-  if (subjectCols.length === 0) return null;
 
   var studentsList = [];
   for (var r = headerRowIdx + 1; r < data.length; r++) {
