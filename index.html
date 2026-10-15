@@ -21,31 +21,74 @@
       -webkit-font-smoothing: antialiased;
     }
     
-    /* A4 列印排版樣式 */
+    /* A4 列印排版與預覽樣式 */
+    .a4-print-sheet {
+      background: white;
+      width: 100%;
+      max-width: 840px;
+      min-height: 1120px;
+      margin: 0 auto 24px auto;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+      border-radius: 12px;
+      padding: 20px;
+      box-sizing: border-box;
+      position: relative;
+    }
+
     @media print {
       body * {
-        visibility: hidden;
-      }
-      #printArea, #printArea * {
-        visibility: visible;
-      }
-      #printArea {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        background: white !important;
-        padding: 0 !important;
+        visibility: hidden !important;
       }
       .no-print {
         display: none !important;
       }
-      .page-break {
-        page-break-after: always;
+      #printModalSheets, #printModalSheets * {
+        visibility: visible !important;
+      }
+      #printPreviewModal {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        background: transparent !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: visible !important;
+        display: block !important;
+      }
+      #printPreviewModal > div {
+        max-width: 100% !important;
+        width: 100% !important;
+        box-shadow: none !important;
+        border: none !important;
+        border-radius: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        max-height: none !important;
+      }
+      #printModalScrollArea {
+        padding: 0 !important;
+        background: transparent !important;
+        overflow: visible !important;
+      }
+      .a4-print-sheet {
+        box-shadow: none !important;
+        border: none !important;
+        border-radius: 0 !important;
+        margin: 0 !important;
+        padding: 8mm !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-height: 100vh !important;
+        height: 100vh !important;
+        page-break-after: always !important;
+        break-after: page !important;
+        page-break-inside: avoid !important;
+        box-sizing: border-box !important;
       }
       .card-item {
-        break-inside: avoid;
-        page-break-inside: avoid;
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
       }
     }
   </style>
@@ -497,13 +540,13 @@
             <button onclick="syncStudentsFromApi()" class="text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 px-3 py-2 rounded-xl hover:bg-indigo-100 transition flex items-center gap-1">
               <span>🔄 從試算表同步名單與成績</span>
             </button>
-            <button onclick="window.print()" class="text-xs font-bold bg-slate-900 hover:bg-black text-white px-5 py-2.5 rounded-xl transition flex items-center gap-1.5 shadow-md">
-              <span>🖨️ 立即列印 A4 通知小卡</span>
+            <button onclick="openPrintModal()" class="text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl transition flex items-center gap-1.5 shadow-md hover:shadow-lg">
+              <span>🖨️ 列印小卡與 PDF 匯出預覽</span>
             </button>
           </div>
         </div>
 
-        <!-- 📊 統計事項與圖像視覺化呈現自訂面板 -->
+        <!-- 📊 統計事項與圖像視覺化呈現自訂面板 (通知小卡 vs 手機網站分開獨立設定) -->
         <div class="bg-indigo-50/70 rounded-2xl p-5 border border-indigo-200 space-y-4">
           <div class="flex flex-wrap items-center justify-between gap-2 border-b border-indigo-200/70 pb-3">
             <div class="flex items-center gap-2">
@@ -522,78 +565,121 @@
                 <input type="checkbox" id="optSuperCleanQr" checked onchange="updatePrintCards()" class="rounded text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5">
                 <span>⚡ 超清晰大方塊 QR Code (秒掃直達)</span>
               </label>
-              <span class="text-[11px] text-indigo-700 font-semibold">勾選項目即時反映於預覽</span>
+              <span class="text-[11px] text-indigo-700 font-semibold">紙本與手機網站項目獨立勾選</span>
             </div>
           </div>
 
-          <!-- 第 1 區塊：📄 紙本小卡呈現項目 -->
-          <div>
-            <div class="text-[11px] font-black text-slate-700 mb-2 flex items-center gap-1">
-              <span>📄</span>
-              <span>紙本小卡印出項目 (紙面呈現)：</span>
+          <!-- 第 1 區塊：📄 【紙本小卡】印出項目（紙面呈現） -->
+          <div class="bg-white p-3.5 rounded-xl border border-indigo-100 shadow-2xs">
+            <div class="text-[11px] font-black text-slate-800 mb-2 flex items-center justify-between">
+              <span class="flex items-center gap-1.5">
+                <span>📄</span>
+                <span>【紙本小卡】印出項目（實體紙面呈現）：</span>
+              </span>
+              <span class="text-[10px] text-slate-500 font-normal">僅控制實體紙本通知小卡印出的文字與欄位</span>
             </div>
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs text-slate-700">
-              <label class="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200 cursor-pointer hover:bg-indigo-50/50 shadow-xs transition">
-                <input type="checkbox" id="optShowAvg" checked onchange="updatePrintCards()" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4">
+              <label class="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200 cursor-pointer hover:bg-indigo-50/50 shadow-2xs transition">
+                <input type="checkbox" id="printOptAvg" checked onchange="updatePrintCards()" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4">
                 <span class="font-bold text-slate-800">個人總平均</span>
               </label>
-              <label class="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200 cursor-pointer hover:bg-indigo-50/50 shadow-xs transition">
-                <input type="checkbox" id="optShowRank" checked onchange="updatePrintCards()" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4">
+              <label class="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200 cursor-pointer hover:bg-indigo-50/50 shadow-2xs transition">
+                <input type="checkbox" id="printOptRank" checked onchange="updatePrintCards()" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4">
                 <span class="font-bold text-amber-700">班級名次 / 排名</span>
               </label>
-              <label class="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200 cursor-pointer hover:bg-indigo-50/50 shadow-xs transition">
-                <input type="checkbox" id="optShowClassAvg" checked onchange="updatePrintCards()" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4">
+              <label class="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200 cursor-pointer hover:bg-indigo-50/50 shadow-2xs transition">
+                <input type="checkbox" id="printOptClassAvg" checked onchange="updatePrintCards()" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4">
                 <span class="font-bold text-slate-800">全班總平均</span>
               </label>
-              <label class="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200 cursor-pointer hover:bg-indigo-50/50 shadow-xs transition">
-                <input type="checkbox" id="optShowSubjects" checked onchange="updatePrintCards()" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4">
+              <label class="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200 cursor-pointer hover:bg-indigo-50/50 shadow-2xs transition">
+                <input type="checkbox" id="printOptSubjects" checked onchange="updatePrintCards()" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4">
                 <span class="font-bold text-slate-800">各科原始得分</span>
               </label>
-              <label class="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200 cursor-pointer hover:bg-indigo-50/50 shadow-xs transition">
-                <input type="checkbox" id="optShowPr" checked onchange="updatePrintCards()" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4">
+              <label class="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200 cursor-pointer hover:bg-indigo-50/50 shadow-2xs transition">
+                <input type="checkbox" id="printOptPr" checked onchange="updatePrintCards()" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4">
                 <span class="font-bold text-indigo-700">各科 PR 常模等級</span>
               </label>
-              <label class="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200 cursor-pointer hover:bg-indigo-50/50 shadow-xs transition">
-                <input type="checkbox" id="optShowToken" checked onchange="updatePrintCards()" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4">
+              <label class="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200 cursor-pointer hover:bg-indigo-50/50 shadow-2xs transition">
+                <input type="checkbox" id="printOptToken" checked onchange="updatePrintCards()" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4">
                 <span class="font-medium text-slate-700">文字查詢代碼</span>
               </label>
-              <label class="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200 cursor-pointer hover:bg-indigo-50/50 shadow-xs transition">
-                <input type="checkbox" id="optShowStudentId" checked onchange="updatePrintCards()" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4">
+              <label class="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200 cursor-pointer hover:bg-indigo-50/50 shadow-2xs transition">
+                <input type="checkbox" id="printOptStudentId" checked onchange="updatePrintCards()" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4">
                 <span class="font-medium text-slate-700">學生學號</span>
               </label>
-              <label class="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200 cursor-pointer hover:bg-indigo-50/50 shadow-xs transition">
-                <input type="checkbox" id="optShowFootnote" checked onchange="updatePrintCards()" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4">
+              <label class="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200 cursor-pointer hover:bg-indigo-50/50 shadow-2xs transition">
+                <input type="checkbox" id="printOptFootnote" checked onchange="updatePrintCards()" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4">
                 <span class="font-medium text-slate-700">底部導師叮嚀</span>
               </label>
             </div>
           </div>
 
-          <!-- 第 2 區塊：📊 掃描 QR Code 後家長手機端「圖像類視覺化與診斷」呈現權限 -->
-          <div class="pt-3 border-t border-indigo-200/70">
-            <div class="text-[11px] font-black text-indigo-950 mb-2 flex items-center justify-between">
-              <span class="flex items-center gap-1">
+          <!-- 第 2 區塊：📱 【家長手機端網站】呈現項目（掃碼後網站內容自訂） -->
+          <div class="bg-white p-3.5 rounded-xl border border-indigo-100 shadow-2xs space-y-3">
+            <div class="text-[11px] font-black text-indigo-950 flex items-center justify-between">
+              <span class="flex items-center gap-1.5">
                 <span>📱</span>
-                <span>掃描 QR Code 後家長手機端「圖像類統計與診斷」呈現權限：</span>
+                <span>【家長手機端網站】呈現項目（掃描 QR Code 後網頁呈現內容）：</span>
               </span>
-              <span class="text-[10px] text-indigo-600 font-semibold">取消勾選時，手機網頁將完全隱藏該圖像</span>
+              <span class="text-[10px] text-indigo-600 font-semibold">自訂家長端可看內容 ‧ 取消勾選則完全隱藏</span>
             </div>
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs text-slate-700">
-              <label class="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border-2 border-indigo-200 cursor-pointer hover:bg-indigo-50/50 shadow-xs transition">
-                <input type="checkbox" id="optShowRadar" checked onchange="updatePrintCards()" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4">
-                <span class="font-black text-indigo-950">🎯 各科能力雷達圖</span>
-              </label>
-              <label class="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border-2 border-indigo-200 cursor-pointer hover:bg-indigo-50/50 shadow-xs transition">
-                <input type="checkbox" id="optShowTrend" checked onchange="updatePrintCards()" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4">
-                <span class="font-black text-indigo-950">📈 歷次成長曲線圖</span>
-              </label>
-              <label class="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border-2 border-indigo-200 cursor-pointer hover:bg-indigo-50/50 shadow-xs transition">
-                <input type="checkbox" id="optShowComparison" checked onchange="updatePrintCards()" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4">
-                <span class="font-black text-indigo-950">🚀 跨次進退步對比卡</span>
-              </label>
-              <label class="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border-2 border-indigo-200 cursor-pointer hover:bg-indigo-50/50 shadow-xs transition">
-                <input type="checkbox" id="optShowDiagnosis" checked onchange="updatePrintCards()" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4">
-                <span class="font-black text-indigo-950">💡 專家學習診斷處方</span>
-              </label>
+
+            <!-- 數值與列表類 -->
+            <div>
+              <div class="text-[10px] font-bold text-slate-500 mb-1.5">數值與列表項目：</div>
+              <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs text-slate-700">
+                <label class="flex items-center gap-2 bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-200 cursor-pointer hover:bg-indigo-50/50 transition">
+                  <input type="checkbox" id="webOptAvg" checked onchange="updatePrintCards()" class="rounded text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5">
+                  <span class="font-bold text-slate-800">個人總平均</span>
+                </label>
+                <label class="flex items-center gap-2 bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-200 cursor-pointer hover:bg-indigo-50/50 transition">
+                  <input type="checkbox" id="webOptRank" checked onchange="updatePrintCards()" class="rounded text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5">
+                  <span class="font-bold text-amber-700">班級名次</span>
+                </label>
+                <label class="flex items-center gap-2 bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-200 cursor-pointer hover:bg-indigo-50/50 transition">
+                  <input type="checkbox" id="webOptClassAvg" checked onchange="updatePrintCards()" class="rounded text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5">
+                  <span class="font-bold text-slate-800">全班總平均</span>
+                </label>
+                <label class="flex items-center gap-2 bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-200 cursor-pointer hover:bg-indigo-50/50 transition">
+                  <input type="checkbox" id="webOptSubjects" checked onchange="updatePrintCards()" class="rounded text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5">
+                  <span class="font-bold text-slate-800">各科原始得分</span>
+                </label>
+                <label class="flex items-center gap-2 bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-200 cursor-pointer hover:bg-indigo-50/50 transition">
+                  <input type="checkbox" id="webOptPr" checked onchange="updatePrintCards()" class="rounded text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5">
+                  <span class="font-bold text-indigo-700">各科 PR 常模</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- 圖像統計與學習診斷類 -->
+            <div class="pt-2 border-t border-slate-100">
+              <div class="text-[10px] font-bold text-indigo-950 mb-1.5">圖像統計與學習診斷項目：</div>
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs text-slate-700">
+                <label class="flex items-center gap-2 bg-indigo-50/50 px-2.5 py-2 rounded-xl border border-indigo-200 cursor-pointer hover:bg-indigo-50 transition">
+                  <input type="checkbox" id="webOptRadar" checked onchange="updatePrintCards()" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4">
+                  <span class="font-black text-indigo-950">🎯 各科能力雷達圖</span>
+                </label>
+                <label class="flex items-center gap-2 bg-indigo-50/50 px-2.5 py-2 rounded-xl border border-indigo-200 cursor-pointer hover:bg-indigo-50 transition">
+                  <input type="checkbox" id="webOptTrend" checked onchange="updatePrintCards()" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4">
+                  <span class="font-black text-indigo-950">📈 歷次成長曲線圖</span>
+                </label>
+                <label class="flex items-center gap-2 bg-indigo-50/50 px-2.5 py-2 rounded-xl border border-indigo-200 cursor-pointer hover:bg-indigo-50 transition">
+                  <input type="checkbox" id="webOptComparison" checked onchange="updatePrintCards()" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4">
+                  <span class="font-black text-indigo-950">🚀 跨次進退步對比卡</span>
+                </label>
+                <label class="flex items-center gap-2 bg-indigo-50/50 px-2.5 py-2 rounded-xl border border-indigo-200 cursor-pointer hover:bg-indigo-50 transition">
+                  <input type="checkbox" id="webOptBoxplot" checked onchange="updatePrintCards()" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4">
+                  <span class="font-black text-indigo-950">📦 建議箱型圖 (盒鬚圖)</span>
+                </label>
+                <label class="flex items-center gap-2 bg-indigo-50/50 px-2.5 py-2 rounded-xl border border-indigo-200 cursor-pointer hover:bg-indigo-50 transition">
+                  <input type="checkbox" id="webOptPrCurve" checked onchange="updatePrintCards()" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4">
+                  <span class="font-black text-indigo-950">🔔 常態 PR 落點曲線圖</span>
+                </label>
+                <label class="flex items-center gap-2 bg-indigo-50/50 px-2.5 py-2 rounded-xl border border-indigo-200 cursor-pointer hover:bg-indigo-50 transition">
+                  <input type="checkbox" id="webOptDiagnosis" checked onchange="updatePrintCards()" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4">
+                  <span class="font-black text-indigo-950">💡 專家學習診斷處方</span>
+                </label>
+              </div>
             </div>
           </div>
         </div>
@@ -653,39 +739,47 @@
           </div>
           <div class="flex flex-wrap gap-2 text-xs">
             <label class="inline-flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 shadow-2xs cursor-pointer hover:bg-slate-50 select-none">
-              <input type="checkbox" id="syncOptRadar" checked onchange="syncCheckbox('optShowRadar', this.checked)" class="rounded text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5">
+              <input type="checkbox" id="syncOptRadar" checked onchange="syncWebCheckbox('webOptRadar', this.checked)" class="rounded text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5">
               <span class="font-bold text-slate-700">🎯 雷達圖</span>
             </label>
             <label class="inline-flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 shadow-2xs cursor-pointer hover:bg-slate-50 select-none">
-              <input type="checkbox" id="syncOptTrend" checked onchange="syncCheckbox('optShowTrend', this.checked)" class="rounded text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5">
+              <input type="checkbox" id="syncOptTrend" checked onchange="syncWebCheckbox('webOptTrend', this.checked)" class="rounded text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5">
               <span class="font-bold text-slate-700">📈 歷次成長曲線</span>
             </label>
             <label class="inline-flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 shadow-2xs cursor-pointer hover:bg-slate-50 select-none">
-              <input type="checkbox" id="syncOptComparison" checked onchange="syncCheckbox('optShowComparison', this.checked)" class="rounded text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5">
+              <input type="checkbox" id="syncOptComparison" checked onchange="syncWebCheckbox('webOptComparison', this.checked)" class="rounded text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5">
               <span class="font-bold text-slate-700">🚀 跨次進退步卡</span>
             </label>
             <label class="inline-flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 shadow-2xs cursor-pointer hover:bg-slate-50 select-none">
-              <input type="checkbox" id="syncOptDiagnosis" checked onchange="syncCheckbox('optShowDiagnosis', this.checked)" class="rounded text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5">
+              <input type="checkbox" id="syncOptBoxplot" checked onchange="syncWebCheckbox('webOptBoxplot', this.checked)" class="rounded text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5">
+              <span class="font-bold text-slate-700">📦 建議箱型圖</span>
+            </label>
+            <label class="inline-flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 shadow-2xs cursor-pointer hover:bg-slate-50 select-none">
+              <input type="checkbox" id="syncOptPrCurve" checked onchange="syncWebCheckbox('webOptPrCurve', this.checked)" class="rounded text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5">
+              <span class="font-bold text-slate-700">🔔 常態 PR 曲線</span>
+            </label>
+            <label class="inline-flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 shadow-2xs cursor-pointer hover:bg-slate-50 select-none">
+              <input type="checkbox" id="syncOptDiagnosis" checked onchange="syncWebCheckbox('webOptDiagnosis', this.checked)" class="rounded text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5">
               <span class="font-bold text-slate-700">💡 學習診斷處方</span>
             </label>
             <label class="inline-flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 shadow-2xs cursor-pointer hover:bg-slate-50 select-none">
-              <input type="checkbox" id="syncOptAvg" checked onchange="syncCheckbox('optShowAvg', this.checked)" class="rounded text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5">
+              <input type="checkbox" id="syncOptAvg" checked onchange="syncWebCheckbox('webOptAvg', this.checked)" class="rounded text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5">
               <span class="font-bold text-slate-700">個人總平均</span>
             </label>
             <label class="inline-flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 shadow-2xs cursor-pointer hover:bg-slate-50 select-none">
-              <input type="checkbox" id="syncOptRank" checked onchange="syncCheckbox('optShowRank', this.checked)" class="rounded text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5">
+              <input type="checkbox" id="syncOptRank" checked onchange="syncWebCheckbox('webOptRank', this.checked)" class="rounded text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5">
               <span class="font-bold text-slate-700">班級名次</span>
             </label>
             <label class="inline-flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 shadow-2xs cursor-pointer hover:bg-slate-50 select-none">
-              <input type="checkbox" id="syncOptClassAvg" checked onchange="syncCheckbox('optShowClassAvg', this.checked)" class="rounded text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5">
+              <input type="checkbox" id="syncOptClassAvg" checked onchange="syncWebCheckbox('webOptClassAvg', this.checked)" class="rounded text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5">
               <span class="font-bold text-slate-700">全班總平均</span>
             </label>
             <label class="inline-flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 shadow-2xs cursor-pointer hover:bg-slate-50 select-none">
-              <input type="checkbox" id="syncOptSubjects" checked onchange="syncCheckbox('optShowSubjects', this.checked)" class="rounded text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5">
+              <input type="checkbox" id="syncOptSubjects" checked onchange="syncWebCheckbox('webOptSubjects', this.checked)" class="rounded text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5">
               <span class="font-bold text-slate-700">各科成績表</span>
             </label>
             <label class="inline-flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 shadow-2xs cursor-pointer hover:bg-slate-50 select-none">
-              <input type="checkbox" id="syncOptPr" checked onchange="syncCheckbox('optShowPr', this.checked)" class="rounded text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5">
+              <input type="checkbox" id="syncOptPr" checked onchange="syncWebCheckbox('webOptPr', this.checked)" class="rounded text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5">
               <span class="font-bold text-slate-700">PR 百分位數</span>
             </label>
           </div>
@@ -752,6 +846,36 @@
                   <span id="sbComparisonBadge" class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">--</span>
                 </div>
                 <div id="sbComparisonList" class="grid grid-cols-2 gap-1.5 text-[11px]"></div>
+              </div>
+
+              <!-- 📦 建議箱型圖 (經典盒鬚圖常模分佈) -->
+              <div id="sbBoxplotCard" class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-200 space-y-2.5">
+                <div class="flex items-center justify-between border-b pb-1.5">
+                  <div class="font-bold text-[11px] text-slate-800 flex items-center gap-1">
+                    <span>📦 建議箱型圖 (學習表現常模)</span>
+                  </div>
+                  <span id="sbBoxplotActiveZoneBadge" class="text-[9px] font-black px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">--</span>
+                </div>
+                <div class="text-[10px] text-slate-400">復刻 GradeInterpr 幾何盒鬚圖 ‧ 點擊科目切換</div>
+                <!-- 科目頁籤 -->
+                <div id="sbBoxplotTabs" class="flex flex-wrap gap-1"></div>
+                <!-- 幾何圖表容器 -->
+                <div id="sbBoxplotChartArea" class="bg-slate-100 rounded-xl p-3 border border-slate-200"></div>
+                <!-- 4 區間解讀 -->
+                <div id="sbBoxplotZones" class="grid grid-cols-2 gap-1.5 text-[10px]"></div>
+              </div>
+
+              <!-- 🔔 常態 PR 落點曲線圖 -->
+              <div id="sbPrCurveCard" class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-200 space-y-2">
+                <div class="flex items-center justify-between border-b pb-1.5">
+                  <div class="font-bold text-[11px] text-slate-800 flex items-center gap-1">
+                    <span>🔔 常態 PR 落點曲線圖</span>
+                  </div>
+                  <span id="sbPrCurveBadge" class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700">總均 PR</span>
+                </div>
+                <div class="text-[10px] text-slate-400">常態鐘形分佈 ‧ 總平均與各科常模相對落點</div>
+                <!-- SVG 曲線圖容器 -->
+                <div id="sbPrCurveContainer"></div>
               </div>
 
               <!-- 📋 各科成績與常模明細表 -->
@@ -901,6 +1025,36 @@
           </div>
         </div>
 
+        <!-- 📦 建議箱型圖 (經典盒鬚圖常模分佈) -->
+        <div id="pBoxplotCard" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+            <div>
+              <div class="font-bold text-xs text-slate-800 flex items-center gap-1.5">
+                <span>📦 建議箱型圖 (學習表現常模分佈)</span>
+              </div>
+              <div class="text-[10px] text-slate-400 mt-0.5">復刻 GradeInterpr 幾何盒鬚圖 ‧ 掌握中位數、班均與個人分數位置</div>
+            </div>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200" id="pBoxplotActiveZoneBadge">--</span>
+          </div>
+          <div id="pBoxplotSubjectTabs" class="flex flex-wrap gap-1.5"></div>
+          <div id="pBoxplotChartContainer" class="bg-slate-100/90 rounded-2xl p-4 border border-slate-200 space-y-3"></div>
+          <div id="pBoxplotZoneCards" class="grid grid-cols-2 gap-2 text-[11px]"></div>
+        </div>
+
+        <!-- 🔔 常態 PR 落點曲線圖 (常模相對位置) -->
+        <div id="pPrCurveCard" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 space-y-2.5">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+            <div>
+              <div class="font-bold text-xs text-slate-800 flex items-center gap-1.5">
+                <span>🔔 常態 PR 落點曲線圖 (常模相對位置)</span>
+              </div>
+              <div class="text-[10px] text-slate-400 mt-0.5">常態鐘形常模分佈 ‧ 總平均與各科 PR 相對落點</div>
+            </div>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200" id="pPrCurveBadge">總均 PR</span>
+          </div>
+          <div id="pPrCurveContainer"></div>
+        </div>
+
         <!-- 數據列表 -->
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
           <div class="p-3 border-b border-slate-100 font-bold text-xs text-slate-800 flex justify-between items-center">
@@ -932,6 +1086,76 @@
           <div id="pDiagnosisList" class="space-y-2.5 text-xs"></div>
         </div>
 
+      </div>
+
+  <!-- ==================== A4 列印與 PDF 匯出對話框 ==================== -->
+  <div id="printPreviewModal" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm hidden overflow-y-auto flex items-start justify-center p-3 md:p-6">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-5xl w-full border border-slate-200 overflow-hidden my-4 flex flex-col max-h-[92vh]">
+      
+      <!-- Modal 頂部控制列 (列印時隱藏) -->
+      <div class="no-print p-4 md:p-6 bg-slate-900 text-white flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 shrink-0">
+        <div>
+          <h3 class="text-base md:text-lg font-black flex items-center gap-2">
+            <span>🖨️ A4 通知小卡列印與 PDF 匯出預覽</span>
+          </h3>
+          <p class="text-xs text-slate-300 mt-1">
+            請調整每頁呈現的小卡數量，預覽確認無誤後即可點選列印或匯出 PDF。
+          </p>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button onclick="triggerDirectPrint()" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow-lg transition">
+            <span>🖨️ 立即列印 / 另存為 PDF</span>
+          </button>
+          <button onclick="closePrintModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-2 rounded-xl text-xs font-bold transition">
+            ✕ 關閉
+          </button>
+        </div>
+      </div>
+
+      <!-- 每頁卡片數量選擇列 (列印時隱藏) -->
+      <div class="no-print p-3 md:p-4 bg-indigo-50/80 border-b border-indigo-100 flex flex-wrap items-center justify-between gap-3 text-xs shrink-0">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="font-black text-indigo-950 flex items-center gap-1">
+            <span>📄 每頁呈現通知單數量：</span>
+          </span>
+          <div class="inline-flex rounded-xl p-1 bg-white border border-indigo-200 shadow-2xs gap-1" id="cardsPerPageSelector">
+            <button type="button" onclick="changeCardsPerPage(4)" data-count="4" class="cards-per-page-btn px-3 py-1 rounded-lg font-black text-xs transition bg-indigo-600 text-white shadow-xs">
+              4 張 (2×2 經典推薦)
+            </button>
+            <button type="button" onclick="changeCardsPerPage(6)" data-count="6" class="cards-per-page-btn px-3 py-1 rounded-lg font-bold text-xs text-slate-600 hover:text-indigo-600 transition">
+              6 張 (2×3 省紙精巧)
+            </button>
+            <button type="button" onclick="changeCardsPerPage(8)" data-count="8" class="cards-per-page-btn px-3 py-1 rounded-lg font-bold text-xs text-slate-600 hover:text-indigo-600 transition">
+              8 張 (2×4 輕量隨身)
+            </button>
+            <button type="button" onclick="changeCardsPerPage(2)" data-count="2" class="cards-per-page-btn px-3 py-1 rounded-lg font-bold text-xs text-slate-600 hover:text-indigo-600 transition">
+              2 張 (1×2 詳盡大字)
+            </button>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <span id="printPageStats" class="text-indigo-900 font-bold bg-indigo-100/70 px-3 py-1 rounded-lg border border-indigo-200/50">
+            全班共 24 位學生 ‧ 預計產生 6 頁 A4
+          </span>
+        </div>
+      </div>
+
+      <!-- 預覽滾動區 -->
+      <div class="p-4 md:p-8 bg-slate-100 overflow-y-auto flex-1 space-y-8" id="printModalScrollArea">
+        <!-- 提示小條 -->
+        <div class="no-print max-w-3xl mx-auto bg-amber-50 text-amber-800 text-xs px-4 py-2.5 rounded-xl border border-amber-200 flex items-center justify-between shadow-2xs">
+          <div class="flex items-center gap-2">
+            <span>💡</span>
+            <span>在瀏覽器列印對話框中，目的端選擇<b>【另存為 PDF】</b>即可匯出 PDF 檔案；勾選<b>【背景圖形】</b>以確保底色與邊框清晰！</span>
+          </div>
+        </div>
+
+        <!-- 渲染之 A4 紙張群組 -->
+        <div id="printModalSheets" class="space-y-8 max-w-4xl mx-auto">
+          <!-- JS 動態插入 .a4-print-sheet -->
+        </div>
       </div>
 
     </div>
@@ -1413,27 +1637,133 @@
     }
 
     // 渲染 A4 列印小卡 (依據教師自選勾選之統計事項動態呈現)
+    let currentCardsPerPage = 4;
+
+    function openPrintModal() {
+      const modal = document.getElementById('printPreviewModal');
+      if (!modal) return;
+      modal.classList.remove('hidden');
+      renderPrintModalPages();
+    }
+
+    function closePrintModal() {
+      const modal = document.getElementById('printPreviewModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function changeCardsPerPage(count) {
+      currentCardsPerPage = parseInt(count, 10) || 4;
+      document.querySelectorAll('.cards-per-page-btn').forEach(btn => {
+        const c = parseInt(btn.getAttribute('data-count'), 10);
+        if (c === currentCardsPerPage) {
+          btn.className = 'cards-per-page-btn px-3 py-1 rounded-lg font-black text-xs transition bg-indigo-600 text-white shadow-xs';
+        } else {
+          btn.className = 'cards-per-page-btn px-3 py-1 rounded-lg font-bold text-xs text-slate-600 hover:text-indigo-600 transition';
+        }
+      });
+      renderPrintModalPages();
+    }
+
+    function triggerDirectPrint() {
+      window.print();
+    }
+
+    function buildCardContentHtml(st, pCfg, examData, queryUrl, cardId, schoolTitle, noticeTitle, footnote, isCompact) {
+      let statsBarHtml = '';
+      if (examData && (pCfg.showAvg || pCfg.showRank || pCfg.showClassAvg)) {
+        statsBarHtml = `
+          <div class="grid grid-cols-3 gap-1 bg-slate-50 p-1 rounded-lg border border-slate-200 text-center my-1">
+            ${pCfg.showAvg ? `<div><span class="text-[8px] text-slate-400 block">個人總平均</span><span class="font-bold text-indigo-700 ${isCompact ? 'text-[11px]' : 'text-xs'}">${examData.studentAverage}分</span></div>` : '<div></div>'}
+            ${pCfg.showRank ? `<div><span class="text-[8px] text-slate-400 block">班級名次</span><span class="font-bold text-amber-600 ${isCompact ? 'text-[11px]' : 'text-xs'}">第${examData.studentRank}名<span class="text-[8px] font-normal text-slate-400">/${examData.totalStudents}</span></span></div>` : '<div></div>'}
+            ${pCfg.showClassAvg ? `<div><span class="text-[8px] text-slate-400 block">全班平均</span><span class="font-bold text-slate-700 ${isCompact ? 'text-[11px]' : 'text-xs'}">${examData.classOverallAverage}分</span></div>` : '<div></div>'}
+          </div>
+        `;
+      }
+
+      let subjectsBarHtml = '';
+      if (examData && pCfg.showSubjects && examData.subjects && examData.subjects.length > 0) {
+        subjectsBarHtml = `
+          <div class="flex flex-wrap gap-1 text-[9px] bg-indigo-50/50 p-1 rounded-lg border border-indigo-100 my-0.5">
+            ${examData.subjects.map(s => `
+              <span class="bg-white px-1 py-0.2 rounded border border-indigo-200/60 text-slate-700">
+                ${s.name} <b class="text-indigo-600">${s.score}</b>${pCfg.showPr && s.pr ? ` <span class="text-indigo-400 text-[8px]">(PR${s.pr})</span>` : ''}
+              </span>
+            `).join('')}
+          </div>
+        `;
+      }
+
+      return `
+        <div>
+          <div class="flex items-start justify-between border-b pb-1 mb-1">
+            <div>
+              <div class="text-[10px] font-bold text-indigo-700 tracking-wider leading-none">${schoolTitle}</div>
+              <div class="${isCompact ? 'text-xs' : 'text-sm'} font-black text-slate-800 leading-tight mt-0.5">${noticeTitle}</div>
+              ${examData ? `<div class="text-[9px] text-indigo-600 font-semibold mt-0.5">【${examData.sheetName || examData.examTitle}】</div>` : ''}
+            </div>
+            <div class="text-right">
+              <span class="text-[10px] font-bold bg-slate-100 text-slate-700 px-1.5 py-0.2 rounded">${st.className} 班</span>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between gap-2 my-1">
+            <div class="space-y-0.5 flex-1 min-w-0">
+              <div class="${isCompact ? 'text-sm' : 'text-base'} font-black text-slate-900">${st.name} <span class="text-[10px] font-normal text-slate-500">(${st.seatNumber}號)</span></div>
+              ${pCfg.showStudentId && st.studentId ? `<div class="text-[10px] text-slate-500">學號：<span class="font-mono text-slate-700">${st.studentId}</span></div>` : ''}
+              
+              ${pCfg.showToken ? `
+                <div class="text-[10px] text-indigo-900 font-bold bg-indigo-50 px-1.5 py-0.5 rounded inline-block">
+                  代碼：<span class="font-mono ${isCompact ? 'text-xs' : 'text-sm'} tracking-wider text-indigo-600">${st.token}</span>
+                </div>
+              ` : `
+                <div class="text-[9px] text-emerald-700 font-bold bg-emerald-50 px-1 py-0.2 rounded inline-block">
+                  🔒 代碼已安全內嵌於 QR
+                </div>
+              `}
+            </div>
+
+            <!-- QR Code 容器 -->
+            <div class="flex flex-col items-center shrink-0">
+              <div id="${cardId}" class="p-0.5 bg-white border border-slate-200 rounded shadow-2xs"></div>
+              <span class="text-[8px] text-slate-400 mt-0.5 leading-none">相機掃描直達</span>
+            </div>
+          </div>
+
+          <!-- 動態呈現所勾選之紙本統計事項 -->
+          ${statsBarHtml}
+          ${subjectsBarHtml}
+        </div>
+
+        ${pCfg.showFootnote && footnote ? `
+          <div class="text-[8px] text-slate-400 border-t pt-1 mt-1 leading-tight line-clamp-2">
+            ℹ️ ${footnote}
+          </div>
+        ` : ''}
+      `;
+    }
+
+    // 渲染 A4 列印小卡 (依據教師自選勾選之統計事項動態呈現)
     function renderPrintCards(students) {
       const grid = document.getElementById('cardsGrid');
+      if (!grid) return;
       grid.innerHTML = '';
 
       const schoolTitle = document.getElementById('cardSchoolTitle') ? document.getElementById('cardSchoolTitle').value : '市立示範國民中學';
       const noticeTitle = document.getElementById('cardNoticeTitle') ? document.getElementById('cardNoticeTitle').value : '學期個別成績與學習診斷通知單';
       const footnote = document.getElementById('cardFootnote') ? document.getElementById('cardFootnote').value : '';
       const baseUrl = window.location.origin + window.location.pathname;
-
+      const parentBaseUrl = baseUrl.substring(0, baseUrl.lastIndexOf('/') + 1) + 'parent.html';
       const examSource = document.getElementById('cardExamSource') ? document.getElementById('cardExamSource').value : 'none';
-      const optShowAvg = document.getElementById('optShowAvg') ? document.getElementById('optShowAvg').checked : true;
-      const optShowRank = document.getElementById('optShowRank') ? document.getElementById('optShowRank').checked : true;
-      const optShowClassAvg = document.getElementById('optShowClassAvg') ? document.getElementById('optShowClassAvg').checked : true;
-      const optShowSubjects = document.getElementById('optShowSubjects') ? document.getElementById('optShowSubjects').checked : true;
-      const optShowPr = document.getElementById('optShowPr') ? document.getElementById('optShowPr').checked : true;
-      const optShowToken = document.getElementById('optShowToken') ? document.getElementById('optShowToken').checked : true;
-      const optShowStudentId = document.getElementById('optShowStudentId') ? document.getElementById('optShowStudentId').checked : true;
-      const optShowFootnote = document.getElementById('optShowFootnote') ? document.getElementById('optShowFootnote').checked : true;
+      const pCfg = getPaperPrintConfig();
 
-      // 若在展示模式且學生尚未有 examStats，為學生掛載真實示範數據
-      students.forEach(st => {
+      let apiId = '';
+      if (activeApiUrl) {
+        const m = activeApiUrl.match(/macros\/s\/([^\/]+)/);
+        if (m && m[1]) apiId = m[1];
+      }
+
+      const pool = (students && students.length > 0) ? students : DEMO_STUDENTS;
+      pool.forEach(st => {
         if (!st.examStats) {
           const comp = buildDemoExamsForStudent(st);
           st.examStats = {};
@@ -1441,123 +1771,158 @@
         }
       });
 
-            students.forEach((st, idx) => {
-        // 家長獨立查詢網址：直接指向獨立安全的 parent.html
-        const parentBaseUrl = baseUrl.substring(0, baseUrl.lastIndexOf('/') + 1) + 'parent.html';
-        const isSuperClean = document.getElementById('optSuperCleanQr') ? document.getElementById('optSuperCleanQr').checked : true;
-        
-        let apiId = '';
-        if (activeApiUrl) {
-          const m = activeApiUrl.match(/macros\/s\/([^\/]+)/);
-          if (m && m[1]) apiId = m[1];
-        }
-        
-        // 生成家長端查詢網址：若有綁定 Google 試算表，自動帶入 &a= 確保任何家長手機相機一掃秒連
+      pool.forEach((st, idx) => {
         const queryUrl = parentBaseUrl + '?t=' + encodeURIComponent(st.token) + (apiId ? '&a=' + apiId : '') + '&v=' + getVisibilityFlagString();
-        
         const cardId = 'qrcode-' + idx;
 
-        // 提取該學生在所選考試的統計資訊
         let examData = null;
         if (examSource !== 'none' && st.examStats) {
           examData = st.examStats[examSource] || Object.values(st.examStats)[0];
         }
 
-        // 構建核心統計區塊 HTML (依勾選)
-        let statsBarHtml = '';
-        if (examData && (optShowAvg || optShowRank || optShowClassAvg)) {
-          statsBarHtml = `
-            <div class="grid grid-cols-3 gap-1 bg-slate-50 p-1.5 rounded-lg border border-slate-200 text-center my-1.5">
-              ${optShowAvg ? `<div><span class="text-[9px] text-slate-400 block">個人總平均</span><span class="font-bold text-indigo-700 text-xs">${examData.studentAverage}分</span></div>` : '<div></div>'}
-              ${optShowRank ? `<div><span class="text-[9px] text-slate-400 block">班級名次</span><span class="font-bold text-amber-600 text-xs">第${examData.studentRank}名<span class="text-[9px] font-normal text-slate-400">/${examData.totalStudents}</span></span></div>` : '<div></div>'}
-              ${optShowClassAvg ? `<div><span class="text-[9px] text-slate-400 block">全班平均</span><span class="font-bold text-slate-700 text-xs">${examData.classOverallAverage}分</span></div>` : '<div></div>'}
-            </div>
-          `;
-        }
-
-        // 各科成績與 PR 摘要 HTML (依勾選)
-        let subjectsBarHtml = '';
-        if (examData && optShowSubjects && examData.subjects && examData.subjects.length > 0) {
-          subjectsBarHtml = `
-            <div class="flex flex-wrap gap-1 text-[10px] bg-indigo-50/50 p-1.5 rounded-lg border border-indigo-100 my-1">
-              ${examData.subjects.map(s => `
-                <span class="bg-white px-1.5 py-0.5 rounded border border-indigo-200/60 text-slate-700">
-                  ${s.name} <b class="text-indigo-600">${s.score}</b>${optShowPr && s.pr ? ` <span class="text-indigo-400 text-[9px]">(PR ${s.pr})</span>` : ''}
-                </span>
-              `).join('')}
-            </div>
-          `;
-        }
-
         const card = document.createElement('div');
         card.className = 'card-item border-2 border-dashed border-slate-300 rounded-2xl p-4 bg-white flex flex-col justify-between relative';
-        card.innerHTML = `
-          <div>
-            <div class="flex items-start justify-between border-b pb-2 mb-2">
-              <div>
-                <div class="text-[11px] font-bold text-indigo-700 tracking-wider">${schoolTitle}</div>
-                <div class="text-sm font-black text-slate-800">${noticeTitle}</div>
-                ${examData ? `<div class="text-[10px] text-indigo-600 font-semibold mt-0.5">【${examData.sheetName || examData.examTitle}】</div>` : ''}
-              </div>
-              <div class="text-right">
-                <span class="text-xs font-bold bg-slate-100 text-slate-700 px-2 py-0.5 rounded">${st.className} 班</span>
-              </div>
-            </div>
-
-            <div class="flex items-center justify-between gap-4 my-1">
-              <div class="space-y-1 flex-1">
-                <div class="text-base font-black text-slate-900">${st.name} <span class="text-xs font-normal text-slate-500">(${st.seatNumber}號)</span></div>
-                ${optShowStudentId && st.studentId ? `<div class="text-xs text-slate-500">學號：<span class="font-mono text-slate-700">${st.studentId}</span></div>` : ''}
-                
-                ${optShowToken ? `
-                  <div class="text-xs text-indigo-900 font-bold bg-indigo-50 px-2 py-1 rounded inline-block">
-                    查詢代碼：<span class="font-mono text-sm tracking-widest text-indigo-600">${st.token}</span>
-                  </div>
-                ` : `
-                  <div class="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded inline-block">
-                    🔒 代碼已安全內嵌於 QR Code 中
-                  </div>
-                `}
-              </div>
-
-              <!-- QR Code 容器 -->
-              <div class="flex flex-col items-center">
-                <div id="${cardId}" class="p-1 bg-white border border-slate-200 rounded-lg shadow-sm"></div>
-                <span class="text-[9px] text-slate-400 mt-1">相機掃描直達</span>
-              </div>
-            </div>
-
-            <!-- 動態呈現所勾選之統計事項 -->
-            ${statsBarHtml}
-            ${subjectsBarHtml}
-          </div>
-
-          ${optShowFootnote && footnote ? `
-            <div class="text-[10px] text-slate-400 border-t pt-2 mt-2 leading-tight">
-              ℹ️ ${footnote}
-            </div>
-          ` : ''}
-        `;
-
+        card.innerHTML = buildCardContentHtml(st, pCfg, examData, queryUrl, cardId, schoolTitle, noticeTitle, footnote, false);
         grid.appendChild(card);
 
         setTimeout(() => {
-          new QRCode(document.getElementById(cardId), {
-            text: queryUrl,
-            width: 92,
-            height: 92,
-            correctLevel: QRCode.CorrectLevel.L
-          });
+          const qrEl = document.getElementById(cardId);
+          if (qrEl) {
+            new QRCode(qrEl, {
+              text: queryUrl,
+              width: 90,
+              height: 90,
+              correctLevel: QRCode.CorrectLevel.L
+            });
+          }
         }, 50);
       });
+
+      // 同時若 printModal 開啟中，刷新 modal 頁面
+      const modal = document.getElementById('printPreviewModal');
+      if (modal && !modal.classList.contains('hidden')) {
+        renderPrintModalPages();
+      }
+    }
+
+    function renderPrintModalPages() {
+      const pool = (cachedStudents && cachedStudents.length > 0) ? cachedStudents : DEMO_STUDENTS;
+      const sheetsContainer = document.getElementById('printModalSheets');
+      if (!sheetsContainer) return;
+      sheetsContainer.innerHTML = '';
+
+      const pCfg = getPaperPrintConfig();
+      const schoolTitle = document.getElementById('cardSchoolTitle') ? document.getElementById('cardSchoolTitle').value : '市立示範國民中學';
+      const noticeTitle = document.getElementById('cardNoticeTitle') ? document.getElementById('cardNoticeTitle').value : '學期個別成績與學習診斷通知單';
+      const footnote = document.getElementById('cardFootnote') ? document.getElementById('cardFootnote').value : '';
+      const examSource = document.getElementById('cardExamSource') ? document.getElementById('cardExamSource').value : 'none';
+      const baseUrl = window.location.origin + window.location.pathname;
+      const parentBaseUrl = baseUrl.substring(0, baseUrl.lastIndexOf('/') + 1) + 'parent.html';
+
+      let apiId = '';
+      if (activeApiUrl) {
+        const m = activeApiUrl.match(/macros\/s\/([^\/]+)/);
+        if (m && m[1]) apiId = m[1];
+      }
+
+      pool.forEach(st => {
+        if (!st.examStats) {
+          const comp = buildDemoExamsForStudent(st);
+          st.examStats = {};
+          comp.forEach(e => { st.examStats[e.examTitle] = e; });
+        }
+      });
+
+      const totalStudents = pool.length;
+      const totalPages = Math.ceil(totalStudents / currentCardsPerPage);
+
+      const statsEl = document.getElementById('printPageStats');
+      if (statsEl) {
+        statsEl.innerText = `全班共 ${totalStudents} 位學生 ‧ 預計產生 ${totalPages} 頁 A4 (每頁 ${currentCardsPerPage} 張)`;
+      }
+
+      let gridClass = 'grid-cols-2 grid-rows-2 gap-4';
+      let qrSize = 88;
+      let isCompact = false;
+
+      if (currentCardsPerPage === 6) {
+        gridClass = 'grid-cols-2 grid-rows-3 gap-3';
+        qrSize = 72;
+        isCompact = true;
+      } else if (currentCardsPerPage === 8) {
+        gridClass = 'grid-cols-2 grid-rows-4 gap-2';
+        qrSize = 58;
+        isCompact = true;
+      } else if (currentCardsPerPage === 2) {
+        gridClass = 'grid-cols-1 grid-rows-2 gap-6';
+        qrSize = 98;
+        isCompact = false;
+      }
+
+      for (let p = 0; p < totalPages; p++) {
+        const start = p * currentCardsPerPage;
+        const pageStudents = pool.slice(start, start + currentCardsPerPage);
+
+        const sheetEl = document.createElement('div');
+        sheetEl.className = 'a4-print-sheet flex flex-col justify-between';
+
+        const gridEl = document.createElement('div');
+        gridEl.className = `grid ${gridClass} h-full flex-1`;
+        sheetEl.appendChild(gridEl);
+
+        const footerEl = document.createElement('div');
+        footerEl.className = 'no-print text-center text-[10px] text-slate-400 pt-2 border-t border-slate-200 mt-2 flex justify-between items-center';
+        footerEl.innerHTML = `
+          <span>✂️ 請沿虛線裁切發給家長</span>
+          <span class="font-bold">第 ${p + 1} / ${totalPages} 頁 (每頁 ${currentCardsPerPage} 張)</span>
+          <span>MPScore 智慧個別成績通知單</span>
+        `;
+        sheetEl.appendChild(footerEl);
+        sheetsContainer.appendChild(sheetEl);
+
+        pageStudents.forEach((st, sIdx) => {
+          const globalIdx = start + sIdx;
+          const queryUrl = parentBaseUrl + '?t=' + encodeURIComponent(st.token) + (apiId ? '&a=' + apiId : '') + '&v=' + getVisibilityFlagString();
+          const modalQrId = 'modal-qrcode-' + globalIdx;
+
+          let examData = null;
+          if (examSource !== 'none' && st.examStats) {
+            examData = st.examStats[examSource] || Object.values(st.examStats)[0];
+          }
+
+          const card = document.createElement('div');
+          card.className = `card-item border-2 border-dashed border-slate-300 rounded-2xl ${isCompact ? 'p-2' : 'p-3.5'} bg-white flex flex-col justify-between relative`;
+          card.innerHTML = buildCardContentHtml(st, pCfg, examData, queryUrl, modalQrId, schoolTitle, noticeTitle, footnote, isCompact);
+          gridEl.appendChild(card);
+
+          setTimeout(() => {
+            const qrEl = document.getElementById(modalQrId);
+            if (qrEl) {
+              new QRCode(qrEl, {
+                text: queryUrl,
+                width: qrSize,
+                height: qrSize,
+                correctLevel: QRCode.CorrectLevel.L
+              });
+            }
+          }, 40);
+        });
+      }
     }
 
     function updatePrintCards() {
       getActiveVisibilityConfig();
+      if (typeof syncWebToSandboxControls === 'function') {
+        syncWebToSandboxControls();
+      }
       renderPrintCards(cachedStudents);
       loadPreviewForSelectedStudent();
       if (currentStudentExams && currentStudentExams.length > 0) {
         renderSelectedExamView();
+      }
+      const printModal = document.getElementById('printPreviewModal');
+      if (printModal && !printModal.classList.contains('hidden') && typeof renderPrintModalPages === 'function') {
+        renderPrintModalPages();
       }
     }
 
@@ -1900,19 +2265,38 @@
         const myRank = ranked.findIndex(r => r === myEntry) + 1;
         const classOverallAvg = Math.round((ranked.reduce((a, b) => a + b.avg, 0) / totalCount) * 100) / 100;
 
-        // 各科 PR 與建議
+        const allAvgs = ranked.map(r => r.avg).sort((a, b) => a - b);
+        const belowAvg = allAvgs.filter(v => v < myEntry.avg).length;
+        const equalAvg = allAvgs.filter(v => v === myEntry.avg).length;
+        const studentAveragePr = Math.round(((belowAvg + 0.5 * equalAvg) / totalCount) * 100);
+
+        // 各科 PR 與建議及箱型圖五數摘要 (Q1, Median, Q3, Min, Max)
         const subjectsResult = subs.map(s => {
           const score = myEntry.scores[s] !== undefined ? myEntry.scores[s] : 0;
           const cAvg = subAvgs[s];
           const allS = rawList.map(st => st.scores[s] || 0);
+          const sortedS = allS.slice().sort((a, b) => a - b);
+          const getPVal = (arr, p) => {
+            const idx = (p / 100) * (arr.length - 1);
+            const low = Math.floor(idx);
+            const high = Math.ceil(idx);
+            const w = idx - low;
+            return Math.round((arr[low] * (1 - w) + arr[high] * w) * 10) / 10;
+          };
+          const q1 = getPVal(sortedS, 25);
+          const median = getPVal(sortedS, 50);
+          const q3 = getPVal(sortedS, 75);
+          const min = sortedS[0];
+          const max = sortedS[sortedS.length - 1];
+
           const below = allS.filter(v => v < score).length;
           const equal = allS.filter(v => v === score).length;
           const pr = Math.round(((below + 0.5 * equal) / totalCount) * 100);
 
           let zone = '穩健', zoneStatus = '穩健發揮區間', zoneType = 'leading';
-          if (pr >= 75) { zone = '精熟'; zoneStatus = '精熟表現區間'; zoneType = 'leading'; }
-          else if (pr >= 50) { zone = '穩健'; zoneStatus = '穩健發揮區間'; zoneType = 'leading'; }
-          else if (pr >= 25) { zone = '努力'; zoneStatus = '努力成長區間'; zoneType = 'improving'; }
+          if (score >= q3 || pr >= 75) { zone = '精熟'; zoneStatus = '精熟表現區間'; zoneType = 'leading'; }
+          else if (score >= median || pr >= 50) { zone = '穩健'; zoneStatus = '穩健發揮區間'; zoneType = 'leading'; }
+          else if (score >= q1 || pr >= 25) { zone = '努力'; zoneStatus = '努力成長區間'; zoneType = 'improving'; }
           else { zone = '開發'; zoneStatus = '開發潛力區間'; zoneType = 'improving'; }
 
           const advicePool = GRADE_INTERPR_ADVICE[s] || GRADE_INTERPR_ADVICE['國語'];
@@ -1925,6 +2309,11 @@
             classAverage: cAvg,
             diff: Math.round((score - cAvg) * 100) / 100,
             pr: pr,
+            q1: q1,
+            median: median,
+            q3: q3,
+            min: min,
+            max: max,
             zone: zone,
             zoneStatus: zoneStatus,
             advice: pick
@@ -1935,6 +2324,7 @@
           examTitle: title,
           sheetName: sheetName,
           studentAverage: myEntry.avg,
+          studentAveragePr: studentAveragePr,
           studentRank: myRank,
           totalStudents: totalCount,
           classOverallAverage: classOverallAvg,
@@ -1952,11 +2342,16 @@
       if (!records || records.length === 0) return [];
       const examMap = {};
       records.forEach(r => {
-        const k = r.examName || r.examKey;
+        const k = r.examName || r.examKey || r.sheetName;
         if (!examMap[k]) {
           examMap[k] = {
-            examTitle: k,
+            examTitle: r.examName || k,
             sheetName: r.sheetName || k,
+            studentAverage: r.studentAverage || 0,
+            studentAveragePr: r.studentAveragePr,
+            studentRank: r.studentRank || 1,
+            totalStudents: r.totalStudents || 1,
+            classOverallAverage: r.classOverallAverage || 0,
             subjects: []
           };
         }
@@ -1966,6 +2361,11 @@
           classAverage: r.average,
           diff: Math.round((r.score - r.average) * 10) / 10,
           pr: r.pr,
+          q1: r.q1,
+          median: r.median,
+          q3: r.q3,
+          min: r.min,
+          max: r.max,
           zone: r.zone || '穩健',
           zoneStatus: r.zoneStatus || '穩健發揮區間',
           advice: r.diagnosis
@@ -1977,13 +2377,50 @@
     // 渲染家長端完整數據儀表板
     
     // ==========================================
-    // 統計事項呈現權限管理 (家長端與小卡 100% 同步聯動)
+    // 🖨️ 【紙本小卡】印出設定項目管理
+    // ==========================================
+    function getPaperPrintConfig() {
+      const elAvg = document.getElementById('printOptAvg');
+      const elRank = document.getElementById('printOptRank');
+      const elClassAvg = document.getElementById('printOptClassAvg');
+      const elSub = document.getElementById('printOptSubjects');
+      const elPr = document.getElementById('printOptPr');
+      const elTok = document.getElementById('printOptToken');
+      const elId = document.getElementById('printOptStudentId');
+      const elFn = document.getElementById('printOptFootnote');
+
+      if (elAvg && elRank && elClassAvg) {
+        return {
+          showAvg: elAvg.checked,
+          showRank: elRank.checked,
+          showClassAvg: elClassAvg.checked,
+          showSubjects: elSub ? elSub.checked : true,
+          showPr: elPr ? elPr.checked : true,
+          showToken: elTok ? elTok.checked : true,
+          showStudentId: elId ? elId.checked : true,
+          showFootnote: elFn ? elFn.checked : true
+        };
+      }
+      return {
+        showAvg: true,
+        showRank: true,
+        showClassAvg: true,
+        showSubjects: true,
+        showPr: true,
+        showToken: true,
+        showStudentId: true,
+        showFootnote: true
+      };
+    }
+
+    // ==========================================
+    // 📱 【家長手機端網站】呈現權限管理 (13 項自訂項目，與小卡 QR Code 完整聯動)
     // ==========================================
     function getActiveVisibilityConfig() {
       const urlParams = new URLSearchParams(window.location.search);
       const vStr = urlParams.get('v');
 
-      // 1. 若網址帶有教師指定的權限字串
+      // 1. 若網址帶有教師指定的權限字串 (13碼，向下相容7碼以上)
       if (vStr && vStr.length >= 7) {
         return {
           showAvg: vStr[0] === '1',
@@ -1996,22 +2433,24 @@
           showRadar: vStr.length > 7 ? vStr[7] === '1' : true,
           showTrend: vStr.length > 8 ? vStr[8] === '1' : true,
           showComparison: vStr.length > 9 ? vStr[9] === '1' : true,
-          showDiagnosis: vStr.length > 10 ? vStr[10] === '1' : true
+          showDiagnosis: vStr.length > 10 ? vStr[10] === '1' : true,
+          showBoxplot: vStr.length > 11 ? vStr[11] === '1' : true,
+          showPrCurve: vStr.length > 12 ? vStr[12] === '1' : true
         };
       }
 
-      // 2. 若在教師端後台有勾選設定
-      const elAvg = document.getElementById('optShowAvg');
-      const elRank = document.getElementById('optShowRank');
-      const elClassAvg = document.getElementById('optShowClassAvg');
-      const elSub = document.getElementById('optShowSubjects');
-      const elPr = document.getElementById('optShowPr');
-      const elId = document.getElementById('optShowStudentId');
-      const elFn = document.getElementById('optShowFootnote');
-      const elRadar = document.getElementById('optShowRadar');
-      const elTrend = document.getElementById('optShowTrend');
-      const elComp = document.getElementById('optShowComparison');
-      const elDiag = document.getElementById('optShowDiagnosis');
+      // 2. 若在教師端後台有勾選設定 (優先讀取 webOpt...，向下相容 optShow...)
+      const elAvg = document.getElementById('webOptAvg') || document.getElementById('optShowAvg');
+      const elRank = document.getElementById('webOptRank') || document.getElementById('optShowRank');
+      const elClassAvg = document.getElementById('webOptClassAvg') || document.getElementById('optShowClassAvg');
+      const elSub = document.getElementById('webOptSubjects') || document.getElementById('optShowSubjects');
+      const elPr = document.getElementById('webOptPr') || document.getElementById('optShowPr');
+      const elRadar = document.getElementById('webOptRadar') || document.getElementById('optShowRadar');
+      const elTrend = document.getElementById('webOptTrend') || document.getElementById('optShowTrend');
+      const elComp = document.getElementById('webOptComparison') || document.getElementById('optShowComparison');
+      const elDiag = document.getElementById('webOptDiagnosis') || document.getElementById('optShowDiagnosis');
+      const elBoxplot = document.getElementById('webOptBoxplot');
+      const elPrCurve = document.getElementById('webOptPrCurve');
 
       if (elAvg && elRank && elClassAvg) {
         const cfg = {
@@ -2020,12 +2459,14 @@
           showClassAvg: elClassAvg.checked,
           showSubjects: elSub ? elSub.checked : true,
           showPr: elPr ? elPr.checked : true,
-          showStudentId: elId ? elId.checked : true,
-          showFootnote: elFn ? elFn.checked : true,
+          showStudentId: true,
+          showFootnote: true,
           showRadar: elRadar ? elRadar.checked : true,
           showTrend: elTrend ? elTrend.checked : true,
           showComparison: elComp ? elComp.checked : true,
-          showDiagnosis: elDiag ? elDiag.checked : true
+          showDiagnosis: elDiag ? elDiag.checked : true,
+          showBoxplot: elBoxplot ? elBoxplot.checked : true,
+          showPrCurve: elPrCurve ? elPrCurve.checked : true
         };
         try {
           localStorage.setItem('mpscore_visibility_cfg', JSON.stringify(cfg));
@@ -2051,7 +2492,9 @@
         showRadar: true,
         showTrend: true,
         showComparison: true,
-        showDiagnosis: true
+        showDiagnosis: true,
+        showBoxplot: true,
+        showPrCurve: true
       };
     }
 
@@ -2068,8 +2511,41 @@
         cfg.showRadar,
         cfg.showTrend,
         cfg.showComparison,
-        cfg.showDiagnosis
+        cfg.showDiagnosis,
+        cfg.showBoxplot,
+        cfg.showPrCurve
       ].map(v => v ? 1 : 0).join('');
+    }
+
+    function syncWebCheckbox(targetId, checked) {
+      const el = document.getElementById(targetId);
+      if (el) {
+        el.checked = checked;
+      }
+      updatePrintCards();
+    }
+
+    function syncWebToSandboxControls() {
+      const mapping = {
+        'webOptRadar': 'syncOptRadar',
+        'webOptTrend': 'syncOptTrend',
+        'webOptComparison': 'syncOptComparison',
+        'webOptBoxplot': 'syncOptBoxplot',
+        'webOptPrCurve': 'syncOptPrCurve',
+        'webOptDiagnosis': 'syncOptDiagnosis',
+        'webOptAvg': 'syncOptAvg',
+        'webOptRank': 'syncOptRank',
+        'webOptClassAvg': 'syncOptClassAvg',
+        'webOptSubjects': 'syncOptSubjects',
+        'webOptPr': 'syncOptPr'
+      };
+      for (const [wId, sId] of Object.entries(mapping)) {
+        const wEl = document.getElementById(wId);
+        const sEl = document.getElementById(sId);
+        if (wEl && sEl) {
+          sEl.checked = wEl.checked;
+        }
+      }
     }
 
     function closeTeacherLoginModal() {
@@ -2267,6 +2743,49 @@
           </div>
         `;
       });
+
+      // 4b. 增加【個人總平均】彙總列 (若有勾選個人總平均)
+      if (cfg.showAvg) {
+        const avgDiff = Math.round((curExam.studentAverage - curExam.classOverallAverage) * 10) / 10;
+        const avgDiffTag = avgDiff >= 0 
+          ? `<span class="text-emerald-600 font-bold">+${avgDiff}</span>` 
+          : `<span class="text-rose-500 font-bold">${avgDiff}</span>`;
+        const avgPrBadge = curExam.studentAveragePr !== undefined 
+          ? `<span class="bg-indigo-600 text-white font-black px-2 py-0.5 rounded text-[11px] shadow-2xs">PR ${curExam.studentAveragePr}</span>` 
+          : '-';
+
+        table.innerHTML += `
+          <tr class="bg-indigo-50/80 font-bold border-t-2 border-indigo-200">
+            <td class="py-2.5 px-3 font-black text-indigo-950 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-indigo-600 inline-block"></span>
+              <span>【個人總平均】</span>
+            </td>
+            ${cfg.showSubjects ? `<td class="py-2.5 px-3 text-center font-black text-indigo-700 text-sm">${curExam.studentAverage ? curExam.studentAverage.toFixed(1) : '--'}</td>` : ''}
+            ${cfg.showClassAvg ? `<td class="py-2.5 px-3 text-center text-slate-500 font-semibold">${curExam.classOverallAverage ? curExam.classOverallAverage.toFixed(1) : '--'}</td>` : ''}
+            ${cfg.showPr ? `<td class="py-2.5 px-3 text-center">${avgPrBadge}</td>` : ''}
+            ${cfg.showClassAvg ? `<td class="py-2.5 px-3 text-center">${avgDiffTag}</td>` : ''}
+          </tr>
+        `;
+      }
+
+      // 5. 渲染 📦 建議箱型圖 與 🔔 常態 PR 落點曲線圖
+      renderBoxplotView(curExam, 'p');
+      renderPrCurveView(curExam, 'p');
+
+      // 6. 依權限動態隱藏/顯示各卡片
+      const radarCard = document.getElementById('pRadarCard');
+      if (radarCard) radarCard.classList.toggle('hidden', !cfg.showRadar);
+
+      const trendCard = document.getElementById('pTrendCard');
+      if (trendCard) trendCard.classList.toggle('hidden', !cfg.showTrend);
+
+      if (compCard) compCard.classList.toggle('hidden', !cfg.showComparison);
+
+      const diagCard = document.getElementById('pDiagnosisCard');
+      if (diagCard) diagCard.classList.toggle('hidden', !cfg.showDiagnosis);
+
+      const scoreCard = table.closest('.bg-white');
+      if (scoreCard) scoreCard.classList.toggle('hidden', !cfg.showSubjects);
     }
 
     function renderParentRadar(labels, scores, avgs) {
@@ -2360,6 +2879,275 @@
       });
     }
 
+    let parentBoxplotSubIdx = 0;
+    let sbBoxplotSubIdx = 0;
+
+    function renderBoxplotView(curExam, prefix) {
+      const isSb = prefix === 'sb';
+      const cardEl = document.getElementById(isSb ? 'sbBoxplotCard' : 'pBoxplotCard');
+      if (!cardEl) return;
+      const cfg = getActiveVisibilityConfig();
+      if (!cfg.showBoxplot || !curExam || !curExam.subjects || curExam.subjects.length === 0) {
+        cardEl.classList.add('hidden');
+        return;
+      }
+      cardEl.classList.remove('hidden');
+
+      const subs = curExam.subjects;
+      let activeIdx = isSb ? sbBoxplotSubIdx : parentBoxplotSubIdx;
+      if (activeIdx >= subs.length) {
+        activeIdx = 0;
+        if (isSb) sbBoxplotSubIdx = 0; else parentBoxplotSubIdx = 0;
+      }
+
+      const tabsContainer = document.getElementById(isSb ? 'sbBoxplotTabs' : 'pBoxplotSubjectTabs');
+      if (tabsContainer) {
+        tabsContainer.innerHTML = '';
+        subs.forEach((sub, idx) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.onclick = () => {
+            if (isSb) sbBoxplotSubIdx = idx; else parentBoxplotSubIdx = idx;
+            renderBoxplotView(curExam, prefix);
+          };
+          const isActive = idx === activeIdx;
+          btn.className = isActive
+            ? `px-2.5 py-1 rounded-xl font-black ${isSb ? 'text-[10px]' : 'text-xs'} bg-indigo-600 text-white shadow-xs transition`
+            : `px-2.5 py-1 rounded-xl font-bold ${isSb ? 'text-[10px]' : 'text-xs'} bg-slate-100 text-slate-600 hover:bg-slate-200 transition`;
+          btn.innerText = `${sub.name} (${sub.score}分)`;
+          tabsContainer.appendChild(btn);
+        });
+      }
+
+      const activeSub = subs[activeIdx];
+      const activeBadge = document.getElementById(isSb ? 'sbBoxplotActiveZoneBadge' : 'pBoxplotActiveZoneBadge');
+      if (activeBadge) {
+        activeBadge.innerText = activeSub.zoneStatus || (activeSub.zone + '區間');
+        if (activeSub.zone === '精熟') activeBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200';
+        else if (activeSub.zone === '穩健') activeBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200';
+        else if (activeSub.zone === '努力') activeBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200';
+        else activeBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200';
+      }
+
+      const min = activeSub.min !== undefined ? activeSub.min : 40;
+      const max = activeSub.max !== undefined ? activeSub.max : 100;
+      const q1 = activeSub.q1 !== undefined ? activeSub.q1 : 65;
+      const median = activeSub.median !== undefined ? activeSub.median : 76;
+      const q3 = activeSub.q3 !== undefined ? activeSub.q3 : 88;
+      const avg = activeSub.classAverage !== undefined ? activeSub.classAverage : 75;
+      const score = activeSub.score !== undefined ? activeSub.score : 70;
+
+      const clamp = v => Math.max(0, Math.min(100, v));
+      const pMin = clamp(min);
+      const pMax = clamp(max);
+      const pQ1 = clamp(q1);
+      const pMedian = clamp(median);
+      const pQ3 = clamp(q3);
+      const pAvg = clamp(avg);
+      const pScore = clamp(score);
+      const boxW = Math.max(2, pQ3 - pQ1);
+
+      const chartArea = document.getElementById(isSb ? 'sbBoxplotChartArea' : 'pBoxplotChartContainer');
+      if (chartArea) {
+        chartArea.innerHTML = `
+          <div class="flex items-center justify-between text-xs font-bold text-slate-700 mb-1">
+            <div class="flex items-center gap-2">
+              <span class="${isSb ? 'text-xs' : 'text-sm'} font-black text-slate-900">【${activeSub.name}】</span>
+              <span class="text-indigo-600 font-black">個人得分：${score} 分</span>
+            </div>
+            <div class="text-[10px] text-slate-500 font-medium">
+              班均：<span class="font-bold text-slate-700">${avg}</span> ‧ 中位數：<span class="font-bold text-slate-700">${median}</span>
+            </div>
+          </div>
+
+          <div class="relative ${isSb ? 'h-14' : 'h-16'} w-full flex items-center px-2 bg-slate-200/50 rounded-xl border border-slate-300 overflow-hidden">
+            ${[0, 20, 40, 60, 80, 100].map(v => `
+              <div class="absolute h-full w-px bg-slate-300 pointer-events-none" style="left: ${v}%;"></div>
+              <span class="absolute -bottom-0.5 text-[8px] font-mono text-slate-400 -translate-x-1/2 pointer-events-none" style="left: ${v}%;">${v}</span>
+            `).join('')}
+
+            <!-- 胡鬚線 (Min ~ Max) -->
+            <div class="absolute h-[3px] bg-slate-500 rounded-full z-0" style="left: ${pMin}%; width: ${Math.max(1, pMax - pMin)}%;"></div>
+            <div class="absolute h-5 w-[2px] bg-slate-500 -translate-x-1/2 z-0" style="left: ${pMin}%;"></div>
+            <div class="absolute h-5 w-[2px] bg-slate-500 -translate-x-1/2 z-0" style="left: ${pMax}%;"></div>
+
+            <!-- 黑色箱子 (Q1 ~ Q3，中間 50% 核心區間) -->
+            <div class="absolute ${isSb ? 'h-8' : 'h-10'} bg-slate-800 rounded shadow-md z-10 border-x-2 border-slate-900" style="left: ${pQ1}%; width: ${boxW}%;"></div>
+
+            <!-- 白色直線 (中位數 Median) -->
+            <div class="absolute ${isSb ? 'h-8' : 'h-10'} w-[3px] bg-white z-20 shadow-sm -translate-x-1/2" style="left: ${pMedian}%;" title="中位數: ${median}分"></div>
+
+            <!-- 白色菱形 (班均 Average) -->
+            <div class="absolute w-3 h-3 bg-white border-2 border-slate-900 rotate-45 z-30 shadow-md -translate-x-1/2" style="left: ${pAvg}%;" title="班均: ${avg}分"></div>
+
+            <!-- 亮色圓點 (個人得分) -->
+            <div class="absolute w-5 h-5 bg-white border-[3px] border-indigo-600 rounded-full z-40 shadow-xl flex items-center justify-center -translate-x-1/2 -translate-y-0.5" style="left: ${pScore}%;" title="個人得分: ${score}分">
+              <div class="w-1.5 h-1.5 rounded-full bg-indigo-600"></div>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center justify-center gap-2 pt-1 text-[9px] text-slate-600">
+            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 bg-slate-800 rounded-xs inline-block"></span> 黑色箱: 核心50%(Q1~Q3)</span>
+            <span class="flex items-center gap-1"><span class="w-1 h-2.5 bg-slate-400 inline-block"></span> 白線: 中位數(${median})</span>
+            <span class="flex items-center gap-1"><span class="w-2 h-2 bg-white border border-slate-800 rotate-45 inline-block"></span> 菱形: 班均(${avg})</span>
+            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full border-2 border-indigo-600 bg-white inline-block"></span> 圓點: 得分(${score})</span>
+          </div>
+        `;
+      }
+
+      const zonesArea = document.getElementById(isSb ? 'sbBoxplotZones' : 'pBoxplotZoneCards');
+      if (zonesArea) {
+        const isCur = z => activeSub.zone === z;
+        zonesArea.innerHTML = `
+          <div class="p-2 rounded-xl border ${isCur('精熟') ? 'bg-emerald-50 border-emerald-400 ring-2 ring-emerald-300' : 'bg-slate-50 border-slate-200 opacity-70'}">
+            <div class="font-bold text-emerald-800 flex items-center justify-between text-[11px]">
+              <span>精熟表現</span>
+              ${isCur('精熟') ? '<span class="text-[8px] bg-emerald-600 text-white px-1.5 py-0.2 rounded-full">落點</span>' : ''}
+            </div>
+            <div class="text-[9px] text-slate-500 mt-0.5">優於 75% 的同學，概念精熟穩定。</div>
+          </div>
+
+          <div class="p-2 rounded-xl border ${isCur('穩健') ? 'bg-blue-50 border-blue-400 ring-2 ring-blue-300' : 'bg-slate-50 border-slate-200 opacity-70'}">
+            <div class="font-bold text-blue-800 flex items-center justify-between text-[11px]">
+              <span>穩健發揮</span>
+              ${isCur('穩健') || isCur('稳健') ? '<span class="text-[8px] bg-blue-600 text-white px-1.5 py-0.2 rounded-full">落點</span>' : ''}
+            </div>
+            <div class="text-[9px] text-slate-500 mt-0.5">位居班級中上位置，基礎扎實流暢。</div>
+          </div>
+
+          <div class="p-2 rounded-xl border ${isCur('努力') ? 'bg-amber-50 border-amber-400 ring-2 ring-amber-300' : 'bg-slate-50 border-slate-200 opacity-70'}">
+            <div class="font-bold text-amber-800 flex items-center justify-between text-[11px]">
+              <span>努力成長</span>
+              ${isCur('努力') ? '<span class="text-[8px] bg-amber-600 text-white px-1.5 py-0.2 rounded-full">落點</span>' : ''}
+            </div>
+            <div class="text-[9px] text-slate-500 mt-0.5">位居班級中下位置，加強例題演練。</div>
+          </div>
+
+          <div class="p-2 rounded-xl border ${isCur('開發') ? 'bg-rose-50 border-rose-400 ring-2 ring-rose-300' : 'bg-slate-50 border-slate-200 opacity-70'}">
+            <div class="font-bold text-rose-800 flex items-center justify-between text-[11px]">
+              <span>開發潛力</span>
+              ${isCur('開發') ? '<span class="text-[8px] bg-rose-600 text-white px-1.5 py-0.2 rounded-full">落點</span>' : ''}
+            </div>
+            <div class="text-[9px] text-slate-500 mt-0.5">位居後段，需回歸課本基本定義紮根。</div>
+          </div>
+        `;
+      }
+    }
+
+    function renderPrCurveView(curExam, prefix) {
+      const isSb = prefix === 'sb';
+      const cardEl = document.getElementById(isSb ? 'sbPrCurveCard' : 'pPrCurveCard');
+      if (!cardEl) return;
+      const cfg = getActiveVisibilityConfig();
+      if (!cfg.showPrCurve || !curExam) {
+        cardEl.classList.add('hidden');
+        return;
+      }
+      cardEl.classList.remove('hidden');
+
+      const container = document.getElementById(isSb ? 'sbPrCurveContainer' : 'pPrCurveContainer');
+      if (!container) return;
+
+      const stAvgPr = curExam.studentAveragePr !== undefined ? curExam.studentAveragePr : 50;
+      const subs = curExam.subjects || [];
+
+      const getX = pr => 20 + (Math.max(0, Math.min(100, pr)) / 100) * 560;
+      const getY = pr => {
+        const diff = (pr - 50) / 22;
+        return 160 - 130 * Math.exp(-0.5 * diff * diff);
+      };
+
+      let pathD = 'M 20 160';
+      for (let p = 0; p <= 100; p += 2) {
+        pathD += ` L ${getX(p).toFixed(1)} ${getY(p).toFixed(1)}`;
+      }
+      pathD += ' L 580 160 Z';
+
+      const avgX = getX(stAvgPr);
+      const avgY = getY(stAvgPr);
+
+      const subColors = ['#4f46e5', '#06b6d4', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6'];
+
+      const subjectDotsSvg = subs.map((s, idx) => {
+        const sx = getX(s.pr);
+        const sy = getY(s.pr);
+        const col = subColors[idx % subColors.length];
+        return `
+          <g class="subject-marker">
+            <circle cx="${sx}" cy="${sy}" r="4.5" fill="${col}" stroke="#ffffff" stroke-width="2" />
+            <text x="${sx}" y="${sy - 8}" font-size="9" font-weight="bold" fill="${col}" text-anchor="middle">${s.name} ${s.pr}</text>
+          </g>
+        `;
+      }).join('');
+
+      const gradCurveId = isSb ? 'sbCurveGradient' : 'pCurveGradient';
+      const gradStrokeId = isSb ? 'sbStrokeGradient' : 'pStrokeGradient';
+
+      container.innerHTML = `
+        <div class="relative w-full">
+          <svg viewBox="0 0 600 200" class="w-full h-auto drop-shadow-sm select-none">
+            <defs>
+              <linearGradient id="${gradCurveId}" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#f43f5e" stop-opacity="0.18" />
+                <stop offset="25%" stop-color="#f59e0b" stop-opacity="0.22" />
+                <stop offset="50%" stop-color="#3b82f6" stop-opacity="0.25" />
+                <stop offset="75%" stop-color="#10b981" stop-opacity="0.28" />
+                <stop offset="100%" stop-color="#10b981" stop-opacity="0.32" />
+              </linearGradient>
+              <linearGradient id="${gradStrokeId}" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#f43f5e" />
+                <stop offset="25%" stop-color="#f59e0b" />
+                <stop offset="50%" stop-color="#3b82f6" />
+                <stop offset="75%" stop-color="#10b981" />
+                <stop offset="100%" stop-color="#10b981" />
+              </linearGradient>
+            </defs>
+
+            <path d="${pathD}" fill="url(#${gradCurveId})" stroke="url(#${gradStrokeId})" stroke-width="3" stroke-linecap="round" />
+
+            <line x1="${getX(25)}" y1="${getY(25)}" x2="${getX(25)}" y2="160" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="3,3" />
+            <line x1="${getX(50)}" y1="${getY(50)}" x2="${getX(50)}" y2="160" stroke="#94a3b8" stroke-width="2" stroke-dasharray="3,3" />
+            <line x1="${getX(75)}" y1="${getY(75)}" x2="${getX(75)}" y2="160" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="3,3" />
+
+            <line x1="15" y1="160" x2="585" y2="160" stroke="#64748b" stroke-width="1.5" />
+
+            <text x="${getX(0)}" y="176" font-size="9" fill="#94a3b8" text-anchor="middle" font-weight="bold">PR 0</text>
+            <text x="${getX(25)}" y="176" font-size="9" fill="#94a3b8" text-anchor="middle" font-weight="bold">PR 25 (Q1)</text>
+            <text x="${getX(50)}" y="176" font-size="10" fill="#475569" text-anchor="middle" font-black">PR 50 (中位數)</text>
+            <text x="${getX(75)}" y="176" font-size="9" fill="#94a3b8" text-anchor="middle" font-weight="bold">PR 75 (Q3)</text>
+            <text x="${getX(100)}" y="176" font-size="9" fill="#94a3b8" text-anchor="middle" font-weight="bold">PR 99</text>
+
+            <text x="${(getX(0) + getX(25)) / 2}" y="152" font-size="9" fill="#e11d48" font-weight="bold" text-anchor="middle">開發潛力</text>
+            <text x="${(getX(25) + getX(50)) / 2}" y="152" font-size="9" fill="#d97706" font-weight="bold" text-anchor="middle">努力成長</text>
+            <text x="${(getX(50) + getX(75)) / 2}" y="152" font-size="9" fill="#2563eb" font-weight="bold" text-anchor="middle">穩健發揮</text>
+            <text x="${(getX(75) + getX(100)) / 2}" y="152" font-size="9" fill="#059669" font-weight="bold" text-anchor="middle">精熟表現</text>
+
+            ${subjectDotsSvg}
+
+            <line x1="${avgX}" y1="${avgY}" x2="${avgX}" y2="160" stroke="#4f46e5" stroke-width="2" stroke-dasharray="2,2" />
+            <circle cx="${avgX}" cy="${avgY}" r="7" fill="#fbbf24" stroke="#4f46e5" stroke-width="3" />
+            
+            <g transform="translate(${Math.max(60, Math.min(540, avgX))}, ${Math.max(20, avgY - 14)})">
+              <rect x="-48" y="-16" width="96" height="20" rx="10" fill="#4f46e5" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.15))" />
+              <text x="0" y="-3" font-size="10" font-weight="900" fill="#ffffff" text-anchor="middle">🌟 總均 PR ${stAvgPr}</text>
+            </g>
+          </svg>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-center gap-1.5 pt-1">
+          <span class="text-[10px] font-black text-indigo-900 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-full">
+            總平均 PR ${stAvgPr}
+          </span>
+          ${subs.map((s, i) => `
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border bg-white text-slate-700" style="border-color: ${subColors[i % subColors.length]};">
+              <span class="inline-block w-1.5 h-1.5 rounded-full mr-1" style="background-color: ${subColors[i % subColors.length]};"></span>
+              ${s.name} PR ${s.pr}
+            </span>
+          `).join('')}
+        </div>
+      `;
+    }
+
     let sbRadarInst = null;
     let sbTrendInst = null;
     let sbStudentExams = [];
@@ -2374,21 +3162,23 @@
 
     function syncAllCheckboxesFromActiveConfig(cfg) {
       const map = {
-        optShowAvg: 'syncOptAvg',
-        optShowRank: 'syncOptRank',
-        optShowClassAvg: 'syncOptClassAvg',
-        optShowSubjects: 'syncOptSubjects',
-        optShowPr: 'syncOptPr',
-        optShowRadar: 'syncOptRadar',
-        optShowTrend: 'syncOptTrend',
-        optShowComparison: 'syncOptComparison',
-        optShowDiagnosis: 'syncOptDiagnosis'
+        webOptAvg: 'syncOptAvg',
+        webOptRank: 'syncOptRank',
+        webOptClassAvg: 'syncOptClassAvg',
+        webOptSubjects: 'syncOptSubjects',
+        webOptPr: 'syncOptPr',
+        webOptRadar: 'syncOptRadar',
+        webOptTrend: 'syncOptTrend',
+        webOptComparison: 'syncOptComparison',
+        webOptBoxplot: 'syncOptBoxplot',
+        webOptPrCurve: 'syncOptPrCurve',
+        webOptDiagnosis: 'syncOptDiagnosis'
       };
-      for (const [t2, t3] of Object.entries(map)) {
-        const el2 = document.getElementById(t2);
-        const el3 = document.getElementById(t3);
-        if (el2 && el3) {
-          el3.checked = el2.checked;
+      for (const [wId, sId] of Object.entries(map)) {
+        const wEl = document.getElementById(wId);
+        const sEl = document.getElementById(sId);
+        if (wEl && sEl) {
+          sEl.checked = wEl.checked;
         }
       }
     }
@@ -2661,6 +3451,10 @@
         }
       }
 
+      // 4b. 📦 建議箱型圖 與 🔔 常態 PR 落點曲線圖
+      renderBoxplotView(curExam, 'sb');
+      renderPrCurveView(curExam, 'sb');
+
       // 5. 📋 各科成績與常模明細表
       const scoreCard = document.getElementById('sbScoreCard');
       if (scoreCard) {
@@ -2695,6 +3489,30 @@
               </tr>
             `;
           });
+
+          // 增加【個人總平均】彙總列 (若有勾選個人總平均)
+          if (cfg.showAvg) {
+            const avgDiff = Math.round((curExam.studentAverage - curExam.classOverallAverage) * 10) / 10;
+            const avgDiffTag = avgDiff >= 0
+              ? `<span class="text-emerald-600 font-bold">+${avgDiff}</span>`
+              : `<span class="text-rose-500 font-bold">${avgDiff}</span>`;
+            const avgPrBadge = curExam.studentAveragePr !== undefined
+              ? `<span class="bg-indigo-600 text-white font-black px-1.5 py-0.5 rounded text-[10px] shadow-2xs">PR ${curExam.studentAveragePr}</span>`
+              : '-';
+
+            tbody.innerHTML += `
+              <tr class="bg-indigo-50/80 font-bold border-t-2 border-indigo-200">
+                <td class="py-2 px-2.5 font-black text-indigo-950 flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-indigo-600 inline-block"></span>
+                  <span>【個人總平均】</span>
+                </td>
+                <td class="py-2 px-2 text-center font-black text-indigo-700">${curExam.studentAverage ? curExam.studentAverage.toFixed(1) : '--'}</td>
+                ${cfg.showClassAvg ? `<td class="py-2 px-2 text-center text-slate-500 font-semibold">${curExam.classOverallAverage ? curExam.classOverallAverage.toFixed(1) : '--'}</td>` : ''}
+                ${cfg.showPr ? `<td class="py-2 px-2 text-center">${avgPrBadge}</td>` : ''}
+                ${cfg.showClassAvg ? `<td class="py-2 px-2 text-center">${avgDiffTag}</td>` : ''}
+              </tr>
+            `;
+          }
         } else {
           scoreCard.classList.add('hidden');
         }

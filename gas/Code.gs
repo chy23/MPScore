@@ -514,7 +514,16 @@ function analyzeExamSheet(sheet, student) {
     }
   }
 
-  // 5. 計算各科目的「班級平均」與「PR值」
+  // 計算學生個人總平均之 PR 值 (供 PR 常模曲線圖標註落點)
+  var allAvgValues = sortedByAvg.map(function(s) { return s.average; }).slice().sort(function(a, b) { return a - b; });
+  var avgBelowCount = 0, avgEqualCount = 0;
+  for (var abIdx = 0; abIdx < allAvgValues.length; abIdx++) {
+    if (allAvgValues[abIdx] < myStudentRow.average) avgBelowCount++;
+    else if (allAvgValues[abIdx] === myStudentRow.average) avgEqualCount++;
+  }
+  var studentAveragePr = Math.round(((avgBelowCount + 0.5 * avgEqualCount) / totalStudents) * 100);
+
+  // 5. 計算各科目的「班級平均」、「PR值」與「箱型圖四分位數 (Q1, Median, Q3)」
   var subjectsResult = [];
   var classTotalAvgSum = 0;
 
@@ -543,20 +552,28 @@ function analyzeExamSheet(sheet, student) {
 
     var prVal = Math.round(((below + 0.5 * equal) / totalStudents) * 100);
 
+    // 計算該科箱型圖五數摘要 (Q1, Median, Q3, Min, Max)
+    var sortedSubScores = allScoresForSub.slice().sort(function(a, b) { return a - b; });
+    var q1Val = calculatePercentileValue(sortedSubScores, 25);
+    var medianVal = calculatePercentileValue(sortedSubScores, 50);
+    var q3Val = calculatePercentileValue(sortedSubScores, 75);
+    var minVal = sortedSubScores[0];
+    var maxVal = sortedSubScores[sortedSubScores.length - 1];
+
     // 學習落點區間判定 (依楊家驊老師 GradeInterpr 標準)
     var zone = '穩健';
     var zoneStatus = '穩健發揮區間';
     var zoneType = 'leading';
 
-    if (prVal >= 75) {
+    if (mySubScore >= q3Val || prVal >= 75) {
       zone = '精熟';
       zoneStatus = '精熟表現區間';
       zoneType = 'leading';
-    } else if (prVal >= 50) {
+    } else if (mySubScore >= medianVal || prVal >= 50) {
       zone = '穩健';
       zoneStatus = '穩健發揮區間';
       zoneType = 'leading';
-    } else if (prVal >= 25) {
+    } else if (mySubScore >= q1Val || prVal >= 25) {
       zone = '努力';
       zoneStatus = '努力成長區間';
       zoneType = 'improving';
@@ -575,6 +592,11 @@ function analyzeExamSheet(sheet, student) {
       classAverage: subClassAvg,
       diff: Math.round((mySubScore - subClassAvg) * 100) / 100,
       pr: prVal,
+      q1: q1Val,
+      median: medianVal,
+      q3: q3Val,
+      min: minVal,
+      max: maxVal,
       zone: zone,
       zoneStatus: zoneStatus,
       advice: adviceText
@@ -589,12 +611,26 @@ function analyzeExamSheet(sheet, student) {
       examTitle: examTitle,
       sheetName: sheetName,
       studentAverage: myStudentRow.average,
+      studentAveragePr: studentAveragePr,
       studentRank: myRank,
       totalStudents: totalStudents,
       classOverallAverage: classOverallAvg,
       subjects: subjectsResult
     }
   };
+}
+
+/**
+ * 百分位數精確插值計算 (供 PR 及箱型圖 Q1, Median, Q3 運算)
+ */
+function calculatePercentileValue(sortedArr, p) {
+  if (!sortedArr || sortedArr.length === 0) return 0;
+  if (sortedArr.length === 1) return sortedArr[0];
+  var idx = (p / 100) * (sortedArr.length - 1);
+  var low = Math.floor(idx);
+  var high = Math.ceil(idx);
+  var weight = idx - low;
+  return Math.round((sortedArr[low] * (1 - weight) + sortedArr[high] * weight) * 10) / 10;
 }
 
 /**
@@ -742,9 +778,10 @@ function getExamAllStudentsStats(sheet) {
     rankMap[sorted[k].seat] = k + 1;
   }
 
-  // 計算各科班均與各生 PR
+  // 計算各科班均、各科箱型圖五數摘要與各生 PR
   var subAvgs = {};
   var subScoresPool = {};
+  var subBoxStats = {};
   var classTotalAvgSum = 0;
   for (var j = 0; j < subjectCols.length; j++) {
     var subName = subjectCols[j].name;
@@ -757,8 +794,19 @@ function getExamAllStudentsStats(sheet) {
     var avg = Math.round((sum / total) * 100) / 100;
     subAvgs[subName] = avg;
     classTotalAvgSum += avg;
+
+    var sortedP = pList.slice().sort(function(a, b) { return a - b; });
+    subBoxStats[subName] = {
+      q1: calculatePercentileValue(sortedP, 25),
+      median: calculatePercentileValue(sortedP, 50),
+      q3: calculatePercentileValue(sortedP, 75),
+      min: sortedP[0],
+      max: sortedP[sortedP.length - 1]
+    };
   }
   var classOverallAvg = Math.round((classTotalAvgSum / subjectCols.length) * 100) / 100;
+
+  var allAvgSorted = sorted.map(function(s) { return s.average; }).slice().sort(function(a, b) { return a - b; });
 
   var resultMap = {};
   for (var n = 0; n < total; n++) {
@@ -774,18 +822,33 @@ function getExamAllStudentsStats(sheet) {
         else if (pool[q] === myScore) equal++;
       }
       var pr = Math.round(((below + 0.5 * equal) / total) * 100);
+      var bStats = subBoxStats[sName] || { q1: 60, median: 75, q3: 88, min: 40, max: 100 };
       subjectsResult.push({
         name: sName,
         score: myScore,
         classAverage: subAvgs[sName],
-        pr: pr
+        pr: pr,
+        q1: bStats.q1,
+        median: bStats.median,
+        q3: bStats.q3,
+        min: bStats.min,
+        max: bStats.max
       });
     }
+
+    // 計算學生個人總平均之 PR 值
+    var avgBelow = 0, avgEqual = 0;
+    for (var ab = 0; ab < allAvgSorted.length; ab++) {
+      if (allAvgSorted[ab] < st.average) avgBelow++;
+      else if (allAvgSorted[ab] === st.average) avgEqual++;
+    }
+    var stAvgPr = Math.round(((avgBelow + 0.5 * avgEqual) / total) * 100);
 
     var statObj = {
       examTitle: examTitle,
       sheetName: sheetName,
       studentAverage: st.average,
+      studentAveragePr: stAvgPr,
       studentRank: rankMap[st.seat],
       totalStudents: total,
       classOverallAverage: classOverallAvg,

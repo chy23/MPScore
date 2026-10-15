@@ -151,6 +151,44 @@
         <div id="pComparisonList" class="grid grid-cols-2 gap-2 text-xs"></div>
       </div>
 
+      <!-- 📦 建議箱型圖 (經典盒鬚圖常模分佈，依教師權限動態隱藏/顯示) -->
+      <div id="pBoxplotCard" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 space-y-3">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+          <div>
+            <div class="font-bold text-xs text-slate-800 flex items-center gap-1.5">
+              <span>📦 建議箱型圖 (學習表現常模分佈)</span>
+            </div>
+            <div class="text-[10px] text-slate-400 mt-0.5">復刻 GradeInterpr 幾何盒鬚圖 ‧ 掌握中位數、班均與個人分數位置</div>
+          </div>
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200" id="pBoxplotActiveZoneBadge">--</span>
+        </div>
+
+        <!-- 科目切換頁籤 -->
+        <div id="pBoxplotSubjectTabs" class="flex flex-wrap gap-1.5"></div>
+
+        <!-- 箱型圖幾何圖表容器 -->
+        <div id="pBoxplotChartContainer" class="bg-slate-100/90 rounded-2xl p-4 border border-slate-200 space-y-3"></div>
+
+        <!-- 4 大區間指引與該科個人落點診斷 -->
+        <div id="pBoxplotZoneCards" class="grid grid-cols-2 gap-2 text-[11px]"></div>
+      </div>
+
+      <!-- 🔔 常態 PR 落點曲線圖 (常模相對位置，依教師權限動態隱藏/顯示) -->
+      <div id="pPrCurveCard" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 space-y-2.5">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+          <div>
+            <div class="font-bold text-xs text-slate-800 flex items-center gap-1.5">
+              <span>🔔 常態 PR 落點曲線圖 (常模相對位置)</span>
+            </div>
+            <div class="text-[10px] text-slate-400 mt-0.5">常態鐘形常模分佈 ‧ 總平均與各科 PR 相對落點</div>
+          </div>
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200" id="pPrCurveBadge">總均 PR</span>
+        </div>
+
+        <!-- SVG 曲線圖容器 -->
+        <div id="pPrCurveContainer"></div>
+      </div>
+
       <!-- 📋 各科成績與常模明細 -->
       <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         <div class="p-3 border-b border-slate-100 font-bold text-xs text-slate-800 flex justify-between items-center">
@@ -283,7 +321,9 @@
           showRadar: vStr.length > 7 ? vStr[7] === '1' : true,
           showTrend: vStr.length > 8 ? vStr[8] === '1' : true,
           showComparison: vStr.length > 9 ? vStr[9] === '1' : true,
-          showDiagnosis: vStr.length > 10 ? vStr[10] === '1' : true
+          showDiagnosis: vStr.length > 10 ? vStr[10] === '1' : true,
+          showBoxplot: vStr.length > 11 ? vStr[11] === '1' : true,
+          showPrCurve: vStr.length > 12 ? vStr[12] === '1' : true
         };
       }
 
@@ -303,7 +343,9 @@
         showRadar: true,
         showTrend: true,
         showComparison: true,
-        showDiagnosis: true
+        showDiagnosis: true,
+        showBoxplot: true,
+        showPrCurve: true
       };
     }
 
@@ -678,6 +720,52 @@
         `;
       });
 
+      // 增加「個人總平均」彙總列 (若有勾選個人總平均)
+      if (cfg.showAvg) {
+        const avgDiff = Math.round((curExam.studentAverage - curExam.classOverallAverage) * 10) / 10;
+        const avgDiffTag = avgDiff >= 0 
+          ? `<span class="text-emerald-600 font-bold">+${avgDiff}</span>` 
+          : `<span class="text-rose-500 font-bold">${avgDiff}</span>`;
+        const avgPrBadge = curExam.studentAveragePr !== undefined 
+          ? `<span class="bg-indigo-600 text-white font-black px-2 py-0.5 rounded text-[11px] shadow-2xs">PR ${curExam.studentAveragePr}</span>` 
+          : '-';
+
+        table.innerHTML += `
+          <tr class="bg-indigo-50/80 font-bold border-t-2 border-indigo-200">
+            <td class="py-2.5 px-3 font-black text-indigo-950 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-indigo-600 inline-block"></span>
+              <span>【個人總平均】</span>
+            </td>
+            ${cfg.showSubjects ? `<td class="py-2.5 px-3 text-center font-black text-indigo-700 text-sm">${curExam.studentAverage ? curExam.studentAverage.toFixed(1) : '--'}</td>` : ''}
+            ${cfg.showClassAvg ? `<td class="py-2.5 px-3 text-center text-slate-500 font-semibold">${curExam.classOverallAverage ? curExam.classOverallAverage.toFixed(1) : '--'}</td>` : ''}
+            ${cfg.showPr ? `<td class="py-2.5 px-3 text-center">${avgPrBadge}</td>` : ''}
+            ${cfg.showClassAvg ? `<td class="py-2.5 px-3 text-center">${avgDiffTag}</td>` : ''}
+          </tr>
+        `;
+      }
+
+      // 5b. 📦 建議箱型圖控制 (經典盒鬚圖)
+      const boxplotCard = document.getElementById('pBoxplotCard');
+      if (boxplotCard) {
+        if (cfg.showBoxplot && curExam.subjects && curExam.subjects.length > 0) {
+          boxplotCard.classList.remove('hidden');
+          renderParentBoxplot(curExam);
+        } else {
+          boxplotCard.classList.add('hidden');
+        }
+      }
+
+      // 5c. 🔔 常態 PR 落點曲線圖控制
+      const prCurveCard = document.getElementById('pPrCurveCard');
+      if (prCurveCard) {
+        if (cfg.showPrCurve && curExam.subjects && curExam.subjects.length > 0) {
+          prCurveCard.classList.remove('hidden');
+          renderParentPrCurve(curExam);
+        } else {
+          prCurveCard.classList.add('hidden');
+        }
+      }
+
       // 6. 💡 專家學習診斷處方控制
       const diagCard = document.getElementById('pDiagnosisCard');
       if (diagCard) {
@@ -707,6 +795,254 @@
           diagCard.classList.add('hidden');
         }
       }
+    }
+
+    let parentBoxplotSubIdx = 0;
+
+    function renderParentBoxplot(curExam) {
+      const subs = curExam.subjects || [];
+      if (subs.length === 0) return;
+      if (parentBoxplotSubIdx >= subs.length) parentBoxplotSubIdx = 0;
+
+      const tabsContainer = document.getElementById('pBoxplotSubjectTabs');
+      tabsContainer.innerHTML = '';
+
+      subs.forEach((sub, idx) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.onclick = () => {
+          parentBoxplotSubIdx = idx;
+          renderParentBoxplot(curExam);
+        };
+        const isActive = idx === parentBoxplotSubIdx;
+        btn.className = isActive
+          ? 'px-3 py-1.5 rounded-xl font-black text-xs bg-indigo-600 text-white shadow-xs transition'
+          : 'px-3 py-1.5 rounded-xl font-bold text-xs bg-slate-100 text-slate-600 hover:bg-slate-200 transition';
+        btn.innerText = `${sub.name} (${sub.score}分)`;
+        tabsContainer.appendChild(btn);
+      });
+
+      const activeSub = subs[parentBoxplotSubIdx];
+      const activeBadge = document.getElementById('pBoxplotActiveZoneBadge');
+      if (activeBadge) {
+        activeBadge.innerText = activeSub.zoneStatus || (activeSub.zone + '區間');
+        if (activeSub.zone === '精熟') activeBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200';
+        else if (activeSub.zone === '穩健') activeBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200';
+        else if (activeSub.zone === '努力') activeBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200';
+        else activeBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200';
+      }
+
+      // 渲染箱型圖本體
+      const min = activeSub.min !== undefined ? activeSub.min : 40;
+      const max = activeSub.max !== undefined ? activeSub.max : 100;
+      const q1 = activeSub.q1 !== undefined ? activeSub.q1 : 65;
+      const median = activeSub.median !== undefined ? activeSub.median : 76;
+      const q3 = activeSub.q3 !== undefined ? activeSub.q3 : 88;
+      const avg = activeSub.classAverage !== undefined ? activeSub.classAverage : 75;
+      const score = activeSub.score !== undefined ? activeSub.score : 70;
+
+      const clamp = v => Math.max(0, Math.min(100, v));
+      const pMin = clamp(min);
+      const pMax = clamp(max);
+      const pQ1 = clamp(q1);
+      const pMedian = clamp(median);
+      const pQ3 = clamp(q3);
+      const pAvg = clamp(avg);
+      const pScore = clamp(score);
+      const boxW = Math.max(2, pQ3 - pQ1);
+
+      const chartArea = document.getElementById('pBoxplotChartContainer');
+      chartArea.innerHTML = `
+        <div class="flex items-center justify-between text-xs font-bold text-slate-700 mb-1">
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-black text-slate-900">【${activeSub.name}】</span>
+            <span class="text-indigo-600 font-black">個人得分：${score} 分</span>
+          </div>
+          <div class="text-[11px] text-slate-500 font-medium">
+            班均：<span class="font-bold text-slate-700">${avg} 分</span> ‧ 中位數：<span class="font-bold text-slate-700">${median} 分</span>
+          </div>
+        </div>
+
+        <div class="relative h-16 w-full flex items-center px-2 bg-slate-200/50 rounded-xl border border-slate-300 overflow-hidden">
+          ${[0, 20, 40, 60, 80, 100].map(v => `
+            <div class="absolute h-full w-px bg-slate-300 pointer-events-none" style="left: ${v}%;"></div>
+            <span class="absolute -bottom-0.5 text-[9px] font-mono text-slate-400 -translate-x-1/2 pointer-events-none" style="left: ${v}%;">${v}</span>
+          `).join('')}
+
+          <!-- 胡鬚線 (Min ~ Max) -->
+          <div class="absolute h-[3px] bg-slate-500 rounded-full z-0" style="left: ${pMin}%; width: ${Math.max(1, pMax - pMin)}%;"></div>
+          <div class="absolute h-5 w-[2px] bg-slate-500 -translate-x-1/2 z-0" style="left: ${pMin}%;"></div>
+          <div class="absolute h-5 w-[2px] bg-slate-500 -translate-x-1/2 z-0" style="left: ${pMax}%;"></div>
+
+          <!-- 黑色箱子 (Q1 ~ Q3，中間 50% 核心區間) -->
+          <div class="absolute h-10 bg-slate-800 rounded shadow-md z-10 border-x-2 border-slate-900" style="left: ${pQ1}%; width: ${boxW}%;"></div>
+
+          <!-- 白色直線 (中位數 Median) -->
+          <div class="absolute h-10 w-[3px] bg-white z-20 shadow-sm -translate-x-1/2" style="left: ${pMedian}%;" title="中位數: ${median}分"></div>
+
+          <!-- 白色菱形 (班均 Average) -->
+          <div class="absolute w-3.5 h-3.5 bg-white border-2 border-slate-900 rotate-45 z-30 shadow-md -translate-x-1/2" style="left: ${pAvg}%;" title="班均: ${avg}分"></div>
+
+          <!-- 亮色圓點 (個人得分) -->
+          <div class="absolute w-6 h-6 bg-white border-[3px] border-indigo-600 rounded-full z-40 shadow-xl flex items-center justify-center -translate-x-1/2 -translate-y-0.5" style="left: ${pScore}%;" title="個人得分: ${score}分">
+            <div class="w-2 h-2 rounded-full bg-indigo-600"></div>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-center gap-3 pt-1 text-[10px] text-slate-600">
+          <span class="flex items-center gap-1"><span class="w-3 h-3 bg-slate-800 rounded-xs inline-block"></span> 黑色箱子: 中間 50% (Q1~Q3)</span>
+          <span class="flex items-center gap-1"><span class="w-1 h-3 bg-slate-400 inline-block"></span> 白色線: 中位數 (${median})</span>
+          <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 bg-white border border-slate-800 rotate-45 inline-block"></span> 菱形: 班均 (${avg})</span>
+          <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full border-2 border-indigo-600 bg-white inline-block"></span> 圓點: 個人得分 (${score})</span>
+        </div>
+      `;
+
+      // 4 大區間指引
+      const zonesArea = document.getElementById('pBoxplotZoneCards');
+      const isCur = z => activeSub.zone === z;
+      zonesArea.innerHTML = `
+        <div class="p-2.5 rounded-xl border ${isCur('精熟') ? 'bg-emerald-50 border-emerald-400 ring-2 ring-emerald-300' : 'bg-slate-50 border-slate-200 opacity-70'}">
+          <div class="font-bold text-emerald-800 flex items-center justify-between">
+            <span>精熟表現區間</span>
+            ${isCur('精熟') ? '<span class="text-[9px] bg-emerald-600 text-white px-1.5 py-0.2 rounded-full">落點</span>' : ''}
+          </div>
+          <div class="text-[10px] text-slate-500 mt-0.5">優於 75% 的同學，概念精熟穩定。</div>
+        </div>
+
+        <div class="p-2.5 rounded-xl border ${isCur('穩健') ? 'bg-blue-50 border-blue-400 ring-2 ring-blue-300' : 'bg-slate-50 border-slate-200 opacity-70'}">
+          <div class="font-bold text-blue-800 flex items-center justify-between">
+            <span>穩健發揮區間</span>
+            ${isCur('稳健') || isCur('穩健') ? '<span class="text-[9px] bg-blue-600 text-white px-1.5 py-0.2 rounded-full">落點</span>' : ''}
+          </div>
+          <div class="text-[10px] text-slate-500 mt-0.5">位居班級中上位置，基礎扎實流暢。</div>
+        </div>
+
+        <div class="p-2.5 rounded-xl border ${isCur('努力') ? 'bg-amber-50 border-amber-400 ring-2 ring-amber-300' : 'bg-slate-50 border-slate-200 opacity-70'}">
+          <div class="font-bold text-amber-800 flex items-center justify-between">
+            <span>努力成長區間</span>
+            ${isCur('努力') ? '<span class="text-[9px] bg-amber-600 text-white px-1.5 py-0.2 rounded-full">落點</span>' : ''}
+          </div>
+          <div class="text-[10px] text-slate-500 mt-0.5">位居班級中下位置，加強例題演練。</div>
+        </div>
+
+        <div class="p-2.5 rounded-xl border ${isCur('開發') ? 'bg-rose-50 border-rose-400 ring-2 ring-rose-300' : 'bg-slate-50 border-slate-200 opacity-70'}">
+          <div class="font-bold text-rose-800 flex items-center justify-between">
+            <span>開發潛力區間</span>
+            ${isCur('開發') ? '<span class="text-[9px] bg-rose-600 text-white px-1.5 py-0.2 rounded-full">落點</span>' : ''}
+          </div>
+          <div class="text-[10px] text-slate-500 mt-0.5">位居後段，需回歸課本基本定義紮根。</div>
+        </div>
+      `;
+    }
+
+    function renderParentPrCurve(curExam) {
+      const container = document.getElementById('pPrCurveContainer');
+      if (!container || !curExam) return;
+
+      const stAvgPr = curExam.studentAveragePr !== undefined ? curExam.studentAveragePr : 50;
+      const subs = curExam.subjects || [];
+
+      const getX = pr => 20 + (Math.max(0, Math.min(100, pr)) / 100) * 560;
+      const getY = pr => {
+        const diff = (pr - 50) / 22;
+        return 160 - 130 * Math.exp(-0.5 * diff * diff);
+      };
+
+      let pathD = 'M 20 160';
+      for (let p = 0; p <= 100; p += 2) {
+        pathD += ` L ${getX(p).toFixed(1)} ${getY(p).toFixed(1)}`;
+      }
+      pathD += ' L 580 160 Z';
+
+      const avgX = getX(stAvgPr);
+      const avgY = getY(stAvgPr);
+
+      const subColors = ['#4f46e5', '#06b6d4', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6'];
+
+      const subjectDotsSvg = subs.map((s, idx) => {
+        const sx = getX(s.pr);
+        const sy = getY(s.pr);
+        const col = subColors[idx % subColors.length];
+        return `
+          <g class="subject-marker">
+            <circle cx="${sx}" cy="${sy}" r="4.5" fill="${col}" stroke="#ffffff" stroke-width="2" />
+            <text x="${sx}" y="${sy - 8}" font-size="9" font-weight="bold" fill="${col}" text-anchor="middle">${s.name} ${s.pr}</text>
+          </g>
+        `;
+      }).join('');
+
+      container.innerHTML = `
+        <div class="relative w-full">
+          <svg viewBox="0 0 600 200" class="w-full h-auto drop-shadow-sm select-none">
+            <defs>
+              <linearGradient id="pCurveGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#f43f5e" stop-opacity="0.18" />
+                <stop offset="25%" stop-color="#f59e0b" stop-opacity="0.22" />
+                <stop offset="50%" stop-color="#3b82f6" stop-opacity="0.25" />
+                <stop offset="75%" stop-color="#10b981" stop-opacity="0.28" />
+                <stop offset="100%" stop-color="#10b981" stop-opacity="0.32" />
+              </linearGradient>
+              <linearGradient id="pStrokeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#f43f5e" />
+                <stop offset="25%" stop-color="#f59e0b" />
+                <stop offset="50%" stop-color="#3b82f6" />
+                <stop offset="75%" stop-color="#10b981" />
+                <stop offset="100%" stop-color="#10b981" />
+              </linearGradient>
+            </defs>
+
+            <path d="${pathD}" fill="url(#pCurveGradient)" stroke="url(#pStrokeGradient)" stroke-width="3" stroke-linecap="round" />
+
+            <line x1="${getX(25)}" y1="${getY(25)}" x2="${getX(25)}" y2="160" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="3,3" />
+            <line x1="${getX(50)}" y1="${getY(50)}" x2="${getX(50)}" y2="160" stroke="#94a3b8" stroke-width="2" stroke-dasharray="3,3" />
+            <line x1="${getX(75)}" y1="${getY(75)}" x2="${getX(75)}" y2="160" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="3,3" />
+
+            <line x1="15" y1="160" x2="585" y2="160" stroke="#64748b" stroke-width="1.5" />
+
+            <text x="${getX(0)}" y="176" font-size="9" fill="#94a3b8" text-anchor="middle" font-weight="bold">PR 0</text>
+            <text x="${getX(25)}" y="176" font-size="9" fill="#94a3b8" text-anchor="middle" font-weight="bold">PR 25 (Q1)</text>
+            <text x="${getX(50)}" y="176" font-size="10" fill="#475569" text-anchor="middle" font-black">PR 50 (中位數)</text>
+            <text x="${getX(75)}" y="176" font-size="9" fill="#94a3b8" text-anchor="middle" font-weight="bold">PR 75 (Q3)</text>
+            <text x="${getX(100)}" y="176" font-size="9" fill="#94a3b8" text-anchor="middle" font-weight="bold">PR 99</text>
+
+            <text x="${(getX(0) + getX(25)) / 2}" y="152" font-size="9" fill="#e11d48" font-weight="bold" text-anchor="middle">開發潛力</text>
+            <text x="${(getX(25) + getX(50)) / 2}" y="152" font-size="9" fill="#d97706" font-weight="bold" text-anchor="middle">努力成長</text>
+            <text x="${(getX(50) + getX(75)) / 2}" y="152" font-size="9" fill="#2563eb" font-weight="bold" text-anchor="middle">穩健發揮</text>
+            <text x="${(getX(75) + getX(100)) / 2}" y="152" font-size="9" fill="#059669" font-weight="bold" text-anchor="middle">精熟表現</text>
+
+            ${subjectDotsSvg}
+
+            <line x1="${avgX}" y1="${avgY}" x2="${avgX}" y2="160" stroke="#4f46e5" stroke-width="2" stroke-dasharray="2,2" />
+            <circle cx="${avgX}" cy="${avgY}" r="7" fill="#fbbf24" stroke="#4f46e5" stroke-width="3" />
+            
+            <g transform="translate(${Math.max(60, Math.min(540, avgX))}, ${Math.max(20, avgY - 14)})">
+              <rect x="-48" y="-16" width="96" height="20" rx="10" fill="#4f46e5" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.15))" />
+              <text x="0" y="-3" font-size="10" font-weight="900" fill="#ffffff" text-anchor="middle">🌟 總均 PR ${stAvgPr}</text>
+            </g>
+          </svg>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-center gap-1.5 pt-1">
+          <span class="text-[10px] font-black text-indigo-900 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-full">
+            總平均 PR ${stAvgPr}
+          </span>
+          ${subs.map((s, i) => `
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border bg-white text-slate-700" style="border-color: ${subColors[i % subColors.length]};">
+              <span class="inline-block w-1.5 h-1.5 rounded-full mr-1" style="background-color: ${subColors[i % subColors.length]};"></span>
+              ${s.name} PR ${s.pr}
+            </span>
+          `).join('')}
+        </div>
+
+        <div class="p-2.5 bg-indigo-50/60 rounded-xl border border-indigo-100 text-[11px] text-slate-700 leading-relaxed">
+          <div class="font-bold text-indigo-950 mb-0.5 flex items-center gap-1">
+            <span>💡</span> 什麼是常態 PR 值 (百分位數)？
+          </div>
+          <div>
+            PR 值的範圍為 0~99。例如 <b>PR ${stAvgPr}</b> 表示在 100 位同學中，成績超越約 <b>${stAvgPr}</b> 位同學。PR 50 即代表全班中位數基準。
+          </div>
+        </div>
+      `;
     }
 
     function renderParentRadar(labels, scores, avgs, showClassAvg) {
@@ -799,15 +1135,16 @@
         examTitle: '114學年度第1學期期中考',
         sheetName: '114-1期中考',
         studentAverage: isXiaoMing ? 77.0 : 79.5,
+        studentAveragePr: isXiaoMing ? 58 : 72,
         studentRank: isXiaoMing ? 12 : 5,
         totalStudents: 24,
         classOverallAverage: 76.5,
         subjects: [
-          { name: '國語', score: isXiaoMing ? 88 : 86, classAverage: 79.8, diff: isXiaoMing ? 8.2 : 6.2, pr: isXiaoMing ? 75 : 68, zone: '精熟', zoneStatus: '精熟表現區間', advice: GRADE_INTERPR_ADVICE['國語'].leading[0] },
-          { name: '數學', score: isXiaoMing ? 70 : 74, classAverage: 75.3, diff: isXiaoMing ? -5.3 : -1.3, pr: isXiaoMing ? 42 : 52, zone: '努力', zoneStatus: '努力成長區間', advice: GRADE_INTERPR_ADVICE['數學'].improving[0] },
-          { name: '社會', score: isXiaoMing ? 77 : 81, classAverage: 78.1, diff: isXiaoMing ? -1.1 : 2.9, pr: isXiaoMing ? 55 : 64, zone: '穩健', zoneStatus: '穩健發揮區間', advice: GRADE_INTERPR_ADVICE['社會'].leading[0] },
-          { name: '英文', score: isXiaoMing ? 100 : 79, classAverage: 74.2, diff: isXiaoMing ? 25.8 : 4.8, pr: isXiaoMing ? 98 : 65, zone: '精熟', zoneStatus: '精熟表現區間', advice: GRADE_INTERPR_ADVICE['英文'].leading[0] },
-          { name: '自然', score: isXiaoMing ? 57 : 69, classAverage: 75.0, diff: isXiaoMing ? -18.0 : -6.0, pr: isXiaoMing ? 22 : 45, zone: '開發', zoneStatus: '開發潛力區間', advice: GRADE_INTERPR_ADVICE['自然'].improving[0] }
+          { name: '國語', score: isXiaoMing ? 88 : 86, classAverage: 79.8, diff: isXiaoMing ? 8.2 : 6.2, pr: isXiaoMing ? 75 : 68, q1: 74, median: 80, q3: 88, min: 52, max: 98, zone: '精熟', zoneStatus: '精熟表現區間', advice: GRADE_INTERPR_ADVICE['國語'].leading[0] },
+          { name: '數學', score: isXiaoMing ? 70 : 74, classAverage: 75.3, diff: isXiaoMing ? -5.3 : -1.3, pr: isXiaoMing ? 42 : 52, q1: 65, median: 76, q3: 85, min: 40, max: 96, zone: '努力', zoneStatus: '努力成長區間', advice: GRADE_INTERPR_ADVICE['數學'].improving[0] },
+          { name: '社會', score: isXiaoMing ? 77 : 81, classAverage: 78.1, diff: isXiaoMing ? -1.1 : 2.9, pr: isXiaoMing ? 55 : 64, q1: 72, median: 78, q3: 86, min: 48, max: 98, zone: '穩健', zoneStatus: '穩健發揮區間', advice: GRADE_INTERPR_ADVICE['社會'].leading[0] },
+          { name: '英文', score: isXiaoMing ? 100 : 79, classAverage: 74.2, diff: isXiaoMing ? 25.8 : 4.8, pr: isXiaoMing ? 98 : 65, q1: 68, median: 75, q3: 88, min: 38, max: 100, zone: '精熟', zoneStatus: '精熟表現區間', advice: GRADE_INTERPR_ADVICE['英文'].leading[0] },
+          { name: '自然', score: isXiaoMing ? 57 : 69, classAverage: 75.0, diff: isXiaoMing ? -18.0 : -6.0, pr: isXiaoMing ? 22 : 45, q1: 68, median: 75, q3: 85, min: 45, max: 94, zone: '開發', zoneStatus: '開發潛力區間', advice: GRADE_INTERPR_ADVICE['自然'].improving[0] }
         ]
       };
 
@@ -815,15 +1152,16 @@
         examTitle: '114學年度第1學期期末考',
         sheetName: '114-1期末考',
         studentAverage: isXiaoMing ? 83.2 : 82.0,
+        studentAveragePr: isXiaoMing ? 78 : 70,
         studentRank: isXiaoMing ? 7 : 4,
         totalStudents: 24,
         classOverallAverage: 78.2,
         subjects: [
-          { name: '國語', score: isXiaoMing ? 92 : 88, classAverage: 81.2, diff: isXiaoMing ? 10.8 : 6.8, pr: isXiaoMing ? 85 : 72, zone: '精熟', zoneStatus: '精熟表現區間', advice: GRADE_INTERPR_ADVICE['國語'].leading[0] },
-          { name: '數學', score: isXiaoMing ? 78 : 76, classAverage: 76.5, diff: isXiaoMing ? 1.5 : -0.5, pr: isXiaoMing ? 58 : 54, zone: '穩健', zoneStatus: '穩健發揮區間', advice: GRADE_INTERPR_ADVICE['數學'].leading[0] },
-          { name: '社會', score: isXiaoMing ? 82 : 84, classAverage: 79.5, diff: isXiaoMing ? 2.5 : 4.5, pr: isXiaoMing ? 68 : 72, zone: '穩健', zoneStatus: '穩健發揮區間', advice: GRADE_INTERPR_ADVICE['社會'].leading[0] },
-          { name: '英文', score: isXiaoMing ? 96 : 82, classAverage: 76.0, diff: isXiaoMing ? 20.0 : 6.0, pr: isXiaoMing ? 95 : 70, zone: '精熟', zoneStatus: '精熟表現區間', advice: GRADE_INTERPR_ADVICE['英文'].leading[0] },
-          { name: '自然', score: isXiaoMing ? 68 : 73, classAverage: 77.8, diff: isXiaoMing ? -9.8 : -4.8, pr: isXiaoMing ? 38 : 50, zone: '努力', zoneStatus: '努力成長區間', advice: GRADE_INTERPR_ADVICE['自然'].improving[0] }
+          { name: '國語', score: isXiaoMing ? 92 : 88, classAverage: 81.2, diff: isXiaoMing ? 10.8 : 6.8, pr: isXiaoMing ? 85 : 72, q1: 75, median: 82, q3: 90, min: 55, max: 100, zone: '精熟', zoneStatus: '精熟表現區間', advice: GRADE_INTERPR_ADVICE['國語'].leading[0] },
+          { name: '數學', score: isXiaoMing ? 78 : 76, classAverage: 76.5, diff: isXiaoMing ? 1.5 : -0.5, pr: isXiaoMing ? 58 : 54, q1: 66, median: 77, q3: 86, min: 42, max: 98, zone: '穩健', zoneStatus: '穩健發揮區間', advice: GRADE_INTERPR_ADVICE['數學'].leading[0] },
+          { name: '社會', score: isXiaoMing ? 82 : 84, classAverage: 79.5, diff: isXiaoMing ? 2.5 : 4.5, pr: isXiaoMing ? 68 : 72, q1: 74, median: 80, q3: 87, min: 50, max: 98, zone: '穩健', zoneStatus: '穩健發揮區間', advice: GRADE_INTERPR_ADVICE['社會'].leading[0] },
+          { name: '英文', score: isXiaoMing ? 96 : 82, classAverage: 76.0, diff: isXiaoMing ? 20.0 : 6.0, pr: isXiaoMing ? 95 : 70, q1: 70, median: 77, q3: 89, min: 45, max: 100, zone: '精熟', zoneStatus: '精熟表現區間', advice: GRADE_INTERPR_ADVICE['英文'].leading[0] },
+          { name: '自然', score: isXiaoMing ? 68 : 73, classAverage: 77.8, diff: isXiaoMing ? -9.8 : -4.8, pr: isXiaoMing ? 38 : 50, q1: 70, median: 78, q3: 87, min: 48, max: 96, zone: '努力', zoneStatus: '努力成長區間', advice: GRADE_INTERPR_ADVICE['自然'].improving[0] }
         ]
       };
 
