@@ -984,9 +984,14 @@ function autoCalculateStats() {
       } catch (err) {
         resBox.className = 'p-4 rounded-xl text-xs border mt-4 bg-rose-50 border-rose-200 text-rose-800';
         resBox.innerHTML = `
-          <div class="font-bold text-sm text-rose-900 mb-1">❌ 連線失敗</div>
-          <div>原因：${err.message}</div>
-          <div class="mt-1 text-slate-500">小撇步：請確認部署時【誰可以存取】是否有設定為【所有人 (Anyone)】，否則 Google 會阻擋瀏覽器存取。</div>
+          <div class="font-bold text-sm text-rose-900 mb-1">❌ 連線失敗 (${err.message})</div>
+          <div class="space-y-1.5 mt-2 text-slate-700 text-xs leading-relaxed">
+            <div><b>常見原因 1（最常見）</b>：此 Apps Script 所屬的試算表若是剛才複製的範本並已被關閉或刪除，該網址會失效（回傳 404 找不到檔案）。</div>
+            <div><b>常見原因 2</b>：在點擊「新部署」時，【誰可以存取】若未設定為<b>【所有人 (Anyone)】</b>，Google 會阻擋存取。</div>
+            <div class="p-2 bg-white/80 rounded border border-rose-200 text-indigo-900 font-bold mt-1">
+              👉 解決方法：請開啟一張全新的空白試算表（在網址列打 <code class="bg-indigo-50 px-1 py-0.5 rounded text-indigo-700">sheets.new</code>），點擴充功能貼上最新程式碼，重新點「部署 > 新部署 (選所有人)」，取得全新有效網址即可！
+            </div>
+          </div>
         `;
       }
     }
