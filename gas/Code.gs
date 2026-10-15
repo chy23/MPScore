@@ -869,7 +869,7 @@ function getExamAllStudentsStats(sheet) {
 
 /**
  * 🔄 從最新考試分頁自動同步座號與姓名至【學生名冊】並生成代碼
- * 老師只要貼上考試成績，點此按鈕立即完成全班防偽名冊建置！
+ * 智慧判定並保留班級設定，徹底避免覆蓋班級與擠壓儲存格欄寬！
  */
 function syncStudentsFromExamSheet() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -898,46 +898,113 @@ function syncStudentsFromExamSheet() {
   }
 
   var data = examSheet.getDataRange().getValues();
+  if (data.length === 0) {
+    ui.alert('考試分頁【' + examSheet.getName() + '】中沒有任何資料！');
+    return;
+  }
+
   var headerRowIdx = 1;
   if (data.length > 0 && (data[0].join(' ').indexOf('座號') !== -1 || data[0].join(' ').indexOf('姓名') !== -1)) {
     headerRowIdx = 0;
   }
 
-  var headerRow = data[headerRowIdx].map(function(h) { return h.toString().trim(); });
-  var seatCol = 0;
-  var nameCol = 1;
+  var headerRow = data[headerRowIdx].map(function(h) { return (h || '').toString().trim(); });
+  var seatCol = -1;
+  var nameCol = -1;
+  var classCol = -1;
   for (var c = 0; c < headerRow.length; c++) {
-    if (headerRow[c].indexOf('座號') !== -1) seatCol = c;
-    else if (headerRow[c].indexOf('姓名') !== -1) nameCol = c;
+    var h = headerRow[c];
+    if (h.indexOf('座號') !== -1 || h === '號') seatCol = c;
+    else if (h.indexOf('姓名') !== -1 || h === '學生') nameCol = c;
+    else if (h.indexOf('班級') !== -1 || h === '班') classCol = c;
   }
 
-  // 讀取既有代碼避免覆蓋
-  var existingTokens = {};
+  if (seatCol === -1) seatCol = 0;
+  if (nameCol === -1) nameCol = 1;
+
+  // 1. 讀取既有名冊中的班級、代碼與啟用狀態，避免更新時被覆蓋
+  var existingBySeat = {};
+  var existingByName = {};
+  var existingClassFallback = '';
   var sData = sSheet.getDataRange().getValues();
   for (var s = 1; s < sData.length; s++) {
+    var exCls = sData[s][0] !== undefined ? sData[s][0].toString().trim() : '';
     var exSeat = normalizeSeatNumber(sData[s][1]);
-    var exTok = sData[s][3];
-    if (exSeat && exTok) existingTokens[exSeat] = exTok;
+    var exName = sData[s][2] !== undefined ? sData[s][2].toString().trim() : '';
+    var exTok = sData[s][3] !== undefined ? sData[s][3].toString().trim() : '';
+    var exEn = sData[s][4];
+    var isEnabled = (exEn === '' || exEn === undefined) ? true : (exEn === true || exEn.toString().toUpperCase() === 'TRUE' || exEn === 1);
+
+    if (exCls && !existingClassFallback) {
+      existingClassFallback = exCls;
+    }
+
+    var record = {
+      className: exCls,
+      token: exTok,
+      isEnabled: isEnabled
+    };
+    if (exSeat) existingBySeat[exSeat] = record;
+    if (exName) existingByName[exName] = record;
   }
+
+  // 2. 從試算表名稱、分頁名稱或第 1 列大標題智慧推算預設班級
+  var bannerClass = '';
+  if (headerRowIdx > 0 && data.length > 0) {
+    for (var col = 0; col < data[0].length; col++) {
+      var cellVal = (data[0][col] || '').toString().trim();
+      var bMatch = cellVal.match(/班級[：:\s]*([^\s,，]+)/) ||
+                   cellVal.match(/([1-9]\d{2}|[七八九一二三四五六七八九十\d]+年[^\s\d]+班|\d{1,2}年\d{1,2}班)/);
+      if (bMatch) {
+        bannerClass = bMatch[1] || bMatch[0];
+        break;
+      }
+    }
+  }
+
+  var titleClass = '';
+  var tMatch = (examSheet.getName() + ' ' + ss.getName()).match(/([1-9]\d{2}|[七八九一二三四五六七八九十\d]+年[^\s\d]+班|\d{1,2}年\d{1,2}班)/);
+  if (tMatch) {
+    titleClass = tMatch[1] || tMatch[0];
+  }
+
+  // 班級預設優先級：既有名冊班級 > 考試表頭大標班級 > 分頁/試算表名稱班級
+  var defaultClass = existingClassFallback || bannerClass || titleClass || '';
 
   var chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
   var newRoster = [];
 
   for (var r = headerRowIdx + 1; r < data.length; r++) {
-    var seatVal = data[r][seatCol] ? data[r][seatCol].toString().trim() : '';
-    var nameVal = data[r][nameCol] ? data[r][nameCol].toString().trim() : '';
+    var seatVal = (data[r][seatCol] !== undefined) ? data[r][seatCol].toString().trim() : '';
+    var nameVal = (data[r][nameCol] !== undefined) ? data[r][nameCol].toString().trim() : '';
 
     if (!seatVal || seatVal.indexOf('平均') !== -1 || seatVal.indexOf('標準差') !== -1) break;
     if (nameVal && nameVal.indexOf('平均') !== -1) break;
 
     var normSeat = normalizeSeatNumber(seatVal);
-    var token = existingTokens[normSeat];
+    var existingRecord = existingBySeat[normSeat] || (nameVal ? existingByName[nameVal] : null);
+
+    // 班級判定：考試欄位 > 學生名冊既有設定 > 預設班級（絕不強制硬寫701）
+    var studentClass = '';
+    if (classCol !== -1 && data[r][classCol] !== undefined && data[r][classCol].toString().trim() !== '') {
+      studentClass = data[r][classCol].toString().trim();
+    } else if (existingRecord && existingRecord.className) {
+      studentClass = existingRecord.className;
+    } else {
+      studentClass = defaultClass;
+    }
+
+    // 專屬防偽代碼：完全保留既有 Token，僅新學生自動生成
+    var token = (existingRecord && existingRecord.token) ? existingRecord.token : '';
     if (!token) {
       token = '';
       for (var t = 0; t < 6; t++) token += chars.charAt(Math.floor(Math.random() * chars.length));
     }
 
-    newRoster.push(['701', normSeat, nameVal, token, true]);
+    // 啟用狀態：完全保留既有設定（預設為 true）
+    var isEnabled = (existingRecord && existingRecord.isEnabled !== undefined) ? existingRecord.isEnabled : true;
+
+    newRoster.push([studentClass, normSeat, nameVal, token, isEnabled]);
   }
 
   if (newRoster.length === 0) {
@@ -945,11 +1012,40 @@ function syncStudentsFromExamSheet() {
     return;
   }
 
-  sSheet.getRange(2, 1, sSheet.getLastRow() > 1 ? sSheet.getLastRow() - 1 : 1, 5).clearContent();
+  // 清除舊有名冊資料列並寫入全新整理後的名冊
+  if (sSheet.getLastRow() > 1) {
+    sSheet.getRange(2, 1, sSheet.getLastRow() - 1, 5).clearContent();
+  }
   sSheet.getRange(2, 1, newRoster.length, 5).setValues(newRoster);
-  sSheet.autoResizeColumns(1, 5);
 
-  ui.alert('🎉 成功！已從【' + examSheet.getName() + '】同步 ' + newRoster.length + ' 位學生座號姓名，並建立專屬防偽代碼！');
+  // 確保標題列格式完好
+  sSheet.getRange(1, 1, 1, 5).setValues([['班級', '座號', '姓名', '專屬代碼', '啟用狀態']])
+    .setBackground('#b45309')
+    .setFontColor('#ffffff')
+    .setFontWeight('bold')
+    .setHorizontalAlignment('center');
+
+  // 設定標準寬敞欄寬，徹底解決儲存格被擠窄過小的問題
+  sSheet.setColumnWidth(1, 90);  // 班級 (例如 701、三年忠班)
+  sSheet.setColumnWidth(2, 80);  // 座號 (例如 01、02)
+  sSheet.setColumnWidth(3, 120); // 姓名 (寬敞不截斷，完整容納 3~4 字姓名)
+  sSheet.setColumnWidth(4, 130); // 專屬代碼 (寬敞清晰，防偽好辨識)
+  sSheet.setColumnWidth(5, 100); // 啟用狀態 (舒適置中)
+
+  // 設定標準舒適列高
+  sSheet.setRowHeight(1, 36); // 標題列
+  var totalRosterRows = Math.max(2, sSheet.getLastRow());
+  for (var sr = 2; sr <= totalRosterRows; sr++) {
+    sSheet.setRowHeight(sr, 28); // 學生資料列寬敞舒適 28px
+  }
+
+  // 置中對齊與凍結標題列
+  sSheet.getRange(1, 1, totalRosterRows, 5)
+    .setVerticalAlignment('middle')
+    .setHorizontalAlignment('center');
+  sSheet.setFrozenRows(1);
+
+  ui.alert('🎉 成功！已從【' + examSheet.getName() + '】同步 ' + newRoster.length + ' 位學生座號姓名，保留既有班級與代碼，並套用舒適欄寬！');
 }
 
 /**
