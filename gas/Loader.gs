@@ -35,16 +35,16 @@ function getEngine() {
 function onOpen() {
   var ui = SpreadsheetApp.getUi();
   ui.createMenu('⚡ MPScore 工具')
-    .addItem('🛠️ 一鍵自動建立標準分頁範本 (全新空白表專用)', 'setupStandardSheets')
+    .addItem('🛠️ 建立初始表格（空白試算表第一次使用）', 'setupStandardSheets')
     .addSeparator()
-    .addItem('➕ 從【學生名冊】建立新考試分頁 (自動帶入全班姓名)', 'createNewExamSheetFromRoster')
-    .addItem('🔄 從最新考試分頁同步名冊至【學生名冊】', 'syncStudentsFromExamSheet')
-    .addItem('🔑 一鍵為全班產生防偽查詢代碼 (Token)', 'generateTokensForStudents')
+    .addItem('➕ 新增一次考試（自動帶入學生名單）', 'createNewExamSheetFromRoster')
+    .addItem('🔄 用最新考試名單，更新「學生名冊」', 'syncStudentsFromExamSheet')
+    .addItem('🔑 為全班產生「家長查詢代碼」', 'generateTokensForStudents')
     .addSeparator()
-    .addItem('📐 一鍵自動美化所有分頁與最佳欄寬 (立即修復文字擠壓)', 'autoFormatAndResizeAllSheets')
-    .addItem('📊 預覽全班成績統計分析與各科平均', 'previewClassStatistics')
+    .addItem('📐 自動整理欄寬與表格排版', 'autoFormatAndResizeAllSheets')
+    .addItem('📊 查看全班成績與各科平均', 'previewClassStatistics')
     .addSeparator()
-    .addItem('🔄 測試與 GitHub 核心連線狀態', 'testGitHubConnection')
+    .addItem('📶 檢查系統連線狀態', 'testGitHubConnection')
     .addToUi();
 }
 

@@ -15,15 +15,15 @@
 function onOpen() {
   var ui = SpreadsheetApp.getUi();
   ui.createMenu('⚡ MPScore 工具')
-    .addItem('🛠️ 一鍵自動建立標準分頁範本 (全新空白表專用)', 'setupStandardSheets')
+    .addItem('🛠️ 建立初始表格（空白試算表第一次使用）', 'setupStandardSheets')
     .addSeparator()
-    .addItem('➕ 從【學生名冊】建立新考試分頁 (自動帶入全班姓名)', 'createNewExamSheetFromRoster')
-    .addItem('🔄 從最新考試分頁同步名冊至【學生名冊】', 'syncStudentsFromExamSheet')
-    .addItem('🔑 一鍵為全班產生防偽查詢代碼 (Token)', 'generateTokensForStudents')
+    .addItem('➕ 新增一次考試（自動帶入學生名單）', 'createNewExamSheetFromRoster')
+    .addItem('🔄 用最新考試名單，更新「學生名冊」', 'syncStudentsFromExamSheet')
+    .addItem('🔑 為全班產生「家長查詢代碼」', 'generateTokensForStudents')
     .addSeparator()
-    .addItem('📐 一鍵自動美化所有分頁與最佳欄寬 (立即修復文字擠壓)', 'autoFormatAndResizeAllSheets')
-    .addItem('🚀 清除雲端快取並強制重新計算 (更新分數後點此立即生效)', 'clearSystemCache')
-    .addItem('📊 預覽全班成績統計分析與各科平均', 'previewClassStatistics')
+    .addItem('📐 自動整理欄寬與表格排版', 'autoFormatAndResizeAllSheets')
+    .addItem('🚀 立即更新雲端資料（改完分數點此）', 'clearSystemCache')
+    .addItem('📊 查看全班成績與各科平均', 'previewClassStatistics')
     .addToUi();
 }
 
@@ -43,7 +43,7 @@ function clearSystemCache() {
 }
 
 /**
- * 🛠️ 一鍵自動建立標準分頁範本
+ * 🛠️ 建立初始表格（空白試算表第一次使用）
  * 建立【學生名冊】及兩個考試分頁【114-1期中考】、【114-1期末考】，供立即體驗多次考試歷程比對
  */
 function setupStandardSheets() {
@@ -55,7 +55,7 @@ function setupStandardSheets() {
   sSheet.setName('學生名冊');
   var sHeaders = [['班級', '座號', '姓名', '專屬代碼', '啟用狀態']];
   sSheet.getRange(1, 1, 1, 5).setValues(sHeaders)
-    .setBackground('#312e81') // 深靛藍
+    .setBackground('#b45309') // 暖陽金褐
     .setFontColor('#ffffff')
     .setFontWeight('bold')
     .setHorizontalAlignment('center');
@@ -246,7 +246,7 @@ function checkSystemStatus() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sSheet = ss.getSheetByName('學生名冊');
   if (!sSheet) {
-    return { success: false, message: '試算表內找不到名為【學生名冊】的分頁，請先點選【MPScore 工具 > 🛠️ 一鍵自動建立標準分頁範本】' };
+    return { success: false, message: '試算表內找不到名為【學生名冊】的分頁，請先點選【MPScore 工具 > 🛠️ 建立初始表格（空白試算表第一次使用）】' };
   }
 
   var allSheets = ss.getSheets();
@@ -879,7 +879,7 @@ function syncStudentsFromExamSheet() {
   if (!sSheet) {
     sSheet = ss.insertSheet('學生名冊', 0);
     sSheet.getRange(1, 1, 1, 5).setValues([['班級', '座號', '姓名', '專屬代碼', '啟用狀態']])
-      .setBackground('#312e81').setFontColor('#ffffff').setFontWeight('bold').setHorizontalAlignment('center');
+      .setBackground('#b45309').setFontColor('#ffffff').setFontWeight('bold').setHorizontalAlignment('center');
   }
 
   // 尋找第一個非學生名冊的考試分頁
@@ -1106,7 +1106,7 @@ function getExpertSubjectAdvice(subject, zoneType, score) {
 }
 
 /**
- * ➕ 從【學生名冊】一鍵建立全新考試分頁（自動帶入全班座號與姓名）
+ * ➕ 新增一次考試（自動帶入學生名單）
  * 解決老師每次考試都要手動重打學生座號與姓名的困擾！
  */
 function createNewExamSheetFromRoster() {
@@ -1115,7 +1115,7 @@ function createNewExamSheetFromRoster() {
 
   var sSheet = ss.getSheetByName('學生名冊');
   if (!sSheet) {
-    ui.alert('找不到【學生名冊】分頁，請先點選【🛠️ 一鍵自動建立標準分頁範本】！');
+    ui.alert('找不到【學生名冊】分頁，請先點選【🛠️ 建立初始表格（空白試算表第一次使用）】！');
     return;
   }
 
@@ -1217,7 +1217,7 @@ function appendExamScores(body) {
 // ========================================================
 
 /**
- * 📐 一鍵自動美化所有分頁與最佳欄寬 (立即修復文字擠壓、欄寬過窄)
+ * 📐 自動整理欄寬與表格排版 (修復文字擠壓、欄寬過窄)
  * 自動辨識【學生名冊】與所有【考試分頁】，將姓名拓寬至120px、科目95px、凍結標題列並垂直置中
  */
 function autoFormatAndResizeAllSheets() {

@@ -48,13 +48,13 @@
     }
   </style>
 </head>
-<body class="text-slate-800 min-h-screen pb-16 selection:bg-indigo-500 selection:text-white">
+<body class="text-slate-800 min-h-screen pb-16 selection:bg-amber-500 selection:text-slate-950">
 
   <!-- ==================== 溫暖純淨家長查詢專屬前台 ==================== -->
   <header class="apple-glass sticky top-0 z-40 text-slate-800 transition-all border-b border-slate-200/70">
     <div class="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
       <div class="flex items-center gap-2.5">
-        <div class="w-9 h-9 rounded-2xl bg-gradient-to-br from-amber-400 via-indigo-600 to-sky-500 text-white flex items-center justify-center font-black text-base shadow-sm">
+        <div class="w-9 h-9 rounded-2xl bg-gradient-to-br from-amber-400 via-amber-500 to-orange-500 text-white flex items-center justify-center font-black text-base shadow-sm">
           🌱
         </div>
         <div>
@@ -82,15 +82,15 @@
     <!-- 代碼輸入卡 (親師暖心入口) -->
     <div id="parentLoginBox" class="apple-glass rounded-3xl p-5 space-y-3">
       <div class="text-center space-y-1">
-        <div class="inline-flex items-center gap-1 text-[11px] font-bold text-indigo-700 bg-indigo-50/80 px-2.5 py-0.5 rounded-full border border-indigo-100">
+        <div class="inline-flex items-center gap-1 text-[11px] font-bold text-amber-900 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
           <span>💌</span> 個別安心查詢
         </div>
         <h2 class="text-sm font-black text-slate-800">請輸入學生專屬 6 碼代碼 或 姓名</h2>
         <p class="text-[11px] text-slate-500">掃描通知單 QR Code 亦可直達 ‧ 陪伴孩子看見亮點與成長</p>
       </div>
       <div class="flex gap-2">
-        <input type="text" id="parentTokenInput" onkeydown="if(event.key==='Enter'){event.preventDefault();doParentQuery();}" placeholder="例如：DEMO01 或 陳小華" class="flex-1 px-4 py-2.5 text-center uppercase tracking-widest font-mono border border-slate-200 rounded-2xl text-base font-bold bg-slate-50/60 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
-        <button id="parentQueryBtn" onclick="doParentQuery()" class="bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-black px-5 py-2.5 rounded-2xl text-sm transition shadow-sm flex items-center justify-center gap-1.5 min-w-[80px]">
+        <input type="text" id="parentTokenInput" onkeydown="if(event.key==='Enter'){event.preventDefault();doParentQuery();}" placeholder="例如：DEMO01 或 陳小華" class="flex-1 px-4 py-2.5 text-center uppercase tracking-widest font-mono border border-slate-200 rounded-2xl text-base font-bold bg-slate-50/60 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition">
+        <button id="parentQueryBtn" onclick="doParentQuery()" class="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 active:scale-95 text-slate-950 font-black px-5 py-2.5 rounded-2xl text-sm transition shadow-sm shadow-amber-500/20 flex items-center justify-center gap-1.5 min-w-[80px]">
           <span id="parentQueryBtnText">開啟</span>
         </button>
       </div>
@@ -112,7 +112,7 @@
 
       <!-- 進度條動態條 -->
       <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-        <div id="loadingProgressBar" class="bg-gradient-to-r from-amber-400 via-indigo-500 to-emerald-400 h-1.5 rounded-full transition-all duration-300 w-1/4"></div>
+        <div id="loadingProgressBar" class="bg-gradient-to-r from-amber-400 via-amber-500 to-emerald-500 h-1.5 rounded-full transition-all duration-300 w-1/4"></div>
       </div>
 
       <!-- 骨架屏預覽輪廓 (Shimmer Pulse) -->
@@ -140,7 +140,7 @@
     <div id="parentScoreResult" class="hidden space-y-4">
       
       <!-- 學生學習卡片 (溫暖 Apple 徽章風格) -->
-      <div class="bg-gradient-to-br from-indigo-600 via-indigo-700 to-sky-600 text-white rounded-3xl p-5 shadow-md space-y-4 relative overflow-hidden">
+      <div class="bg-gradient-to-br from-amber-500 via-amber-600 to-orange-500 text-white rounded-3xl p-5 shadow-lg shadow-amber-500/15 space-y-4 relative overflow-hidden">
         <!-- 背景柔和光暈 (Apple Visual Depth) -->
         <div class="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
         <div class="absolute -left-6 -bottom-6 w-28 h-28 bg-amber-400/15 rounded-full blur-xl pointer-events-none"></div>
@@ -152,7 +152,7 @@
             </div>
             <div>
               <div class="text-xl font-black tracking-tight" id="pStudentName">--</div>
-              <div class="text-xs text-indigo-100/90 mt-0.5 font-medium flex items-center gap-1.5">
+              <div class="text-xs text-amber-100/95 mt-0.5 font-medium flex items-center gap-1.5">
                 <span class="bg-white/20 px-2 py-0.5 rounded-full" id="pClassName">-- 班</span>
                 <span>座號：<span id="pSeatNumber" class="font-bold">--</span> 號</span>
               </div>
@@ -164,7 +164,7 @@
         <!-- 3 大關鍵指標徽章 (毛玻璃浮島卡片) -->
         <div id="pMetricsGrid" class="grid grid-cols-3 gap-2.5 pt-3 border-t border-white/15 text-center relative z-10">
           <div id="pMetricAvgCard" class="bg-white/15 rounded-2xl p-2.5 backdrop-blur-md border border-white/20 shadow-2xs">
-            <div class="text-[10px] text-indigo-100 font-medium">🌟 個人總平均</div>
+            <div class="text-[10px] text-amber-100 font-medium">🌟 個人總平均</div>
             <div class="text-base font-black text-white mt-0.5" id="pStudentAverage">--</div>
           </div>
           <div id="pMetricRankCard" class="bg-white/15 rounded-2xl p-2.5 backdrop-blur-md border border-white/20 shadow-2xs">
@@ -172,8 +172,8 @@
             <div class="text-base font-black text-amber-300 mt-0.5" id="pStudentRank">--</div>
           </div>
           <div id="pMetricClassAvgCard" class="bg-white/15 rounded-2xl p-2.5 backdrop-blur-md border border-white/20 shadow-2xs">
-            <div class="text-[10px] text-indigo-100 font-medium">👥 全班總平均</div>
-            <div class="text-base font-black text-indigo-50 mt-0.5" id="pClassOverallAvg">--</div>
+            <div class="text-[10px] text-amber-100 font-medium">👥 全班總平均</div>
+            <div class="text-base font-black text-white mt-0.5" id="pClassOverallAvg">--</div>
           </div>
         </div>
       </div>
@@ -229,7 +229,7 @@
             </div>
             <div class="text-[10px] text-slate-400 mt-0.5">復刻 GradeInterpr 幾何盒鬚圖 ‧ 掌握中位數、班均與個人穩健位置</div>
           </div>
-          <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200" id="pBoxplotActiveZoneBadge">--</span>
+          <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200" id="pBoxplotActiveZoneBadge">--</span>
         </div>
 
         <!-- 科目切換頁籤 (Apple Segmented Control) -->
@@ -253,7 +253,7 @@
             <div class="text-[10px] text-slate-400 mt-0.5">呈現當次選取科目的班級成績真實分佈 ‧ 學生個人得分落點</div>
           </div>
           <div class="flex items-center gap-1.5">
-            <button onclick="openParentStatsHelpModal()" class="text-[10px] font-bold text-indigo-600 bg-indigo-50/80 hover:bg-indigo-100 px-2 py-0.5 rounded-full border border-indigo-200 transition active:scale-95 flex items-center gap-0.5 cursor-pointer">
+            <button onclick="openParentStatsHelpModal()" class="text-[10px] font-bold text-amber-900 bg-amber-50/90 hover:bg-amber-100 px-2 py-0.5 rounded-full border border-amber-200 transition active:scale-95 flex items-center gap-0.5 cursor-pointer">
               <span>ℹ️</span> 說明
             </button>
             <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200" id="pPrCurveBadge">--</span>
@@ -269,7 +269,7 @@
             <span class="text-sm">🔄</span>
             <span>跨次曲線疊加：</span>
           </div>
-          <select id="pPrCurveCompareSelect" onchange="onParentPrCurveOverlayChange(this.value)" class="text-xs bg-white border border-slate-200 font-bold text-slate-700 rounded-xl px-2.5 py-1 focus:ring-2 focus:ring-indigo-400 focus:outline-none shadow-2xs cursor-pointer">
+          <select id="pPrCurveCompareSelect" onchange="onParentPrCurveOverlayChange(this.value)" class="text-xs bg-white border border-slate-200 font-bold text-slate-700 rounded-xl px-2.5 py-1 focus:ring-2 focus:ring-amber-400 focus:outline-none shadow-2xs cursor-pointer">
             <option value="-1">📌 不疊加 (單次檢視)</option>
           </select>
         </div>
@@ -285,7 +285,7 @@
             <span>📋</span>
             <span>各科成績與表現常模明細</span>
           </span>
-          <span class="text-[10px] text-indigo-600 font-semibold bg-indigo-50 px-2 py-0.5 rounded-full">班級常模對照</span>
+          <span class="text-[10px] text-amber-900 font-bold bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200/60">班級常模對照</span>
         </div>
         <table class="w-full text-left text-xs">
           <thead id="pScoreTableHead" class="bg-slate-50/80 text-slate-500 font-bold">
@@ -311,7 +311,7 @@
             </div>
             <div class="text-[10px] text-slate-400 mt-0.5">親師陪伴引導 ‧ 點亮下一次突破的信心</div>
           </div>
-          <span class="text-[10px] text-indigo-700 font-bold bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200/50">
+          <span class="text-[10px] text-emerald-800 font-bold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200/60">
             GradeInterpr
           </span>
         </div>
@@ -332,7 +332,7 @@
     <div class="bg-white rounded-3xl max-w-lg w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden border border-slate-100 animate-in fade-in zoom-in duration-200">
       
       <!-- Modal 標題列 -->
-      <div class="bg-gradient-to-r from-indigo-900 via-indigo-800 to-slate-900 text-white p-5 flex items-center justify-between shrink-0">
+      <div class="bg-gradient-to-r from-amber-600 via-amber-700 to-slate-900 text-white p-5 flex items-center justify-between shrink-0">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-2xl bg-amber-400 text-slate-900 flex items-center justify-center font-black text-lg shadow-sm">
             ✨
@@ -341,7 +341,7 @@
             <h3 class="text-base font-black tracking-tight flex items-center gap-2">
               <span>學習成長手札 · 新統計方法導覽</span>
             </h3>
-            <p class="text-xs text-indigo-200 mt-0.5">以正向成長思維，看見孩子的真實學習定位與進步足跡</p>
+            <p class="text-xs text-amber-100 mt-0.5">以正向成長思維，看見孩子的真實學習定位與進步足跡</p>
           </div>
         </div>
         <button onclick="closeParentStatsHelpModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-slate-200 hover:text-white flex items-center justify-center font-bold text-sm transition active:scale-90 cursor-pointer">
@@ -353,8 +353,8 @@
       <div class="p-5 overflow-y-auto space-y-4 text-xs leading-relaxed text-slate-700 bg-slate-50/50">
         
         <!-- 核心精神 -->
-        <div class="p-3.5 bg-gradient-to-r from-amber-50 to-indigo-50/60 rounded-2xl border border-amber-200/70 text-slate-800 space-y-1">
-          <div class="font-bold text-indigo-950 flex items-center gap-1.5 text-xs">
+        <div class="p-3.5 bg-gradient-to-r from-amber-50 to-orange-50/60 rounded-2xl border border-amber-200/70 text-slate-800 space-y-1">
+          <div class="font-bold text-amber-950 flex items-center gap-1.5 text-xs">
             <span>🌱</span> 為什麼我們要導入全新統計視覺化？
           </div>
           <p class="text-[11px] text-slate-600 leading-relaxed">
@@ -364,15 +364,15 @@
 
         <!-- 1. 跨次考試曲線疊加與落點位移 -->
         <div class="bg-white p-4 rounded-2xl border border-slate-200/70 space-y-2 shadow-2xs">
-          <div class="flex items-center gap-2 text-indigo-900 font-bold text-xs">
-            <span class="p-1 rounded-lg bg-indigo-100 text-indigo-700">🔄</span>
+          <div class="flex items-center gap-2 text-amber-950 font-bold text-xs">
+            <span class="p-1 rounded-lg bg-amber-100 text-amber-800">🔄</span>
             <span>1. 跨次考試曲線疊加與落點位移（最新功能！）</span>
           </div>
           <p class="text-slate-600 text-[11px]">
             在單科成績分佈曲線圖中，您可以點選「跨次曲線疊加」選單，將<b>期中考與期末考（或歷次考試）</b>的分佈走勢疊合在同一張圖上進行直觀對比：
           </p>
           <ul class="list-disc list-inside space-y-1 text-slate-600 text-[11px] pl-1">
-            <li><b>湛藍實線（本次） vs 琥珀虛線（對比）</b>：直觀看見全班整體成績高峰的位移，了解兩次考試的難易度變動。</li>
+            <li><b>暖陽金實線（本次） vs 晨曦芽綠虛線（對比）</b>：直觀看見全班整體成績高峰的位移，了解兩次考試的難易度變動。</li>
             <li><b>個人落點雙圖釘與位移弧線</b>：清晰呈現孩子得分與 PR 值的成長跨距（例如：▲ +6分、PR +8），看見孩子的實質努力。</li>
             <li><b>全班平均線對比</b>：看見班級整體水準升降與孩子相對位置的實質突破。</li>
           </ul>
@@ -380,8 +380,8 @@
 
         <!-- 2. 單科成績落點與真實班級分佈曲線 (KDE) -->
         <div class="bg-white p-4 rounded-2xl border border-slate-200/70 space-y-2 shadow-2xs">
-          <div class="flex items-center gap-2 text-indigo-900 font-bold text-xs">
-            <span class="p-1 rounded-lg bg-indigo-100 text-indigo-700">🔔</span>
+          <div class="flex items-center gap-2 text-amber-950 font-bold text-xs">
+            <span class="p-1 rounded-lg bg-amber-100 text-amber-800">🔔</span>
             <span>2. 單科真實成績分佈曲線（核密度 KDE 分析）</span>
           </div>
           <p class="text-slate-600 text-[11px]">
@@ -396,8 +396,8 @@
 
         <!-- 3. 建議幾何盒鬚圖 (Boxplot) -->
         <div class="bg-white p-4 rounded-2xl border border-slate-200/70 space-y-2 shadow-2xs">
-          <div class="flex items-center gap-2 text-indigo-900 font-bold text-xs">
-            <span class="p-1 rounded-lg bg-indigo-100 text-indigo-700">📦</span>
+          <div class="flex items-center gap-2 text-amber-950 font-bold text-xs">
+            <span class="p-1 rounded-lg bg-amber-100 text-amber-800">📦</span>
             <span>3. 建議幾何盒鬚圖（Boxplot）與 4 大正向成長區間</span>
           </div>
           <p class="text-slate-600 text-[11px]">
@@ -421,8 +421,8 @@
 
         <!-- 4. 多元學科雷達圖與適性學習處方 -->
         <div class="bg-white p-4 rounded-2xl border border-slate-200/70 space-y-2 shadow-2xs">
-          <div class="flex items-center gap-2 text-indigo-900 font-bold text-xs">
-            <span class="p-1 rounded-lg bg-indigo-100 text-indigo-700">🎯</span>
+          <div class="flex items-center gap-2 text-amber-950 font-bold text-xs">
+            <span class="p-1 rounded-lg bg-amber-100 text-amber-800">🎯</span>
             <span>4. 多元學科能力雷達圖與 GradeInterpr 專家處方</span>
           </div>
           <p class="text-slate-600 text-[11px]">
@@ -431,8 +431,8 @@
         </div>
 
         <!-- 5. 正確看待 PR 值 -->
-        <div class="p-3.5 bg-indigo-50/80 rounded-2xl border border-indigo-200/80 text-slate-700 text-[11px] leading-relaxed">
-          <b class="text-indigo-950 block mb-1">💡 親師伴讀小溫馨：如何正確解讀 PR 值？</b>
+        <div class="p-3.5 bg-amber-50/90 rounded-2xl border border-amber-200/80 text-slate-700 text-[11px] leading-relaxed">
+          <b class="text-amber-950 block mb-1">💡 親師伴讀小溫馨：如何正確解讀 PR 值？</b>
           百分等級（PR）代表在 100 位同學中相對超越的人數。例如 PR 70 代表超越約 70% 的同儕；PR 50 即代表位於班級正中間。請多給予肯定，著重孩子自己的縱向進步，親師攜手成為孩子最溫暖的後盾！
         </div>
 
@@ -440,7 +440,7 @@
 
       <!-- Modal 底部按鈕 -->
       <div class="p-4 bg-white border-t border-slate-100 flex justify-end shrink-0">
-        <button onclick="closeParentStatsHelpModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-2.5 rounded-2xl text-xs transition active:scale-95 shadow-sm cursor-pointer">
+        <button onclick="closeParentStatsHelpModal()" class="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black px-5 py-2.5 rounded-2xl text-xs transition active:scale-95 shadow-sm cursor-pointer">
           我了解了，返回成績手札
         </button>
       </div>
@@ -864,7 +864,7 @@
           metricsContainer.classList.add('hidden');
         } else {
           metricsContainer.classList.remove('hidden');
-          metricsContainer.className = `grid grid-cols-${visibleCount} gap-2 pt-2 border-t border-indigo-500/50 text-center`;
+          metricsContainer.className = `grid grid-cols-${visibleCount} gap-2 pt-2 border-t border-white/20 text-center`;
         }
       }
 
@@ -932,7 +932,7 @@
                   <span class="font-bold text-slate-700">${sub.name}</span>
                   <div class="flex items-center gap-1.5">
                     <span class="text-slate-400 line-through text-[10px]">${pScore}</span>
-                    <span class="font-black text-indigo-600 text-xs">${sub.score}</span>
+                    <span class="font-black text-amber-700 text-xs">${sub.score}</span>
                     <span class="text-[11px]">${diffTag}</span>
                   </div>
                 </div>
@@ -966,7 +966,7 @@
       table.innerHTML = '';
 
       curExam.subjects.forEach(sub => {
-        const prBadge = `<span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${sub.pr >= 75 ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-600'}">PR ${sub.pr}</span>`;
+        const prBadge = `<span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${sub.pr >= 75 ? 'bg-amber-100 text-amber-900 border border-amber-200' : 'bg-slate-100 text-slate-600'}">PR ${sub.pr}</span>`;
         const diffBadge = sub.diff >= 0 
           ? `<span class="text-emerald-600 font-bold">+${sub.diff}</span>` 
           : `<span class="text-rose-500 font-bold">${sub.diff}</span>`;
@@ -974,7 +974,7 @@
         table.innerHTML += `
           <tr class="hover:bg-slate-50">
             <td class="py-2.5 px-3 font-bold text-slate-800">${sub.name}</td>
-            ${cfg.showSubjects ? `<td class="py-2.5 px-3 text-center font-black text-indigo-600 text-sm">${sub.score}</td>` : ''}
+            ${cfg.showSubjects ? `<td class="py-2.5 px-3 text-center font-black text-amber-700 text-sm">${sub.score}</td>` : ''}
             ${cfg.showClassAvg ? `<td class="py-2.5 px-3 text-center text-slate-400">${sub.classAverage}</td>` : ''}
             ${cfg.showPr ? `<td class="py-2.5 px-3 text-center">${prBadge}</td>` : ''}
             ${cfg.showClassAvg ? `<td class="py-2.5 px-3 text-center">${diffBadge}</td>` : ''}
@@ -989,16 +989,16 @@
           ? `<span class="text-emerald-600 font-bold">+${avgDiff}</span>` 
           : `<span class="text-rose-500 font-bold">${avgDiff}</span>`;
         const avgPrBadge = curExam.studentAveragePr !== undefined 
-          ? `<span class="bg-indigo-600 text-white font-black px-2 py-0.5 rounded text-[11px] shadow-2xs">PR ${curExam.studentAveragePr}</span>` 
+          ? `<span class="bg-amber-500 text-slate-950 font-black px-2 py-0.5 rounded text-[11px] shadow-2xs">PR ${curExam.studentAveragePr}</span>` 
           : '-';
 
         table.innerHTML += `
-          <tr class="bg-indigo-50/80 font-bold border-t-2 border-indigo-200">
-            <td class="py-2.5 px-3 font-black text-indigo-950 flex items-center gap-1.5">
-              <span class="w-2 h-2 rounded-full bg-indigo-600 inline-block"></span>
+          <tr class="bg-amber-50/80 font-bold border-t-2 border-amber-200">
+            <td class="py-2.5 px-3 font-black text-amber-950 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-amber-500 inline-block"></span>
               <span>【個人總平均】</span>
             </td>
-            ${cfg.showSubjects ? `<td class="py-2.5 px-3 text-center font-black text-indigo-700 text-sm">${curExam.studentAverage ? curExam.studentAverage.toFixed(1) : '--'}</td>` : ''}
+            ${cfg.showSubjects ? `<td class="py-2.5 px-3 text-center font-black text-amber-800 text-sm">${curExam.studentAverage ? curExam.studentAverage.toFixed(1) : '--'}</td>` : ''}
             ${cfg.showClassAvg ? `<td class="py-2.5 px-3 text-center text-slate-500 font-semibold">${curExam.classOverallAverage ? curExam.classOverallAverage.toFixed(1) : '--'}</td>` : ''}
             ${cfg.showPr ? `<td class="py-2.5 px-3 text-center">${avgPrBadge}</td>` : ''}
             ${cfg.showClassAvg ? `<td class="py-2.5 px-3 text-center">${avgDiffTag}</td>` : ''}
@@ -1036,7 +1036,7 @@
           const diagList = document.getElementById('pDiagnosisList');
           diagList.innerHTML = '';
           curExam.subjects.forEach(sub => {
-            const zoneBadgeClass = sub.zone === '精熟' ? 'bg-indigo-100 text-indigo-800 border-indigo-200' :
+            const zoneBadgeClass = sub.zone === '精熟' ? 'bg-amber-100 text-amber-900 border-amber-200' :
                                    sub.zone === '穩健' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' :
                                    sub.zone === '努力' ? 'bg-amber-100 text-amber-800 border-amber-200' : 'bg-rose-100 text-rose-800 border-rose-200';
             diagList.innerHTML += `
@@ -1044,7 +1044,7 @@
                 <div class="flex items-center justify-between">
                   <span class="font-bold text-xs text-slate-800">
                     【${sub.name}】
-                    ${cfg.showSubjects ? `得分 <span class="text-indigo-600 font-black">${sub.score}</span> 分` : ''}
+                    ${cfg.showSubjects ? `得分 <span class="text-amber-700 font-black">${sub.score}</span> 分` : ''}
                     ${cfg.showClassAvg ? `<span class="text-slate-400 font-normal text-[11px]">(班均 ${sub.classAverage})</span>` : ''}
                   </span>
                   <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border ${zoneBadgeClass}">${sub.zoneStatus || sub.zone}</span>
@@ -1078,7 +1078,7 @@
         };
         const isActive = idx === parentBoxplotSubIdx;
         btn.className = isActive
-          ? 'px-3 py-1.5 rounded-xl font-black text-xs bg-indigo-600 text-white shadow-xs transition'
+          ? 'px-3 py-1.5 rounded-xl font-black text-xs bg-amber-500 text-slate-950 shadow-xs transition'
           : 'px-3 py-1.5 rounded-xl font-bold text-xs bg-slate-100 text-slate-600 hover:bg-slate-200 transition';
         btn.innerText = `${sub.name} (${sub.score}分)`;
         tabsContainer.appendChild(btn);
@@ -1118,7 +1118,7 @@
         <div class="flex items-center justify-between text-xs font-bold text-slate-700 mb-1">
           <div class="flex items-center gap-2">
             <span class="text-sm font-black text-slate-900">【${activeSub.name}】</span>
-            <span class="text-indigo-600 font-black">個人得分：${score} 分</span>
+            <span class="text-amber-700 font-black">個人得分：${score} 分</span>
           </div>
           <div class="text-[11px] text-slate-500 font-medium">
             班均：<span class="font-bold text-slate-700">${avg} 分</span> ‧ 中位數：<span class="font-bold text-slate-700">${median} 分</span>
@@ -1146,8 +1146,8 @@
           <div class="absolute w-3.5 h-3.5 bg-white border-2 border-slate-900 rotate-45 z-30 shadow-md -translate-x-1/2" style="left: ${pAvg}%;" title="班均: ${avg}分"></div>
 
           <!-- 亮色圓點 (個人得分) -->
-          <div class="absolute w-6 h-6 bg-white border-[3px] border-indigo-600 rounded-full z-40 shadow-xl flex items-center justify-center -translate-x-1/2 -translate-y-0.5" style="left: ${pScore}%;" title="個人得分: ${score}分">
-            <div class="w-2 h-2 rounded-full bg-indigo-600"></div>
+          <div class="absolute w-6 h-6 bg-white border-[3px] border-amber-600 rounded-full z-40 shadow-xl flex items-center justify-center -translate-x-1/2 -translate-y-0.5" style="left: ${pScore}%;" title="個人得分: ${score}分">
+            <div class="w-2 h-2 rounded-full bg-amber-600"></div>
           </div>
         </div>
 
@@ -1155,7 +1155,7 @@
           <span class="flex items-center gap-1"><span class="w-3 h-3 bg-slate-800 rounded-xs inline-block"></span> 黑色箱子: 中間 50% (Q1~Q3)</span>
           <span class="flex items-center gap-1"><span class="w-1 h-3 bg-slate-400 inline-block"></span> 白色線: 中位數 (${median})</span>
           <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 bg-white border border-slate-800 rotate-45 inline-block"></span> 菱形: 班均 (${avg})</span>
-          <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full border-2 border-indigo-600 bg-white inline-block"></span> 圓點: 個人得分 (${score})</span>
+          <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full border-2 border-amber-600 bg-white inline-block"></span> 圓點: 個人得分 (${score})</span>
         </div>
       `;
 
@@ -1290,7 +1290,7 @@
           };
           const isActive = idx === parentPrCurveSubIdx;
           btn.className = isActive
-            ? 'px-3 py-1.5 rounded-xl font-black text-xs bg-indigo-600 text-white shadow-xs transition'
+            ? 'px-3 py-1.5 rounded-xl font-black text-xs bg-amber-500 text-slate-950 shadow-xs transition'
             : 'px-3 py-1.5 rounded-xl font-bold text-xs bg-slate-100 text-slate-600 hover:bg-slate-200 transition';
           btn.innerText = `${sub.name} (${sub.score}分)`;
           tabsContainer.appendChild(btn);
@@ -1442,7 +1442,7 @@
             <svg viewBox="0 0 600 215" class="w-full h-auto drop-shadow-sm select-none">
               <defs>
                 <linearGradient id="pCurAreaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stop-color="#4f46e5" stop-opacity="0.25" />
+                  <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.35" />
                   <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.03" />
                 </linearGradient>
                 <linearGradient id="pCompAreaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -1460,7 +1460,7 @@
               <path d="${pathComp}" fill="url(#pCompAreaGrad)" stroke="#f59e0b" stroke-width="2.5" stroke-dasharray="5,3.5" stroke-linecap="round" />
 
               <!-- 本次考試分佈曲線 (湛藍實線) -->
-              <path d="${pathCur}" fill="url(#pCurAreaGrad)" stroke="#4f46e5" stroke-width="3" stroke-linecap="round" />
+              <path d="${pathCur}" fill="url(#pCurAreaGrad)" stroke="#d97706" stroke-width="3" stroke-linecap="round" />
 
               <!-- 分數基準軸 (X 軸) -->
               <line x1="25" y1="165" x2="575" y2="165" stroke="#64748b" stroke-width="1.5" />
@@ -1479,9 +1479,9 @@
               <text x="${compAvgX}" y="${Math.min(155, compAvgY + 13)}" font-size="8.5" fill="#d97706" font-weight="bold" text-anchor="middle">對比均 ${compCAvg}</text>
 
               <!-- 本次班均標記線 -->
-              <line x1="${curAvgX}" y1="${curAvgY}" x2="${curAvgX}" y2="165" stroke="#4f46e5" stroke-width="1.8" stroke-dasharray="3,3" />
-              <circle cx="${curAvgX}" cy="${curAvgY}" r="4.5" fill="#ffffff" stroke="#4f46e5" stroke-width="2" />
-              <text x="${curAvgX}" y="${Math.min(155, curAvgY + 13)}" font-size="8.5" fill="#4f46e5" font-weight="bold" text-anchor="middle">本次均 ${cAvg}</text>
+              <line x1="${curAvgX}" y1="${curAvgY}" x2="${curAvgX}" y2="165" stroke="#b45309" stroke-width="1.8" stroke-dasharray="3,3" />
+              <circle cx="${curAvgX}" cy="${curAvgY}" r="4.5" fill="#ffffff" stroke="#b45309" stroke-width="2" />
+              <text x="${curAvgX}" y="${Math.min(155, curAvgY + 13)}" font-size="8.5" fill="#b45309" font-weight="bold" text-anchor="middle">本次均 ${cAvg}</text>
 
               <!-- 跨次位移軌跡弧線 -->
               ${trajectorySvg}
@@ -1496,11 +1496,11 @@
               </g>
 
               <!-- 本次考試得分落點圖釘 -->
-              <line x1="${stX}" y1="${stY}" x2="${stX}" y2="165" stroke="#4f46e5" stroke-width="2.5" />
-              <circle cx="${stX}" cy="${stY}" r="7" fill="#fbbf24" stroke="#4f46e5" stroke-width="3" />
-              <circle cx="${stX}" cy="${stY}" r="2.5" fill="#4f46e5" />
+              <line x1="${stX}" y1="${stY}" x2="${stX}" y2="165" stroke="#d97706" stroke-width="2.5" />
+              <circle cx="${stX}" cy="${stY}" r="7" fill="#fef3c7" stroke="#d97706" stroke-width="3" />
+              <circle cx="${stX}" cy="${stY}" r="2.5" fill="#d97706" />
               <g transform="translate(${curTagX}, ${curTagY})">
-                <rect x="-46" y="-12" width="92" height="20" rx="10" fill="#4f46e5" filter="drop-shadow(0 2px 5px rgba(79,70,229,0.3))" />
+                <rect x="-46" y="-12" width="92" height="20" rx="10" fill="#d97706" filter="drop-shadow(0 2px 5px rgba(217,119,6,0.35))" />
                 <text x="0" y="2" font-size="9.5" font-weight="900" fill="#ffffff" text-anchor="middle">📍 本次 ${score}分</text>
               </g>
             </svg>
@@ -1509,8 +1509,8 @@
           <!-- 雙曲線圖例提示列 -->
           <div class="flex flex-wrap items-center justify-between gap-2 px-3 py-1.5 bg-white/90 rounded-2xl border border-slate-200/70 text-[11px] shadow-2xs">
             <div class="flex items-center gap-3">
-              <div class="flex items-center gap-1.5 font-black text-indigo-900">
-                <span class="w-3.5 h-1 bg-indigo-600 rounded-full inline-block"></span>
+              <div class="flex items-center gap-1.5 font-black text-amber-950">
+                <span class="w-3.5 h-1 bg-amber-500 rounded-full inline-block"></span>
                 <span>本次：${curExam.examTitle || curExam.sheetName}</span>
               </div>
               <div class="flex items-center gap-1.5 font-bold text-amber-700">
@@ -1525,7 +1525,7 @@
 
           <!-- 雙次關鍵指標對照膠囊列 -->
           <div class="flex flex-wrap items-center justify-center gap-1.5 pt-0.5">
-            <span class="text-[10px] font-black text-indigo-900 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-full shadow-2xs">
+            <span class="text-[10px] font-black text-amber-950 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full shadow-2xs">
               📍 本次 ${score} 分 (PR ${pr} · 均 ${cAvg})
             </span>
             <span class="text-[10px] font-bold text-amber-900 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full shadow-2xs">
@@ -1537,10 +1537,10 @@
           </div>
 
           <!-- 跨次分佈動態成長解讀卡 -->
-          <div class="p-3 bg-gradient-to-r from-amber-50/80 via-white to-indigo-50/70 rounded-2xl border border-amber-200/70 text-[11px] text-slate-700 leading-relaxed space-y-1.5 shadow-2xs">
+          <div class="p-3 bg-gradient-to-r from-amber-50/80 via-white to-amber-50/70 rounded-2xl border border-amber-200/70 text-[11px] text-slate-700 leading-relaxed space-y-1.5 shadow-2xs">
             <div class="font-bold text-slate-800 flex items-center justify-between">
               <span class="flex items-center gap-1.5"><span class="text-sm">🔄</span> 【${activeSub.name}】跨次考試分佈疊加與學習足跡解讀</span>
-              <span class="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200/60">
+              <span class="text-[10px] font-bold text-amber-900 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200/60">
                 ${diffScore >= 0 ? '穩步躍升' : '持續蓄力'}
               </span>
             </div>
@@ -1548,7 +1548,7 @@
               圖表已疊合兩次考試班級分數分佈走向。全班平均由 <b>${compCAvg} 分</b> 移至 <b>${cAvg} 分</b>（高分聚集區由 ${compKde.modeScore} 分移至 ${curKde.modeScore} 分）。<br>
               孩子本次得分 <b>${score} 分 (PR ${pr})</b>，相較上次 <b>${compScore} 分 (PR ${compPr})</b>，${diffScore >= 0 ? `成績提升了 <b>+${diffScore} 分</b>，在全班同儕百分等級超越幅度增加了 <b>+${diffPr} 個百分位</b>` : `調整了 <b>${diffScore} 分</b> (PR 變動 ${diffPr})`}！
             </div>
-            ${activeSub.advice ? `<div class="text-[10px] text-indigo-900 bg-indigo-50/80 p-2 rounded-xl border border-indigo-100 font-medium">💡 適性引導：${activeSub.advice}</div>` : ''}
+            ${activeSub.advice ? `<div class="text-[10px] text-amber-950 bg-amber-50/80 p-2 rounded-xl border border-amber-200 font-medium">💡 適性引導：${activeSub.advice}</div>` : ''}
           </div>
         `;
         return;
@@ -1626,13 +1626,13 @@
             <text x="${avgX}" y="${Math.min(150, avgY + 14)}" font-size="9" fill="#475569" font-weight="bold" text-anchor="middle">班均 ${cAvg}</text>
 
             <!-- 學生個人得分落點垂直引線與定位圖釘 -->
-            <line x1="${stX}" y1="${stY}" x2="${stX}" y2="160" stroke="#4f46e5" stroke-width="2.5" />
-            <circle cx="${stX}" cy="${stY}" r="7" fill="#fbbf24" stroke="#4f46e5" stroke-width="3" />
-            <circle cx="${stX}" cy="${stY}" r="2.5" fill="#4f46e5" />
+            <line x1="${stX}" y1="${stY}" x2="${stX}" y2="160" stroke="#d97706" stroke-width="2.5" />
+            <circle cx="${stX}" cy="${stY}" r="7" fill="#fef3c7" stroke="#d97706" stroke-width="3" />
+            <circle cx="${stX}" cy="${stY}" r="2.5" fill="#d97706" />
 
             <!-- 學生得分懸浮氣泡徽章 -->
             <g transform="translate(${Math.max(65, Math.min(535, stX))}, ${Math.max(20, stY - 14)})">
-              <rect x="-56" y="-16" width="112" height="22" rx="11" fill="#4f46e5" filter="drop-shadow(0 2px 5px rgba(79,70,229,0.3))" />
+              <rect x="-56" y="-16" width="112" height="22" rx="11" fill="#d97706" filter="drop-shadow(0 2px 5px rgba(217,119,6,0.35))" />
               <text x="0" y="-1" font-size="10" font-weight="900" fill="#ffffff" text-anchor="middle">📍 個人得分 ${score}分</text>
             </g>
           </svg>
@@ -1640,7 +1640,7 @@
 
         <!-- 關鍵統計數據膠囊列 -->
         <div class="flex flex-wrap items-center justify-center gap-1.5 pt-1">
-          <span class="text-[10px] font-black text-indigo-900 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-full shadow-2xs">
+          <span class="text-[10px] font-black text-amber-950 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full shadow-2xs">
             📍 個人得分 ${score} 分
           </span>
           <span class="text-[10px] font-bold text-slate-700 bg-white border border-slate-200 px-2.5 py-1 rounded-full shadow-2xs">
@@ -1658,10 +1658,10 @@
         </div>
 
         <!-- 該科當次分佈正向成長解讀卡 -->
-        <div class="p-3 bg-gradient-to-r from-amber-50/80 via-white to-indigo-50/70 rounded-2xl border border-amber-200/60 text-[11px] text-slate-700 leading-relaxed space-y-1">
+        <div class="p-3 bg-gradient-to-r from-amber-50/80 via-white to-amber-50/70 rounded-2xl border border-amber-200/60 text-[11px] text-slate-700 leading-relaxed space-y-1">
           <div class="font-bold text-slate-800 flex items-center justify-between">
             <span class="flex items-center gap-1.5"><span class="text-sm">🌱</span> 【${activeSub.name}】當次班級成績分佈解讀</span>
-            <span class="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200/60">
+            <span class="text-[10px] font-bold text-amber-900 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200/60">
               全班最高 ${activeSub.max || 100} 分 ‧ 最低 ${activeSub.min || 0} 分
             </span>
           </div>
@@ -1669,7 +1669,7 @@
             曲線呈現當次全班同學在<b>【${activeSub.name}】</b>的真實分數分佈走勢（多數同學落在約 <b>${curKde.modeScore} 分</b> 區間）。
             孩子本次得分 <b>${score} 分</b>，在全班同儕中相對超越約 <b>${pr}%</b> 的同學，處於<b>「${activeSub.zoneStatus || (activeSub.zone + '區間')}」</b>。
           </div>
-          ${activeSub.advice ? `<div class="text-[10px] text-indigo-900 bg-indigo-50/80 p-2 rounded-xl border border-indigo-100 mt-1 font-medium">💡 適性引導：${activeSub.advice}</div>` : ''}
+          ${activeSub.advice ? `<div class="text-[10px] text-amber-950 bg-amber-50/80 p-2 rounded-xl border border-amber-200 mt-1 font-medium">💡 適性引導：${activeSub.advice}</div>` : ''}
         </div>
       `;
     }
@@ -1682,10 +1682,10 @@
         {
           label: '個人得分',
           data: scores,
-          backgroundColor: 'rgba(79, 70, 229, 0.25)',
-          borderColor: 'rgba(79, 70, 229, 1)',
+          backgroundColor: 'rgba(245, 158, 11, 0.35)',
+          borderColor: 'rgba(217, 119, 6, 1)',
           borderWidth: 2,
-          pointBackgroundColor: 'rgba(79, 70, 229, 1)'
+          pointBackgroundColor: 'rgba(217, 119, 6, 1)'
         }
       ];
 
@@ -1693,8 +1693,8 @@
         datasets.push({
           label: '班級各科平均',
           data: avgs,
-          backgroundColor: 'rgba(148, 163, 184, 0.2)',
-          borderColor: 'rgba(148, 163, 184, 1)',
+          backgroundColor: 'rgba(5, 150, 105, 0.2)',
+          borderColor: 'rgba(5, 150, 105, 1)',
           borderWidth: 1.5,
           borderDash: [3, 3]
         });
@@ -1737,12 +1737,12 @@
           datasets: [{
             label: '個人平均成績',
             data: avgs,
-            borderColor: 'rgba(79, 70, 229, 1)',
-            backgroundColor: 'rgba(79, 70, 229, 0.1)',
+            borderColor: 'rgba(217, 119, 6, 1)',
+            backgroundColor: 'rgba(245, 158, 11, 0.15)',
             fill: true,
             tension: 0.3,
             pointRadius: 5,
-            pointBackgroundColor: 'rgba(79, 70, 229, 1)'
+            pointBackgroundColor: 'rgba(217, 119, 6, 1)'
           }]
         },
         options: {
