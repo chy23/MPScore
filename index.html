@@ -560,12 +560,12 @@
                 <option value="114學年度第2學期期中考">114學年度第2學期期中考</option>
               </select>
             </div>
-            <div class="flex items-center gap-3">
-              <label class="flex items-center gap-1.5 text-xs font-bold text-indigo-950 cursor-pointer bg-white px-2.5 py-1 rounded-lg border border-indigo-300 shadow-xs">
-                <input type="checkbox" id="optSuperCleanQr" checked onchange="updatePrintCards()" class="rounded text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5">
-                <span>⚡ 超清晰大方塊 QR Code (秒掃直達)</span>
-              </label>
-              <span class="text-[11px] text-indigo-700 font-semibold">紙本與手機網站項目獨立勾選</span>
+            <div class="flex items-center gap-2">
+              <span class="text-[11px] text-emerald-800 font-semibold bg-emerald-50/90 px-2.5 py-1 rounded-full border border-emerald-200/80 flex items-center gap-1">
+                <span>⚡</span>
+                <span>QR Code 已啟用大方塊高速對焦</span>
+              </span>
+              <span class="text-[11px] text-indigo-700 font-semibold">紙本與手機網站獨立自訂</span>
             </div>
           </div>
 
@@ -790,57 +790,76 @@
           <div class="bg-slate-50 rounded-[28px] overflow-hidden min-h-[620px] max-h-[720px] overflow-y-auto p-4 border border-slate-200 text-xs">
             <div id="sandboxMobileView" class="space-y-3.5">
               
-              <!-- 學生卡片 -->
-              <div class="bg-gradient-to-r from-indigo-600 to-indigo-800 text-white rounded-2xl p-4 shadow-md space-y-3">
-                <div class="flex items-center justify-between">
-                  <div>
-                    <div class="text-lg font-black" id="sbStudentName">--</div>
-                    <div class="text-[11px] text-indigo-200 mt-0.5"><span id="sbClassName">--</span> ‧ 座號：<span id="sbSeatNumber">--</span> 號</div>
+              <!-- 學生學習卡片 (溫暖 Apple 徽章風格) -->
+              <div class="bg-gradient-to-br from-indigo-600 via-indigo-700 to-sky-600 text-white rounded-3xl p-4 shadow-md space-y-3 relative overflow-hidden">
+                <div class="absolute -right-6 -top-6 w-24 h-24 bg-white/10 rounded-full blur-xl pointer-events-none"></div>
+                <div class="flex items-center justify-between relative z-10">
+                  <div class="flex items-center gap-2.5">
+                    <div class="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center font-black text-lg text-white" id="sbStudentAvatar">
+                      陳
+                    </div>
+                    <div>
+                      <div class="text-lg font-black tracking-tight" id="sbStudentName">--</div>
+                      <div class="text-[11px] text-indigo-100/90 mt-0.5 font-medium flex items-center gap-1">
+                        <span class="bg-white/20 px-1.5 py-0.2 rounded-full" id="sbClassName">-- 班</span>
+                        <span>座號：<span id="sbSeatNumber" class="font-bold">--</span> 號</span>
+                      </div>
+                    </div>
                   </div>
-                  <select id="sbExamSelect" onchange="renderSandboxSelectedExamView()" class="text-[11px] bg-white text-slate-800 font-bold px-2 py-1 rounded-lg focus:outline-none shadow-sm"></select>
+                  <select id="sbExamSelect" onchange="renderSandboxSelectedExamView()" class="text-[11px] bg-white text-slate-800 font-bold px-2.5 py-1.5 rounded-xl focus:outline-none shadow-sm border border-white/50 active:scale-95 cursor-pointer"></select>
                 </div>
 
                 <!-- 3 大指標徽章 -->
-                <div id="sbMetricsGrid" class="grid grid-cols-3 gap-1.5 pt-2 border-t border-indigo-500/50 text-center">
-                  <div id="sbMetricAvgCard" class="bg-white/10 rounded-xl p-1.5 backdrop-blur-sm">
-                    <div class="text-[9px] text-indigo-200">個人總平均</div>
-                    <div class="text-sm font-black text-white" id="sbStudentAverage">--</div>
+                <div id="sbMetricsGrid" class="grid grid-cols-3 gap-1.5 pt-2 border-t border-white/15 text-center relative z-10">
+                  <div id="sbMetricAvgCard" class="bg-white/15 rounded-2xl p-2 backdrop-blur-md border border-white/20">
+                    <div class="text-[9px] text-indigo-100 font-medium">🌟 個人總平均</div>
+                    <div class="text-sm font-black text-white mt-0.5" id="sbStudentAverage">--</div>
                   </div>
-                  <div id="sbMetricRankCard" class="bg-white/10 rounded-xl p-1.5 backdrop-blur-sm">
-                    <div class="text-[9px] text-indigo-200">班級名次</div>
-                    <div class="text-sm font-black text-amber-300" id="sbStudentRank">--</div>
+                  <div id="sbMetricRankCard" class="bg-white/15 rounded-2xl p-2 backdrop-blur-md border border-white/20">
+                    <div class="text-[9px] text-amber-200 font-medium">🏆 班級名次</div>
+                    <div class="text-sm font-black text-amber-300 mt-0.5" id="sbStudentRank">--</div>
                   </div>
-                  <div id="sbMetricClassAvgCard" class="bg-white/10 rounded-xl p-1.5 backdrop-blur-sm">
-                    <div class="text-[9px] text-indigo-200">全班總平均</div>
-                    <div class="text-sm font-black text-indigo-100" id="sbClassOverallAvg">--</div>
+                  <div id="sbMetricClassAvgCard" class="bg-white/15 rounded-2xl p-2 backdrop-blur-md border border-white/20">
+                    <div class="text-[9px] text-indigo-100 font-medium">👥 全班總平均</div>
+                    <div class="text-sm font-black text-indigo-50 mt-0.5" id="sbClassOverallAvg">--</div>
                   </div>
                 </div>
               </div>
 
-              <!-- 🎯 各科能力雷達圖 -->
-              <div id="sbRadarCard" class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-200">
-                <div class="font-bold text-[11px] text-slate-700 mb-2 flex justify-between">
-                  <span>🎯 本次各科能力雷達圖</span>
-                  <span class="text-slate-400 font-normal text-[10px]">個人表現形狀</span>
+              <!-- 🎯 多元能力探索雷達圖 -->
+              <div id="sbRadarCard" class="bg-white p-4 rounded-3xl shadow-sm border border-slate-200/80 space-y-1.5">
+                <div class="font-bold text-[11px] text-slate-700 flex justify-between items-center border-b border-slate-100 pb-1.5">
+                  <span class="font-black text-slate-900 flex items-center gap-1">
+                    <span>🎯</span>
+                    <span>多元學科能力探索</span>
+                  </span>
+                  <span class="text-slate-400 font-normal text-[10px]">發現優勢形狀</span>
                 </div>
-                <div class="max-w-[220px] mx-auto aspect-square">
+                <div class="max-w-[220px] mx-auto aspect-square pt-1">
                   <canvas id="sbRadarCanvas"></canvas>
                 </div>
               </div>
 
               <!-- 📈 歷次成長趨勢圖 -->
-              <div id="sbTrendCard" class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-200">
-                <div class="font-bold text-[11px] text-slate-700 mb-1">📈 歷次考試成長曲線</div>
-                <div class="h-[180px]">
+              <div id="sbTrendCard" class="bg-white p-4 rounded-3xl shadow-sm border border-slate-200/80 space-y-1.5">
+                <div class="font-bold text-[11px] text-slate-700 flex justify-between items-center border-b border-slate-100 pb-1.5">
+                  <span class="font-black text-slate-900 flex items-center gap-1">
+                    <span>📈</span>
+                    <span>歷次考試成長軌跡</span>
+                  </span>
+                  <span class="text-slate-400 font-normal text-[10px]">見證點滴突破</span>
+                </div>
+                <div class="h-[180px] pt-1">
                   <canvas id="sbTrendCanvas"></canvas>
                 </div>
               </div>
 
-              <!-- 🚀 跨次考試進退步對比卡片 -->
-              <div id="sbComparisonCard" class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-200 space-y-2.5">
+              <!-- 🚀 跨次成長進步足跡卡片 -->
+              <div id="sbComparisonCard" class="bg-white p-4 rounded-3xl shadow-sm border border-slate-200/80 space-y-2.5">
                 <div class="flex items-center justify-between border-b pb-1.5">
                   <span class="text-[11px] font-bold text-slate-800 flex items-center gap-1">
-                    <span>🚀 跨次考試進退步對比</span>
+                    <span class="text-sm">🚀</span>
+                    <span class="font-black text-slate-900">跨次成長進步足跡</span>
                     <span id="sbPrevExamName" class="text-[9px] text-slate-400 font-normal"></span>
                   </span>
                   <span id="sbComparisonBadge" class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">--</span>
@@ -848,44 +867,49 @@
                 <div id="sbComparisonList" class="grid grid-cols-2 gap-1.5 text-[11px]"></div>
               </div>
 
-              <!-- 📦 建議箱型圖 (經典盒鬚圖常模分佈) -->
-              <div id="sbBoxplotCard" class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-200 space-y-2.5">
+              <!-- 📦 班級學習表現盒鬚圖 (經典盒鬚圖常模分佈) -->
+              <div id="sbBoxplotCard" class="bg-white p-4 rounded-3xl shadow-sm border border-slate-200/80 space-y-2.5">
                 <div class="flex items-center justify-between border-b pb-1.5">
-                  <div class="font-bold text-[11px] text-slate-800 flex items-center gap-1">
-                    <span>📦 建議箱型圖 (學習表現常模)</span>
+                  <div class="font-black text-[11px] text-slate-900 flex items-center gap-1">
+                    <span>📦</span>
+                    <span>建議箱型圖 (學習表現常模)</span>
                   </div>
                   <span id="sbBoxplotActiveZoneBadge" class="text-[9px] font-black px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">--</span>
                 </div>
                 <div class="text-[10px] text-slate-400">復刻 GradeInterpr 幾何盒鬚圖 ‧ 點擊科目切換</div>
                 <!-- 科目頁籤 -->
-                <div id="sbBoxplotTabs" class="flex flex-wrap gap-1"></div>
+                <div id="sbBoxplotTabs" class="flex flex-wrap gap-1 bg-slate-100/80 p-1 rounded-2xl"></div>
                 <!-- 幾何圖表容器 -->
-                <div id="sbBoxplotChartArea" class="bg-slate-100 rounded-xl p-3 border border-slate-200"></div>
-                <!-- 4 區間解讀 -->
+                <div id="sbBoxplotChartArea" class="bg-slate-100/80 rounded-2xl p-3 border border-slate-200/80"></div>
+                <!-- 4 區間解讀 (正向教育成長心態) -->
                 <div id="sbBoxplotZones" class="grid grid-cols-2 gap-1.5 text-[10px]"></div>
               </div>
 
               <!-- 🔔 常態 PR 落點曲線圖 -->
-              <div id="sbPrCurveCard" class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-200 space-y-2">
+              <div id="sbPrCurveCard" class="bg-white p-4 rounded-3xl shadow-sm border border-slate-200/80 space-y-2">
                 <div class="flex items-center justify-between border-b pb-1.5">
-                  <div class="font-bold text-[11px] text-slate-800 flex items-center gap-1">
-                    <span>🔔 常態 PR 落點曲線圖</span>
+                  <div class="font-black text-[11px] text-slate-900 flex items-center gap-1">
+                    <span>🔔</span>
+                    <span>常態 PR 落點曲線圖</span>
                   </div>
-                  <span id="sbPrCurveBadge" class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700">總均 PR</span>
+                  <span id="sbPrCurveBadge" class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">總均 PR</span>
                 </div>
                 <div class="text-[10px] text-slate-400">常態鐘形分佈 ‧ 總平均與各科常模相對落點</div>
                 <!-- SVG 曲線圖容器 -->
                 <div id="sbPrCurveContainer"></div>
               </div>
 
-              <!-- 📋 各科成績與常模明細表 -->
-              <div id="sbScoreCard" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                <div class="p-2.5 border-b border-slate-100 font-bold text-[11px] text-slate-800 flex justify-between items-center">
-                  <span>📋 各科成績與常模明細</span>
-                  <span class="text-[9px] text-indigo-600 font-medium">免手算 ‧ 系統自動精算</span>
+              <!-- 📋 各科成績與成長常模明細表 -->
+              <div id="sbScoreCard" class="bg-white rounded-3xl shadow-sm border border-slate-200/80 overflow-hidden">
+                <div class="p-3 border-b border-slate-100 font-bold text-[11px] text-slate-800 flex justify-between items-center">
+                  <span class="font-black text-slate-900 flex items-center gap-1">
+                    <span>📋</span>
+                    <span>各科成績與表現常模</span>
+                  </span>
+                  <span class="text-[9px] text-indigo-600 font-semibold bg-indigo-50 px-2 py-0.5 rounded-full">班級常模對照</span>
                 </div>
                 <table class="w-full text-left text-[11px]">
-                  <thead id="sbScoreTableHead" class="bg-slate-50 text-slate-500">
+                  <thead id="sbScoreTableHead" class="bg-slate-50/80 text-slate-500 font-bold">
                     <tr>
                       <th class="py-2 px-2.5">科目</th>
                       <th class="py-2 px-2 text-center">得分</th>
@@ -898,20 +922,24 @@
                 </table>
               </div>
 
-              <!-- 💡 學習診斷與適性精進建議 (GradeInterpr) -->
-              <div id="sbDiagnosisCard" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-3.5 space-y-2">
-                <div class="flex items-center justify-between">
-                  <div class="font-bold text-[11px] text-slate-800">💡 學習診斷與適性精進建議</div>
+              <!-- 🌱 學習成長小錦囊 (適性精進指引) -->
+              <div id="sbDiagnosisCard" class="bg-white rounded-3xl shadow-sm border border-slate-200/80 p-4 space-y-2">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-1.5">
+                  <div class="font-black text-[11px] text-slate-900 flex items-center gap-1">
+                    <span>🌱</span>
+                    <span>學習成長小錦囊 (適性精進指引)</span>
+                  </div>
                   <span class="text-[9px] text-indigo-600 font-semibold bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200/50">
-                    GradeInterpr 處方
+                    GradeInterpr
                   </span>
                 </div>
                 <div id="sbDiagnosisList" class="space-y-2 text-[11px]"></div>
               </div>
 
               <!-- 手機預覽頁尾 -->
-              <div class="text-center text-[10px] text-slate-400 pt-2 pb-1">
-                MPScore 智慧個別成績與學習診斷系統
+              <div class="text-center text-[10px] text-slate-400 pt-2 pb-1 space-y-0.5">
+                <div class="font-medium text-slate-500">🌱 MPScore 學生學習成長手札</div>
+                <div>陪伴孩子看見每一個微小突破</div>
               </div>
             </div>
           </div>
@@ -936,15 +964,22 @@
       </div>
     </div>
 
-    <header class="bg-indigo-700 text-white py-3.5 px-4 shadow-md sticky top-0 z-40">
-      <div class="max-w-md mx-auto flex items-center justify-between">
-        <div class="text-left">
-          <h1 class="text-base font-bold tracking-tight">個別成績與學習診斷系統</h1>
-          <p class="text-[11px] text-indigo-200">資安保護 ‧ 個別化學習成效回饋</p>
+    <header class="bg-white/90 backdrop-blur-md sticky top-0 z-40 text-slate-800 transition-all border-b border-slate-200/80 shadow-2xs">
+      <div class="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-2xl bg-gradient-to-br from-amber-400 via-indigo-600 to-sky-500 text-white flex items-center justify-center font-black text-base shadow-xs">
+            🌱
+          </div>
+          <div>
+            <h1 class="text-sm font-black text-slate-900 tracking-tight flex items-center gap-1.5">
+              <span>學生學習成長手札</span>
+            </h1>
+            <p class="text-[11px] text-slate-500 font-medium">看見孩子的每一步進步 ‧ 親師同心伴讀</p>
+          </div>
         </div>
-        <div class="flex items-center gap-1.5 text-[11px] text-indigo-100 bg-indigo-800/90 px-3 py-1 rounded-full border border-indigo-400/30 font-medium shadow-xs">
+        <div class="flex items-center gap-1.5 text-[11px] text-emerald-800 bg-emerald-50/90 px-3 py-1 rounded-full border border-emerald-200 font-semibold shadow-2xs">
           <span>🔒</span>
-          <span>資安防護查詢</span>
+          <span>專屬安心查詢</span>
         </div>
       </div>
     </header>
@@ -952,134 +987,172 @@
     <div class="max-w-md mx-auto px-4 mt-4 space-y-4">
       
       <!-- 代碼輸入卡 -->
-      <div id="parentLoginBox" class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
-        <label class="block text-xs font-bold text-slate-700 mb-1.5 text-center">請輸入學生專屬 6 碼查詢代碼 或 姓名</label>
+      <div id="parentLoginBox" class="bg-white/90 backdrop-blur-md rounded-3xl p-5 shadow-sm border border-slate-200/80 space-y-3">
+        <div class="text-center space-y-1">
+          <div class="inline-flex items-center gap-1 text-[11px] font-bold text-indigo-700 bg-indigo-50/80 px-2.5 py-0.5 rounded-full border border-indigo-100">
+            <span>💌</span> 個別安心查詢
+          </div>
+          <h2 class="text-sm font-black text-slate-800">請輸入學生專屬 6 碼查詢代碼 或 姓名</h2>
+          <p class="text-[11px] text-slate-500">掃描通知單 QR Code 亦可直達 ‧ 陪伴孩子看見亮點與成長</p>
+        </div>
         <div class="flex gap-2">
-          <input type="text" id="parentTokenInput" onkeydown="if(event.key==='Enter'){event.preventDefault();doParentQuery();}" placeholder="例如：DEMO01 或 陳小華" class="flex-1 px-3 py-2 text-center uppercase tracking-widest font-mono border border-slate-300 rounded-xl text-base font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <button onclick="doParentQuery()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-xl text-sm transition">
-            查詢
+          <input type="text" id="parentTokenInput" onkeydown="if(event.key==='Enter'){event.preventDefault();doParentQuery();}" placeholder="例如：DEMO01 或 陳小華" class="flex-1 px-4 py-2.5 text-center uppercase tracking-widest font-mono border border-slate-200 rounded-2xl text-base font-bold bg-slate-50/60 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+          <button onclick="doParentQuery()" class="bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-black px-5 py-2.5 rounded-2xl text-sm transition shadow-sm flex items-center justify-center gap-1.5 min-w-[80px]">
+            <span>開啟</span>
           </button>
         </div>
-        <div id="parentErrorMsg" class="text-red-500 text-xs text-center mt-2 hidden"></div>
+        <div id="parentErrorMsg" class="text-rose-600 text-xs text-center mt-2 hidden leading-relaxed bg-rose-50 p-2.5 rounded-xl border border-rose-100"></div>
       </div>
 
       <!-- 查詢結果區 (預設隱藏) -->
       <div id="parentScoreResult" class="hidden space-y-4">
         
-        <!-- 學生卡片 -->
-        <div class="bg-gradient-to-r from-indigo-600 to-indigo-800 text-white rounded-2xl p-4 shadow-md space-y-3">
-          <div class="flex items-center justify-between">
-            <div>
-              <div class="text-xl font-black" id="pStudentName">--</div>
-              <div class="text-xs text-indigo-200 mt-0.5"><span id="pClassName">--</span> ‧ 座號：<span id="pSeatNumber">--</span> 號</div>
+        <!-- 學生學習卡片 (溫暖 Apple 徽章風格) -->
+        <div class="bg-gradient-to-br from-indigo-600 via-indigo-700 to-sky-600 text-white rounded-3xl p-5 shadow-md space-y-4 relative overflow-hidden">
+          <div class="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+          <div class="absolute -left-6 -bottom-6 w-28 h-28 bg-amber-400/15 rounded-full blur-xl pointer-events-none"></div>
+
+          <div class="flex items-center justify-between relative z-10">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center font-black text-xl shadow-xs text-white" id="pStudentAvatar">
+                學
+              </div>
+              <div>
+                <div class="text-xl font-black tracking-tight" id="pStudentName">--</div>
+                <div class="text-xs text-indigo-100/90 mt-0.5 font-medium flex items-center gap-1.5">
+                  <span class="bg-white/20 px-2 py-0.5 rounded-full" id="pClassName">-- 班</span>
+                  <span>座號：<span id="pSeatNumber" class="font-bold">--</span> 號</span>
+                </div>
+              </div>
             </div>
-            <select id="pExamSelect" onchange="renderSelectedExamView()" class="text-xs bg-white text-slate-800 font-bold px-3 py-1.5 rounded-lg focus:outline-none shadow-sm"></select>
+            <select id="pExamSelect" onchange="renderSelectedExamView()" class="text-xs bg-white/95 text-slate-800 font-bold px-3 py-2 rounded-xl focus:outline-none shadow-sm border border-white/50 active:scale-95 cursor-pointer"></select>
           </div>
 
-          <!-- 3 大關鍵指標徽章 (全自動精算) -->
-          <div id="pMetricsGrid" class="grid grid-cols-3 gap-2 pt-2 border-t border-indigo-500/50 text-center">
-            <div id="pMetricAvgCard" class="bg-white/10 rounded-xl p-2 backdrop-blur-sm">
-              <div class="text-[10px] text-indigo-200">個人總平均</div>
-              <div class="text-base font-black text-white" id="pStudentAverage">--</div>
+          <!-- 3 大關鍵指標徽章 (毛玻璃浮島卡片) -->
+          <div id="pMetricsGrid" class="grid grid-cols-3 gap-2.5 pt-3 border-t border-white/15 text-center relative z-10">
+            <div id="pMetricAvgCard" class="bg-white/15 rounded-2xl p-2.5 backdrop-blur-md border border-white/20 shadow-2xs">
+              <div class="text-[10px] text-indigo-100 font-medium">🌟 個人總平均</div>
+              <div class="text-base font-black text-white mt-0.5" id="pStudentAverage">--</div>
             </div>
-            <div id="pMetricRankCard" class="bg-white/10 rounded-xl p-2 backdrop-blur-sm">
-              <div class="text-[10px] text-indigo-200">班級名次</div>
-              <div class="text-base font-black text-amber-300" id="pStudentRank">--</div>
+            <div id="pMetricRankCard" class="bg-white/15 rounded-2xl p-2.5 backdrop-blur-md border border-white/20 shadow-2xs">
+              <div class="text-[10px] text-amber-200 font-medium">🏆 班級名次</div>
+              <div class="text-base font-black text-amber-300 mt-0.5" id="pStudentRank">--</div>
             </div>
-            <div id="pMetricClassAvgCard" class="bg-white/10 rounded-xl p-2 backdrop-blur-sm">
-              <div class="text-[10px] text-indigo-200">全班總平均</div>
-              <div class="text-base font-black text-indigo-100" id="pClassOverallAvg">--</div>
+            <div id="pMetricClassAvgCard" class="bg-white/15 rounded-2xl p-2.5 backdrop-blur-md border border-white/20 shadow-2xs">
+              <div class="text-[10px] text-indigo-100 font-medium">👥 全班總平均</div>
+              <div class="text-base font-black text-indigo-50 mt-0.5" id="pClassOverallAvg">--</div>
             </div>
           </div>
         </div>
 
-        <!-- 雷達圖 -->
-        <div id="pRadarCard" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
-          <div class="font-bold text-xs text-slate-700 mb-2 flex justify-between">
-            <span>🎯 本次各科能力雷達圖</span>
-            <span class="text-slate-400 font-normal">個人 vs 班級各科平均</span>
+        <!-- 🎯 各科能力探索雷達圖 -->
+        <div id="pRadarCard" class="bg-white/90 backdrop-blur-md p-5 rounded-3xl shadow-sm border border-slate-200/80 space-y-2">
+          <div class="font-bold text-xs text-slate-700 flex justify-between items-center border-b border-slate-100 pb-2">
+            <div class="flex items-center gap-1.5">
+              <span class="text-base">🎯</span>
+              <span class="font-black text-slate-900">多元學科能力探索雷達圖</span>
+            </div>
+            <span class="text-[10px] text-slate-400 font-medium">看見強項與發展形狀</span>
           </div>
-          <div class="max-w-[260px] mx-auto aspect-square">
+          <div class="max-w-[260px] mx-auto aspect-square pt-1">
             <canvas id="pRadarChart"></canvas>
           </div>
         </div>
 
-        <!-- 歷次成長趨勢圖 -->
-        <div id="pTrendCard" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
-          <div class="font-bold text-xs text-slate-700 mb-2">📈 歷次考試成長曲線</div>
-          <div class="h-[200px]">
+        <!-- 📈 歷次成長趨勢圖 -->
+        <div id="pTrendCard" class="bg-white/90 backdrop-blur-md p-5 rounded-3xl shadow-sm border border-slate-200/80 space-y-2">
+          <div class="font-bold text-xs text-slate-700 flex justify-between items-center border-b border-slate-100 pb-2">
+            <div class="flex items-center gap-1.5">
+              <span class="text-base">📈</span>
+              <span class="font-black text-slate-900">歷次考試成長軌跡</span>
+            </div>
+            <span class="text-[10px] text-slate-400 font-medium">點滴累積 ‧ 見證孩子進步</span>
+          </div>
+          <div class="h-[200px] pt-1">
             <canvas id="pTrendChart"></canvas>
           </div>
         </div>
 
-        <!-- 本次 vs 上次 跨次考試對比卡片 -->
-        <div id="pComparisonCard" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
-          <div class="flex items-center justify-between border-b pb-2">
+        <!-- 🚀 跨次成長進步足跡卡片 -->
+        <div id="pComparisonCard" class="bg-white/90 backdrop-blur-md p-5 rounded-3xl shadow-sm border border-slate-200/80 space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-2">
             <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-              <span>🚀 跨次考試進退步對比</span>
+              <span class="text-base">🚀</span>
+              <span class="font-black text-slate-900">跨次成長進步足跡</span>
               <span id="pPrevExamName" class="text-[10px] text-slate-400 font-normal"></span>
             </span>
-            <span id="pComparisonBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">--</span>
+            <span id="pComparisonBadge" class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600">--</span>
           </div>
           <div id="pComparisonList" class="grid grid-cols-2 gap-2 text-xs">
           </div>
         </div>
 
-        <!-- 📦 建議箱型圖 (經典盒鬚圖常模分佈) -->
-        <div id="pBoxplotCard" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 space-y-3">
+        <!-- 📦 建議箱型圖 (學習表現常模) -->
+        <div id="pBoxplotCard" class="bg-white/90 backdrop-blur-md rounded-3xl shadow-sm border border-slate-200/80 p-5 space-y-3">
           <div class="flex items-center justify-between border-b border-slate-100 pb-2">
             <div>
-              <div class="font-bold text-xs text-slate-800 flex items-center gap-1.5">
-                <span>📦 建議箱型圖 (學習表現常模分佈)</span>
+              <div class="font-black text-xs text-slate-900 flex items-center gap-1.5">
+                <span class="text-base">📦</span>
+                <span>建議箱型圖 (學習表現常模)</span>
               </div>
-              <div class="text-[10px] text-slate-400 mt-0.5">復刻 GradeInterpr 幾何盒鬚圖 ‧ 掌握中位數、班均與個人分數位置</div>
+              <div class="text-[10px] text-slate-400 mt-0.5">復刻 GradeInterpr 幾何盒鬚圖 ‧ 掌握中位數、班均與個人穩健位置</div>
             </div>
-            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200" id="pBoxplotActiveZoneBadge">--</span>
+            <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200" id="pBoxplotActiveZoneBadge">--</span>
           </div>
-          <div id="pBoxplotSubjectTabs" class="flex flex-wrap gap-1.5"></div>
-          <div id="pBoxplotChartContainer" class="bg-slate-100/90 rounded-2xl p-4 border border-slate-200 space-y-3"></div>
+          <div id="pBoxplotSubjectTabs" class="flex flex-wrap gap-1.5 bg-slate-100/80 p-1 rounded-2xl"></div>
+          <div id="pBoxplotChartContainer" class="bg-slate-100/80 rounded-2xl p-4 border border-slate-200/80 space-y-3"></div>
           <div id="pBoxplotZoneCards" class="grid grid-cols-2 gap-2 text-[11px]"></div>
         </div>
 
         <!-- 🔔 常態 PR 落點曲線圖 (常模相對位置) -->
-        <div id="pPrCurveCard" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 space-y-2.5">
+        <div id="pPrCurveCard" class="bg-white/90 backdrop-blur-md rounded-3xl shadow-sm border border-slate-200/80 p-5 space-y-3">
           <div class="flex items-center justify-between border-b border-slate-100 pb-2">
             <div>
-              <div class="font-bold text-xs text-slate-800 flex items-center gap-1.5">
-                <span>🔔 常態 PR 落點曲線圖 (常模相對位置)</span>
+              <div class="font-black text-xs text-slate-900 flex items-center gap-1.5">
+                <span class="text-base">🔔</span>
+                <span>常態 PR 落點曲線圖 (常模相對位置)</span>
               </div>
               <div class="text-[10px] text-slate-400 mt-0.5">常態鐘形常模分佈 ‧ 總平均與各科 PR 相對落點</div>
             </div>
-            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200" id="pPrCurveBadge">總均 PR</span>
+            <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200" id="pPrCurveBadge">總均 PR</span>
           </div>
           <div id="pPrCurveContainer"></div>
         </div>
 
-        <!-- 數據列表 -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-          <div class="p-3 border-b border-slate-100 font-bold text-xs text-slate-800 flex justify-between items-center">
-            <span>📋 各科成績與常模明細</span>
-            <span class="text-[10px] text-indigo-600 font-medium">免手算 ‧ 系統自動精算</span>
+        <!-- 📋 各科成績與表現常模明細 -->
+        <div class="bg-white/90 backdrop-blur-md rounded-3xl shadow-sm border border-slate-200/80 overflow-hidden">
+          <div class="p-3.5 border-b border-slate-100 font-bold text-xs text-slate-800 flex justify-between items-center">
+            <span class="font-black text-slate-900 flex items-center gap-1.5">
+              <span>📋</span>
+              <span>各科成績與表現常模明細</span>
+            </span>
+            <span class="text-[10px] text-indigo-600 font-semibold bg-indigo-50 px-2.5 py-0.5 rounded-full">班級常模對照</span>
           </div>
           <table class="w-full text-left text-xs">
-            <thead class="bg-slate-50 text-slate-500">
+            <thead class="bg-slate-50/80 text-slate-500 font-bold">
               <tr>
-                <th class="py-2 px-3">科目</th>
-                <th class="py-2 px-3 text-center">得分</th>
-                <th class="py-2 px-3 text-center">班均</th>
-                <th class="py-2 px-3 text-center">PR 值</th>
-                <th class="py-2 px-3 text-center">差額</th>
+                <th class="py-2.5 px-3">科目</th>
+                <th class="py-2.5 px-3 text-center">得分</th>
+                <th class="py-2.5 px-3 text-center">班均</th>
+                <th class="py-2.5 px-3 text-center">PR 值</th>
+                <th class="py-2.5 px-3 text-center">差額</th>
               </tr>
             </thead>
             <tbody id="pScoreTable" class="divide-y divide-slate-100"></tbody>
           </table>
         </div>
 
-        <!-- 診斷建議 -->
-        <div id="pDiagnosisCard" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
-          <div class="flex items-center justify-between mb-3">
-            <div class="font-bold text-xs text-slate-800">💡 學習診斷與適性精進建議</div>
-            <a href="https://chy23.github.io/GradeInterpr/" target="_blank" class="text-[10px] text-indigo-600 hover:text-indigo-800 font-semibold bg-indigo-50 px-2 py-0.5 rounded-full flex items-center gap-1 border border-indigo-200/50">
+        <!-- 🌱 學習成長小錦囊 (適性精進指引) -->
+        <div id="pDiagnosisCard" class="bg-white/90 backdrop-blur-md rounded-3xl shadow-sm border border-slate-200/80 p-5 space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+            <div>
+              <div class="font-black text-xs text-slate-900 flex items-center gap-1.5">
+                <span class="text-base">🌱</span>
+                <span>學習成長小錦囊 (適性精進指引)</span>
+              </div>
+              <div class="text-[10px] text-slate-400 mt-0.5">親師陪伴引導 ‧ 點亮下一次突破的信心</div>
+            </div>
+            <a href="https://chy23.github.io/GradeInterpr/" target="_blank" class="text-[10px] text-indigo-600 hover:text-indigo-800 font-semibold bg-indigo-50 px-2.5 py-0.5 rounded-full flex items-center gap-1 border border-indigo-200/50">
               <span>GradeInterpr 平台</span> ↗
             </a>
           </div>
@@ -2568,6 +2641,8 @@
     function renderParentDashboard(student, exams) {
       currentStudentExams = exams;
       document.getElementById('pStudentName').innerText = student.name;
+      const avatarEl = document.getElementById('pStudentAvatar');
+      if (avatarEl) avatarEl.innerText = student.name ? student.name.charAt(0) : '學';
       document.getElementById('pClassName').innerText = student.className + ' 班';
       document.getElementById('pSeatNumber').innerText = student.seatNumber;
 
@@ -2999,36 +3074,36 @@
       if (zonesArea) {
         const isCur = z => activeSub.zone === z;
         zonesArea.innerHTML = `
-          <div class="p-2 rounded-xl border ${isCur('精熟') ? 'bg-emerald-50 border-emerald-400 ring-2 ring-emerald-300' : 'bg-slate-50 border-slate-200 opacity-70'}">
+          <div class="p-2 rounded-xl border ${isCur('精熟') ? 'bg-emerald-50/90 border-emerald-400 ring-2 ring-emerald-300' : 'bg-slate-50 border-slate-200 opacity-70'}">
             <div class="font-bold text-emerald-800 flex items-center justify-between text-[11px]">
-              <span>精熟表現</span>
+              <span class="flex items-center gap-1"><span>🌟</span> 卓越精熟</span>
               ${isCur('精熟') ? '<span class="text-[8px] bg-emerald-600 text-white px-1.5 py-0.2 rounded-full">落點</span>' : ''}
             </div>
-            <div class="text-[9px] text-slate-500 mt-0.5">優於 75% 的同學，概念精熟穩定。</div>
+            <div class="text-[9px] text-slate-500 mt-0.5">優於 75% 同學，概念穩固清晰，可挑戰進階探究！</div>
           </div>
 
-          <div class="p-2 rounded-xl border ${isCur('穩健') ? 'bg-blue-50 border-blue-400 ring-2 ring-blue-300' : 'bg-slate-50 border-slate-200 opacity-70'}">
+          <div class="p-2 rounded-xl border ${isCur('穩健') || isCur('稳健') ? 'bg-blue-50/90 border-blue-400 ring-2 ring-blue-300' : 'bg-slate-50 border-slate-200 opacity-70'}">
             <div class="font-bold text-blue-800 flex items-center justify-between text-[11px]">
-              <span>穩健發揮</span>
+              <span class="flex items-center gap-1"><span>🌿</span> 穩健發揮</span>
               ${isCur('穩健') || isCur('稳健') ? '<span class="text-[8px] bg-blue-600 text-white px-1.5 py-0.2 rounded-full">落點</span>' : ''}
             </div>
-            <div class="text-[9px] text-slate-500 mt-0.5">位居班級中上位置，基礎扎實流暢。</div>
+            <div class="text-[9px] text-slate-500 mt-0.5">位居班級中上前列，基礎扎實，維持好節奏向前！</div>
           </div>
 
-          <div class="p-2 rounded-xl border ${isCur('努力') ? 'bg-amber-50 border-amber-400 ring-2 ring-amber-300' : 'bg-slate-50 border-slate-200 opacity-70'}">
+          <div class="p-2 rounded-xl border ${isCur('努力') ? 'bg-amber-50/90 border-amber-400 ring-2 ring-amber-300' : 'bg-slate-50 border-slate-200 opacity-70'}">
             <div class="font-bold text-amber-800 flex items-center justify-between text-[11px]">
-              <span>努力成長</span>
+              <span class="flex items-center gap-1"><span>💪</span> 潛力蓄力</span>
               ${isCur('努力') ? '<span class="text-[8px] bg-amber-600 text-white px-1.5 py-0.2 rounded-full">落點</span>' : ''}
             </div>
-            <div class="text-[9px] text-slate-500 mt-0.5">位居班級中下位置，加強例題演練。</div>
+            <div class="text-[9px] text-slate-500 mt-0.5">掌握核心要點，針對弱點題型多加練習，突破在即！</div>
           </div>
 
-          <div class="p-2 rounded-xl border ${isCur('開發') ? 'bg-rose-50 border-rose-400 ring-2 ring-rose-300' : 'bg-slate-50 border-slate-200 opacity-70'}">
+          <div class="p-2 rounded-xl border ${isCur('開發') ? 'bg-rose-50/90 border-rose-400 ring-2 ring-rose-300' : 'bg-slate-50 border-slate-200 opacity-70'}">
             <div class="font-bold text-rose-800 flex items-center justify-between text-[11px]">
-              <span>開發潛力</span>
+              <span class="flex items-center gap-1"><span>🌱</span> 紮根啟航</span>
               ${isCur('開發') ? '<span class="text-[8px] bg-rose-600 text-white px-1.5 py-0.2 rounded-full">落點</span>' : ''}
             </div>
-            <div class="text-[9px] text-slate-500 mt-0.5">位居後段，需回歸課本基本定義紮根。</div>
+            <div class="text-[9px] text-slate-500 mt-0.5">回歸課本基本定義，耐心陪伴，一步一步扎穩根基。</div>
           </div>
         `;
       }
@@ -3117,10 +3192,10 @@
             <text x="${getX(75)}" y="176" font-size="9" fill="#94a3b8" text-anchor="middle" font-weight="bold">PR 75 (Q3)</text>
             <text x="${getX(100)}" y="176" font-size="9" fill="#94a3b8" text-anchor="middle" font-weight="bold">PR 99</text>
 
-            <text x="${(getX(0) + getX(25)) / 2}" y="152" font-size="9" fill="#e11d48" font-weight="bold" text-anchor="middle">開發潛力</text>
-            <text x="${(getX(25) + getX(50)) / 2}" y="152" font-size="9" fill="#d97706" font-weight="bold" text-anchor="middle">努力成長</text>
-            <text x="${(getX(50) + getX(75)) / 2}" y="152" font-size="9" fill="#2563eb" font-weight="bold" text-anchor="middle">穩健發揮</text>
-            <text x="${(getX(75) + getX(100)) / 2}" y="152" font-size="9" fill="#059669" font-weight="bold" text-anchor="middle">精熟表現</text>
+            <text x="${(getX(0) + getX(25)) / 2}" y="152" font-size="9" fill="#e11d48" font-weight="bold" text-anchor="middle">🌱 紮根啟航</text>
+            <text x="${(getX(25) + getX(50)) / 2}" y="152" font-size="9" fill="#d97706" font-weight="bold" text-anchor="middle">💪 潛力蓄力</text>
+            <text x="${(getX(50) + getX(75)) / 2}" y="152" font-size="9" fill="#2563eb" font-weight="bold" text-anchor="middle">🌿 穩健發揮</text>
+            <text x="${(getX(75) + getX(100)) / 2}" y="152" font-size="9" fill="#059669" font-weight="bold" text-anchor="middle">🌟 卓越精熟</text>
 
             ${subjectDotsSvg}
 
@@ -3135,15 +3210,24 @@
         </div>
 
         <div class="flex flex-wrap items-center justify-center gap-1.5 pt-1">
-          <span class="text-[10px] font-black text-indigo-900 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-full">
-            總平均 PR ${stAvgPr}
+          <span class="text-[10px] font-black text-indigo-900 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-full shadow-2xs">
+            🌟 總平均 PR ${stAvgPr}
           </span>
           ${subs.map((s, i) => `
-            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border bg-white text-slate-700" style="border-color: ${subColors[i % subColors.length]};">
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border bg-white text-slate-700 shadow-2xs" style="border-color: ${subColors[i % subColors.length]};">
               <span class="inline-block w-1.5 h-1.5 rounded-full mr-1" style="background-color: ${subColors[i % subColors.length]};"></span>
               ${s.name} PR ${s.pr}
             </span>
           `).join('')}
+        </div>
+
+        <div class="p-2.5 bg-gradient-to-r from-amber-50/80 via-white to-indigo-50/70 rounded-xl border border-amber-200/60 text-[10px] text-slate-700 leading-relaxed">
+          <div class="font-bold text-slate-800 mb-0.5 flex items-center gap-1">
+            <span>🌱</span> 什麼是常態 PR 值 (百分位數)？
+          </div>
+          <div class="text-slate-600">
+            PR 範圍 0~99。例如 <b>PR ${stAvgPr}</b> 代表成績超越約 <b>${stAvgPr}%</b> 同學。以正向鼓勵看見強項，陪伴孩子建立自信！
+          </div>
         </div>
       `;
     }
@@ -3225,6 +3309,8 @@
       if (nameEl) nameEl.innerText = curSt.name;
       if (clsEl) clsEl.innerText = curSt.className + ' 班';
       if (seatEl) seatEl.innerText = curSt.seatNumber;
+      const avEl = document.getElementById('sbStudentAvatar');
+      if (avEl && curSt.name) avEl.innerText = curSt.name.charAt(0);
 
       const exSel = document.getElementById('sbExamSelect');
       if (exSel) {
