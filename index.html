@@ -503,7 +503,12 @@
 
         <!-- 診斷建議 -->
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
-          <div class="font-bold text-xs text-slate-800 mb-3">💡 學習診斷與精進建議</div>
+          <div class="flex items-center justify-between mb-3">
+            <div class="font-bold text-xs text-slate-800">💡 學習診斷與精進建議</div>
+            <a href="https://chy23.github.io/GradeInterpr/" target="_blank" class="text-[10px] text-indigo-600 hover:text-indigo-800 font-semibold bg-indigo-50 px-2 py-0.5 rounded-full flex items-center gap-1 border border-indigo-200/50">
+              <span>GradeInterpr 平台</span> ↗
+            </a>
+          </div>
           <div id="pDiagnosisList" class="space-y-2.5 text-xs"></div>
         </div>
 
@@ -514,6 +519,94 @@
 
   <!-- ==================== JavaScript 核心邏輯 ==================== -->
   <script>
+    // --- 來自楊家驊老師 GradeInterpr 的專家學習診斷資料庫 ---
+    const GRADE_INTERPR_ADVICE = {
+      '國語': {
+        leading: [
+          "你對文字的敏感度很高，可以多接觸不同背景的文學作品，練習體會文字背後的弦外之音。",
+          "嘗試將閱讀後的感想與生活連結，這能幫助你將零散的思緒整理成更有系統的觀點。",
+          "在閱讀長篇文章後，練習提取幾個關鍵概念，這對掌握複雜文本非常有幫助。"
+        ],
+        improving: [
+          "建議透過『大聲朗讀』來感受課文的語氣與節奏，這對於建立語感很有幫助。",
+          "可以試著將課文中的優美詞彙應用在平日的簡短紀錄中，這會讓這些文字真正變成你的。",
+          "先從自己感興趣的故事主題開始讀起，累積對文字的親近感，閱讀會變得越來越輕鬆。"
+        ]
+      },
+      '國文': {
+        leading: [
+          "你對文字的敏感度很高，可以多接觸不同背景的文學作品，練習體會文字背後的弦外之音。",
+          "嘗試將閱讀後的感想與生活連結，這能幫助你將零散的思緒整理成更有系統的觀點。",
+          "在閱讀長篇文章後，練習提取幾個關鍵概念，這對掌握複雜文本非常有幫助。"
+        ],
+        improving: [
+          "建議透過『大聲朗讀』來感受課文的語氣與節奏，這對於建立語感很有幫助。",
+          "可以試著將課文中的優美詞彙應用在平日的簡短紀錄中，這會讓這些文字真正變成你的。",
+          "先從自己感興趣的故事主題開始讀起，累積對文字的親近感，閱讀會變得越來越輕鬆。"
+        ]
+      },
+      '數學': {
+        leading: [
+          "你展現了優秀的思維，可以試著探索公式背後的由來，理解原理會讓應用更靈活。",
+          "練習看看『一題多解』，從不同的路徑切入問題，能讓你的思維死角越來越少。",
+          "試著把學過的邏輯教給別人看，當你能講得通時，就代表你已經內化了這個概念。"
+        ],
+        improving: [
+          "學習數學像是堆積木，先把課本裡的基礎定義弄清楚，基礎穩了，解題就會有成就感。",
+          "不需要急著寫很難的題目，先把基本例題反覆練習幾次，確保運算的流程是流暢的。",
+          "遇到卡住的題目時，可以換個心情再回頭看，或者試著畫出圖表來幫助大腦思考。"
+        ]
+      },
+      '英語': {
+        leading: [
+          "你的語感表現優異，可以開始接觸課外的英文讀物或短片，挑戰更自然的語言環境。",
+          "練習聽不同背景的英文資源，這能提升你在真實生活情境中的聽力適應能力。",
+          "試著用英文寫下簡短的計畫或心情，讓語言成為你生活中自然的一部分。"
+        ],
+        improving: [
+          "英文需要時間來讓耳朵習慣。每天花幾分鐘聽聽朗讀，即便沒聽懂全部，也是在累積感度。",
+          "每天掌握幾個對你有意義、用得到的單字，積少成多會產生非常驚人的進步。",
+          "不要怕犯錯，試著勇敢讀出聲來。語言是溝通的橋樑，只要敢開口就是跨出了一大步。"
+        ]
+      },
+      '英文': {
+        leading: [
+          "你的語感表現優異，可以開始接觸課外的英文讀物或短片，挑戰更自然的語言環境。",
+          "練習聽不同背景的英文資源，這能提升你在真實生活情境中的聽力適應能力。",
+          "試著用英文寫下簡短的計畫或心情，讓語言成為你生活中自然的一部分。"
+        ],
+        improving: [
+          "英文需要時間來讓耳朵習慣。每天花幾分鐘聽聽朗讀，即便沒聽懂全部，也是在累積感度。",
+          "每天掌握幾個對你有意義、用得到的單字，積少成多會產生非常驚人的進步。",
+          "不要怕犯錯，試著勇敢讀出聲來。語言是溝通的橋樑，只要敢開口就是跨出了一大步。"
+        ]
+      },
+      '自然': {
+        leading: [
+          "你擁有敏銳的觀察力。對於生活中的現象，試著用科學的視角去推論它發生的原因。",
+          "可以閱讀一些科普短文或新聞，探索前瞻的科學發展，這會大大擴展你的科學視野。",
+          "針對實驗結果，試著提出『如果改變某個條件會怎樣？』的假設，這是科學探究的靈魂。"
+        ],
+        improving: [
+          "科學其實就在你的生活週遭。觀察植物生長或廚房裡的物理現象，你會發現原理很親切。",
+          "試著將課本上的圖表與生活現象對照，找回對世界運作的好奇心，學習會更有動力。",
+          "先從記錄你觀察到的細節開始。當你開始好奇『這是在做什麼？』時，你就跨出了第一步。"
+        ]
+      },
+      '社會': {
+        leading: [
+          "你很擅長整理資訊，可以練習將不同時間的事件串聯起來，看見歷史或地理背後的因果。",
+          "關注一下最近的新聞時事，並思考課本內容在現實中是如何運作的，這能讓知識變得很立體。",
+          "試著從不同的社會角色來看同一件事，這能幫助你培養更全面、更具深度的思辨力。"
+        ],
+        improving: [
+          "社會科其實是許多精彩故事的集合。想像自己是當時的人，這能幫你理解為何會有那樣的發展。",
+          "對於複雜的資訊，可以試著用畫圖或拉時間軸的方式呈現，讓文字敘述變成圖像記憶。",
+          "可以從你喜歡的地圖、圖表或特定人物故事開始讀起，興趣是理解學科最好的動力。"
+        ]
+      }
+    };
+
     // 預設示範數據 (提供無連線時的即時體驗)
     const DEMO_STUDENTS = [
       { studentId: '112001', name: '王小明', className: '701', seatNumber: '01', token: 'DEMO1' },
@@ -1038,21 +1131,53 @@ function generateTokensForStudents() {
           </tr>
         `;
 
-        let diagnosisText = item.diagnosis;
-        if (!diagnosisText || diagnosisText === '') {
-          if (diff >= 10) diagnosisText = '表現突出優異，大幅領先班級平均，建議可挑戰進階思考題。';
-          else if (diff >= 0) diagnosisText = '概念掌握良好，成績穩定高於平均，持續保持穩紮穩打。';
-          else if (diff >= -10) diagnosisText = '基礎尚可，部分細微題型或計算多留意，加強複習即可顯著提升。';
-          else diagnosisText = '此單元核心概念建議預先安排重點輔導與觀念釐清，多做基礎習題練習。';
+        // 整合 GradeInterpr 教育顧問分析邏輯
+        let zoneTitle = '穩健發揮區間';
+        let zoneBadgeClass = 'bg-blue-50 text-blue-700 border-blue-200';
+        let zoneDesc = '你在班上的成績在中段區間，持續努力穩健學習，下次會有大大的進步。';
+        let adviceCategory = 'leading';
+
+        const prVal = Number(item.pr) || 0;
+        if (prVal >= 75 || diff >= 10) {
+          zoneTitle = '精熟表現區間';
+          zoneBadgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+          zoneDesc = '在全班排名前列，考試成績優異，維持好習慣持續保持！';
+          adviceCategory = 'leading';
+        } else if (prVal >= 50 || diff >= 0) {
+          zoneTitle = '穩健發揮區間';
+          zoneBadgeClass = 'bg-blue-50 text-blue-700 border-blue-200';
+          zoneDesc = '各項核心概念掌握良好，持續穩紮穩打向前進。';
+          adviceCategory = 'leading';
+        } else if (prVal >= 25 || diff >= -10) {
+          zoneTitle = '努力成長區間';
+          zoneBadgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
+          zoneDesc = '部分單元題型多留意驗算與練習，加強複習即可顯著提升。';
+          adviceCategory = 'improving';
+        } else {
+          zoneTitle = '開發潛力區間';
+          zoneBadgeClass = 'bg-rose-50 text-rose-700 border-rose-200';
+          zoneDesc = '擁有很大成長潛力，建議針對核心基礎概念釐清，多做基本題練習。';
+          adviceCategory = 'improving';
         }
 
+        // 取得專屬學科建議 (自 GradeInterpr 資料庫)
+        const subjKey = item.subject.replace('科', '');
+        const advicePool = GRADE_INTERPR_ADVICE[subjKey] || GRADE_INTERPR_ADVICE['國語'];
+        const adviceList = advicePool ? advicePool[adviceCategory] : ["持續保持熱忱，穩紮穩打。"];
+        const advicePick = adviceList[(item.subject.charCodeAt(0) + Math.floor(item.score)) % adviceList.length];
+
+        // 優先讀取試算表自訂評語，若無則採用 GradeInterpr 產出
+        const customOrAiDiag = (item.diagnosis && item.diagnosis.trim() !== '' && item.diagnosis !== '表現良好，持續精進。') 
+          ? item.diagnosis 
+          : `${zoneDesc} 【專家精進處方】：${advicePick}`;
+
         diagList.innerHTML += `
-          <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200">
-            <div class="font-bold text-indigo-700 mb-0.5 flex justify-between">
-              <span>【${item.subject}】得分 ${item.score} 分</span>
-              <span class="text-[10px] text-slate-400 font-normal">${diff >= 0 ? '高於平均' : '低於平均'}</span>
+          <div class="p-3 bg-white rounded-xl border border-slate-200 shadow-sm space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-xs text-slate-800">【${item.subject}】得分 <span class="text-indigo-600 font-black">${item.score}</span> 分</span>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border ${zoneBadgeClass}">${zoneTitle}</span>
             </div>
-            <div class="text-slate-600 leading-relaxed text-[11px]">${diagnosisText}</div>
+            <div class="text-slate-600 leading-relaxed text-[11px]">${customOrAiDiag}</div>
           </div>
         `;
       });
