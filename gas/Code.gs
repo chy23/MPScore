@@ -8,9 +8,75 @@
 function onOpen() {
   var ui = SpreadsheetApp.getUi();
   ui.createMenu('⚡ MPScore 工具')
+    .addItem('🛠️ 一鍵自動建立標準分頁與欄位 (全新空白表專用)', 'setupStandardSheets')
+    .addSeparator()
     .addItem('🔑 一鍵為全班產生防偽代碼 (Token)', 'generateTokensForStudents')
     .addItem('📊 自動計算班級平均與 PR 值', 'autoCalculateStats')
     .addToUi();
+}
+
+/**
+ * 🛠️ 一鍵將任何全新空白 Google 試算表格式化為 MPScore 標準格式！
+ */
+function setupStandardSheets() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ui = SpreadsheetApp.getUi();
+
+  // 1. 處理【學生名冊】
+  var sSheet = ss.getSheetByName('學生名冊');
+  if (!sSheet) {
+    sSheet = ss.getSheets()[0];
+    sSheet.setName('學生名冊');
+  }
+
+  // 寫入標題：A: 班級, B: 座號, C: 姓名, D: 專屬代碼, E: 啟用狀態
+  var sHeaders = [['班級', '座號', '姓名', '專屬代碼', '啟用狀態']];
+  sSheet.getRange(1, 1, 1, 5).setValues(sHeaders)
+    .setBackground('#312e81') // 深靛藍
+    .setFontColor('#ffffff')
+    .setFontWeight('bold')
+    .setHorizontalAlignment('center');
+
+  // 若尚未有資料，填入示範資料
+  if (sSheet.getLastRow() <= 1) {
+    var sampleStudents = [
+      ['701', '01', '王小明', 'DEMO1', true],
+      ['701', '02', '李小華', 'DEMO2', true],
+      ['701', '03', '張小美', 'DEMO3', true]
+    ];
+    sSheet.getRange(2, 1, sampleStudents.length, 5).setValues(sampleStudents);
+  }
+
+  // 2. 處理【成績明細】
+  var scSheet = ss.getSheetByName('成績明細');
+  if (!scSheet) {
+    scSheet = ss.insertSheet('成績明細');
+  }
+
+  // 寫入標題：座號, 學年度, 學期, 考試名稱, 科目, 個人得分, 班級平均, PR值, 解讀評語
+  var scHeaders = [['座號', '學年度', '學期', '考試名稱', '科目', '個人得分', '班級平均', 'PR值', '解讀評語']];
+  scSheet.getRange(1, 1, 1, 9).setValues(scHeaders)
+    .setBackground('#1e1b4b') // 沉穩藍
+    .setFontColor('#ffffff')
+    .setFontWeight('bold')
+    .setHorizontalAlignment('center');
+
+  // 若尚未有資料，填入示範成績（包含兩次考試以供立即對比）
+  if (scSheet.getLastRow() <= 1) {
+    var sampleScores = [
+      ['01', '112', '1', '第一次段考', '國文', 88, 78.5, 82, '閱讀理解能力出色，成語掌握度高。'],
+      ['01', '112', '1', '第一次段考', '英語', 92, 75.0, 89, '詞彙豐富，聽力優異。'],
+      ['01', '112', '1', '第一次段考', '數學', 74, 72.0, 60, '基礎扎實，幾何計算多驗算。'],
+      ['01', '112', '1', '第一次段考', '自然', 85, 70.2, 80, '實驗題型理解力佳。'],
+      ['01', '112', '1', '第二次段考', '國文', 90, 79.0, 85, '寫作能力持續進步。'],
+      ['01', '112', '1', '第二次段考', '英語', 95, 76.2, 93, '語感敏銳，閱讀測驗全對。'],
+      ['01', '112', '1', '第二次段考', '數學', 86, 73.0, 78, '計算錯誤率明顯下降，進步顯著！'],
+      ['01', '112', '1', '第二次段考', '自然', 88, 71.5, 84, '科學原理應用靈活。']
+    ];
+    scSheet.getRange(2, 1, sampleScores.length, 9).setValues(sampleScores);
+  }
+
+  ui.alert('🎉 建置完成！\n\n系統已自動為您建立：\n1.【學生名冊】(含 班級、座號、姓名、專屬代碼、啟用狀態)\n2.【成績明細】(含兩次段考範例，供立即測試跨次對比)\n\n您可以將示範資料替換為您班級的實際學生！');
 }
 
 function doGet(e) {

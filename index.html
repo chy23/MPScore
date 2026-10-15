@@ -161,7 +161,7 @@
           為了讓您免去手動打標題的麻煩，您可以直接複製標準格式的試算表範本。試算表內已預設好兩個核心分頁：<span class="font-bold text-indigo-600">【學生名冊】</span> 與 <span class="font-bold text-indigo-600">【成績明細】</span>。
         </p>
 
-        <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-4 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-3 flex flex-col md:flex-row items-center justify-between gap-4">
           <div>
             <div class="font-bold text-sm text-slate-800">📄 依您的需求設定之標準試算表結構</div>
             <div class="text-xs text-slate-500 mt-1.5 space-y-1">
@@ -173,10 +173,21 @@
             <button onclick="downloadCsvTemplates()" class="text-xs font-semibold bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 px-3 py-2 rounded-lg transition shadow-sm">
               下載空白 CSV 範本檔
             </button>
-            <a href="https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/copy" target="_blank" class="text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition shadow-sm flex items-center gap-1">
-              <span>一鍵建立試算表副本</span> ↗
+            <a href="https://sheets.new" target="_blank" class="text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition shadow-sm flex items-center gap-1">
+              <span>👉 開啟全新空白 Google 試算表</span> ↗
             </a>
           </div>
+        </div>
+
+        <!-- 一鍵全自動建置提示 -->
+        <div class="p-3.5 bg-indigo-50/70 rounded-xl border border-indigo-200 text-xs text-indigo-950 leading-relaxed">
+          <div class="font-bold text-indigo-900 mb-1 flex items-center gap-1.5">
+            <span>✨ 零手刻建置法（最強推薦・免手動打任何欄位）：</span>
+          </div>
+          <div>1. 點擊上方按鈕建立一張<b>完全空白的 Google 試算表</b>。</div>
+          <div>2. 按照【步驟 2】在擴充功能貼上後端程式碼。</div>
+          <div>3. 重新整理試算表，點選上方選單 <b>【⚡ MPScore 工具 > 🛠️ 一鍵自動建立標準分頁與欄位】</b>。</div>
+          <div class="text-indigo-700 font-medium mt-1">➔ 系統會瞬間自動幫您把【學生名冊】與【成績明細】的所有標準欄位、顏色與示範資料全部建置好！</div>
         </div>
       </div>
 
@@ -698,14 +709,55 @@
     function copyGasCode() {
       const code = `/**
  * MPScore - 智慧學生成績與學習診斷系統 (Google Apps Script 後端)
+ * 欄位：【學生名冊】A:班級, B:座號, C:姓名, D:專屬代碼, E:啟用狀態
+ * 【成績明細】A:座號, B:學年度, C:學期, D:考試名稱, E:科目, F:個人得分, G:班級平均, H:PR值, I:解讀評語
  */
 function onOpen() {
   var ui = SpreadsheetApp.getUi();
   ui.createMenu('⚡ MPScore 工具')
+    .addItem('🛠️ 一鍵自動建立標準分頁與欄位 (全新空白表專用)', 'setupStandardSheets')
+    .addSeparator()
     .addItem('🔑 一鍵為全班產生防偽代碼 (Token)', 'generateTokensForStudents')
-    .addItem('📊 自動計算班級平均並填入', 'autoCalculateAverages')
+    .addItem('📊 自動計算班級平均與 PR 值', 'autoCalculateStats')
     .addToUi();
 }
+
+function setupStandardSheets() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ui = SpreadsheetApp.getUi();
+
+  var sSheet = ss.getSheetByName('學生名冊') || ss.getSheets()[0];
+  sSheet.setName('學生名冊');
+  sSheet.getRange(1, 1, 1, 5).setValues([['班級', '座號', '姓名', '專屬代碼', '啟用狀態']])
+    .setBackground('#312e81').setFontColor('#ffffff').setFontWeight('bold').setHorizontalAlignment('center');
+
+  if (sSheet.getLastRow() <= 1) {
+    sSheet.getRange(2, 1, 3, 5).setValues([
+      ['701', '01', '王小明', 'DEMO1', true],
+      ['701', '02', '李小華', 'DEMO2', true],
+      ['701', '03', '張小美', 'DEMO3', true]
+    ]);
+  }
+
+  var scSheet = ss.getSheetByName('成績明細') || ss.insertSheet('成績明細');
+  scSheet.getRange(1, 1, 1, 9).setValues([['座號', '學年度', '學期', '考試名稱', '科目', '個人得分', '班級平均', 'PR值', '解讀評語']])
+    .setBackground('#1e1b4b').setFontColor('#ffffff').setFontWeight('bold').setHorizontalAlignment('center');
+
+  if (scSheet.getLastRow() <= 1) {
+    scSheet.getRange(2, 1, 8, 9).setValues([
+      ['01', '112', '1', '第一次段考', '國文', 88, 78.5, 82, '閱讀理解能力出色'],
+      ['01', '112', '1', '第一次段考', '英語', 92, 75.0, 89, '聽力表現優異'],
+      ['01', '112', '1', '第一次段考', '數學', 74, 72.0, 60, '加強驗算'],
+      ['01', '112', '1', '第一次段考', '自然', 85, 70.2, 80, '實驗題型佳'],
+      ['01', '112', '1', '第二次段考', '國文', 90, 79.0, 85, '寫作進步'],
+      ['01', '112', '1', '第二次段考', '英語', 95, 76.2, 93, '語感敏銳'],
+      ['01', '112', '1', '第二次段考', '數學', 86, 73.0, 78, '大幅躍進！'],
+      ['01', '112', '1', '第二次段考', '自然', 88, 71.5, 84, '靈活應用']
+    ]);
+  }
+  ui.alert('🎉 建置完成！已自動建立【學生名冊】與【成績明細】(含兩次段考對比範例)！');
+}
+
 function doGet(e) {
   var params = e ? e.parameter : {};
   var action = params.action || (params.token ? 'query' : 'ping');
@@ -713,60 +765,114 @@ function doGet(e) {
   try {
     if (action === 'ping') output = checkSystemStatus();
     else if (action === 'query') output = getStudentScoreByToken(params.token);
-    else if (action === 'getStudentsForPrint') output = getStudentListForTeacher(params.adminKey);
-    else output = { success: false, message: '未知的操作請求' };
+    else if (action === 'getStudentsForPrint') output = getStudentListForTeacher();
+    else if (action === 'appendExamScores') {
+      var body = params.payload || (e && e.postData && e.postData.contents ? e.postData.contents : '');
+      output = appendExamScores(body);
+    } else output = { success: false, message: '未知的操作請求' };
   } catch(err) {
     output = { success: false, message: '錯誤: ' + err.toString() };
   }
   return ContentService.createTextOutput(JSON.stringify(output)).setMimeType(ContentService.MimeType.JSON);
 }
 function doPost(e) { return doGet(e); }
+
+function appendExamScores(payloadStr) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var scSheet = ss.getSheetByName('成績明細');
+  if (!scSheet) return { success: false, message: '找不到【成績明細】分頁' };
+  var payload = typeof payloadStr === 'string' ? JSON.parse(payloadStr) : payloadStr;
+  var rows = payload.rows;
+  if (!rows || rows.length === 0) return { success: false, message: '成績列表為空' };
+  var newRows = [];
+  for (var i = 0; i < rows.length; i++) {
+    var r = rows[i];
+    newRows.push([r.seatNumber, r.year, r.semester, r.examName, r.subject, Number(r.score)||0, r.average?Number(r.average):'', r.pr?Number(r.pr):'', r.diagnosis||'']);
+  }
+  var startRow = scSheet.getLastRow() + 1;
+  scSheet.getRange(startRow, 1, newRows.length, newRows[0].length).setValues(newRows);
+  return { success: true, count: newRows.length };
+}
+
 function checkSystemStatus() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sSheet = ss.getSheetByName('學生名冊');
-  var scoreSheet = ss.getSheetByName('成績明細');
-  if (!sSheet || !scoreSheet) return { success: false, message: '需有【學生名冊】與【成績明細】分頁' };
-  return { success: true, message: '連線正常！', sheetTitle: ss.getName(), studentCount: Math.max(0, sSheet.getLastRow() - 1), scoreCount: Math.max(0, scoreSheet.getLastRow() - 1) };
+  var scSheet = ss.getSheetByName('成績明細');
+  if (!sSheet || !scSheet) return { success: false, message: '需有【學生名冊】與【成績明細】分頁' };
+  return { success: true, message: '連線正常！', sheetTitle: ss.getName(), studentCount: Math.max(0, sSheet.getLastRow() - 1), scoreCount: Math.max(0, scSheet.getLastRow() - 1) };
 }
+
 function getStudentScoreByToken(token) {
   if (!token) return { success: false, message: '請提供查詢代碼' };
+  token = token.toString().trim();
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sSheet = ss.getSheetByName('學生名冊');
-  var scoreSheet = ss.getSheetByName('成績明細');
+  var scSheet = ss.getSheetByName('成績明細');
   var sData = sSheet.getDataRange().getValues();
   var student = null;
   for (var i = 1; i < sData.length; i++) {
-    if (sData[i][4] && sData[i][4].toString().trim() === token.toString().trim()) {
-      if (sData[i][5] === false) return { success: false, message: '該帳號已停用' };
-      student = { studentId: sData[i][0].toString(), name: sData[i][1], className: sData[i][2], seatNumber: sData[i][3] };
+    if (sData[i][3] && sData[i][3].toString().trim() === token) {
+      if (sData[i][4] === false) return { success: false, message: '帳號已停用' };
+      student = { className: sData[i][0].toString(), seatNumber: sData[i][1].toString(), name: sData[i][2], studentId: sData[i][0] + '-' + sData[i][1] };
       break;
     }
   }
   if (!student) return { success: false, message: '查無此代碼，請確認是否輸入正確' };
+
+  var scData = scSheet.getDataRange().getValues();
+  var headers = scData[0].map(function(h) { return h.toString().trim(); });
+  var colIndex = {
+    seat: headers.indexOf('座號'), year: headers.indexOf('學年度'), semester: headers.indexOf('學期'),
+    examName: headers.indexOf('考試名稱'), subject: headers.indexOf('科目'), score: headers.indexOf('個人得分'),
+    average: headers.indexOf('班級平均'), pr: headers.indexOf('PR值'), diagnosis: headers.indexOf('解讀評語')
+  };
+  if (colIndex.seat === -1) colIndex.seat = 0;
+
+  var poolMap = {};
+  for (var k = 1; k < scData.length; k++) {
+    var kKey = scData[k][colIndex.examName] + '_' + scData[k][colIndex.subject];
+    if (!poolMap[kKey]) poolMap[kKey] = [];
+    var sc = Number(scData[k][colIndex.score]);
+    if (!isNaN(sc)) poolMap[kKey].push(sc);
+  }
+
   var records = [];
-  var scData = scoreSheet.getDataRange().getValues();
   for (var j = 1; j < scData.length; j++) {
-    if (scData[j][0].toString().trim() === student.studentId) {
+    var r = scData[j];
+    if (r[colIndex.seat].toString().trim() === student.seatNumber.trim()) {
+      var sVal = Number(r[colIndex.score]) || 0;
+      var aVal = Number(r[colIndex.average]) || 0;
+      var pVal = Number(r[colIndex.pr]) || 0;
+      var kKeyMatch = r[colIndex.examName] + '_' + r[colIndex.subject];
+      if ((!pVal || pVal <= 0) && poolMap[kKeyMatch] && poolMap[kKeyMatch].length > 1) {
+        var pool = poolMap[kKeyMatch], below = 0, eq = 0;
+        for (var p = 0; p < pool.length; p++) {
+          if (pool[p] < sVal) below++;
+          else if (pool[p] === sVal) eq++;
+        }
+        pVal = Math.round(((below + 0.5 * eq) / pool.length) * 100);
+      }
       records.push({
-        year: scData[j][1], semester: scData[j][2], examName: scData[j][3],
-        examKey: scData[j][1] + '-' + scData[j][2] + ' ' + scData[j][3],
-        subject: scData[j][4], score: Number(scData[j][5])||0, average: Number(scData[j][6])||0, pr: Number(scData[j][7])||0,
-        diagnosis: scData[j][8] || '學習態度良好，請持續保持！'
+        year: r[colIndex.year], semester: r[colIndex.semester], examName: r[colIndex.examName],
+        examKey: r[colIndex.year] + '-' + r[colIndex.semester] + ' ' + r[colIndex.examName],
+        subject: r[colIndex.subject], score: sVal, average: aVal, pr: pVal, diagnosis: r[colIndex.diagnosis] || ''
       });
     }
   }
   return { success: true, student: student, records: records };
 }
+
 function getStudentListForTeacher() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sSheet = ss.getSheetByName('學生名冊');
-  var data = sSheet.getDataRange().getValues();
+  var sheet = ss.getSheetByName('學生名冊');
+  var data = sheet.getDataRange().getValues();
   var list = [];
   for (var i = 1; i < data.length; i++) {
-    if (data[i][0] && data[i][4]) list.push({ studentId: data[i][0].toString(), name: data[i][1], className: data[i][2], seatNumber: data[i][3], token: data[i][4].toString().trim() });
+    if (data[i][2] && data[i][3]) list.push({ className: data[i][0].toString(), seatNumber: data[i][1].toString(), name: data[i][2], token: data[i][3].toString().trim(), studentId: data[i][0] + '-' + data[i][1] });
   }
   return { success: true, students: list };
 }
+
 function generateTokensForStudents() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheetByName('學生名冊');
@@ -774,15 +880,43 @@ function generateTokensForStudents() {
   var chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
   var c = 0;
   for (var i = 1; i < data.length; i++) {
-    if (!data[i][4] || data[i][4].toString().trim() === '') {
+    if (!data[i][3] || data[i][3].toString().trim() === '') {
       var tok = '';
       for (var k = 0; k < 6; k++) tok += chars.charAt(Math.floor(Math.random() * chars.length));
-      sheet.getRange(i + 1, 5).setValue(tok);
-      sheet.getRange(i + 1, 6).setValue(true);
+      sheet.getRange(i + 1, 4).setValue(tok);
+      sheet.getRange(i + 1, 5).setValue(true);
       c++;
     }
   }
   SpreadsheetApp.getUi().alert('完成！已為 ' + c + ' 位學生生成代碼。');
+}
+
+function autoCalculateStats() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var scSheet = ss.getSheetByName('成績明細');
+  if (!scSheet) return;
+  var data = scSheet.getDataRange().getValues();
+  var headers = data[0].map(function(h) { return h.toString().trim(); });
+  var avgCol = headers.indexOf('班級平均'), prCol = headers.indexOf('PR值'), scoreCol = headers.indexOf('個人得分'), examCol = headers.indexOf('考試名稱'), subjCol = headers.indexOf('科目');
+  var groupMap = {};
+  for (var i = 1; i < data.length; i++) {
+    var key = data[i][examCol] + '_' + data[i][subjCol], sc = Number(data[i][scoreCol]);
+    if (!groupMap[key]) groupMap[key] = [];
+    if (!isNaN(sc)) groupMap[key].push(sc);
+  }
+  for (var j = 1; j < data.length; j++) {
+    var list = groupMap[data[j][examCol] + '_' + data[j][subjCol]];
+    if (list && list.length > 0) {
+      var sum = list.reduce(function(a, b) { return a + b; }, 0);
+      if (avgCol !== -1) scSheet.getRange(j + 1, avgCol + 1).setValue(Math.round((sum / list.length) * 10) / 10);
+      var myScore = Number(data[j][scoreCol]), below = 0, eq = 0;
+      for (var p = 0; p < list.length; p++) {
+        if (list[p] < myScore) below++; else if (list[p] === myScore) eq++;
+      }
+      if (prCol !== -1) scSheet.getRange(j + 1, prCol + 1).setValue(Math.round(((below + 0.5 * eq) / list.length) * 100));
+    }
+  }
+  SpreadsheetApp.getUi().alert('班級平均與 PR 值已更新！');
 }`;
       navigator.clipboard.writeText(code).then(() => {
         const btn = document.getElementById('copyCodeBtn');
@@ -1030,13 +1164,23 @@ function generateTokensForStudents() {
     }
 
     function downloadCsvTemplates() {
-      // 學生名冊：A:班級, B:座號, C:姓名, D:專屬代碼, E:啟用狀態
-      const studentCsv = "班級,座號,姓名,專屬代碼,啟用狀態\n701,01,王小明,,TRUE\n701,02,李小華,,TRUE";
-      const blob = new Blob(["\uFEFF" + studentCsv], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = "學生名冊範本.csv";
-      link.click();
+      // 1. 學生名冊
+      const studentCsv = "班級,座號,姓名,專屬代碼,啟用狀態\n701,01,王小明,,TRUE\n701,02,李小華,,TRUE\n701,03,張小美,,TRUE";
+      const blob1 = new Blob(["\uFEFF" + studentCsv], { type: 'text/csv;charset=utf-8;' });
+      const link1 = document.createElement("a");
+      link1.href = URL.createObjectURL(blob1);
+      link1.download = "學生名冊範本.csv";
+      link1.click();
+
+      // 2. 成績明細 (延遲 300ms 下載第二個檔案)
+      setTimeout(() => {
+        const scoreCsv = "座號,學年度,學期,考試名稱,科目,個人得分,班級平均,PR值,解讀評語\n01,112,1,第一次段考,國文,88,78.5,82,閱讀理解能力出色\n01,112,1,第一次段考,英語,92,75.0,89,聽力表現優異\n01,112,1,第一次段考,數學,74,72.0,60,基礎概念扎實\n01,112,1,第一次段考,自然,85,70.2,80,實驗題型佳\n01,112,1,第二次段考,國文,90,79.0,85,寫作持續進步\n01,112,1,第二次段考,英語,95,76.2,93,語感敏銳\n01,112,1,第二次段考,數學,86,73.0,78,大幅躍進\n01,112,1,第二次段考,自然,88,71.5,84,原理靈活應用";
+        const blob2 = new Blob(["\uFEFF" + scoreCsv], { type: 'text/csv;charset=utf-8;' });
+        const link2 = document.createElement("a");
+        link2.href = URL.createObjectURL(blob2);
+        link2.download = "成績明細範本.csv";
+        link2.click();
+      }, 300);
     }
 
     // ==========================================
