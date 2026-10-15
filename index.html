@@ -1073,17 +1073,37 @@
       }
 
       resBox.className = 'p-4 rounded-xl text-xs border mt-4 bg-slate-100 text-slate-700 flex items-center gap-2';
-      resBox.innerHTML = '<span class="inline-block animate-spin rounded-full h-4 w-4 border-2 border-indigo-600 border-t-transparent"></span> 連線檢測中，正在解析試算表分頁與學生名冊...';
+      resBox.innerHTML = '<span class="inline-block animate-spin rounded-full h-4 w-4 border-2 border-indigo-600 border-t-transparent"></span> 連線檢測中，正在向 Google 試算表發送驗證請求...';
       resBox.classList.remove('hidden');
 
       try {
-        const pingUrl = url + (url.includes('?') ? '&' : '?') + 'action=ping';
+        const pingUrl = url + (url.includes('?') ? '&' : '?') + 'action=ping&t=' + new Date().getTime();
         const resp = await fetch(pingUrl);
-        const data = await resp.json();
+
+        if (resp.status === 404) {
+          throw new Error("ERR_404_NOT_FOUND");
+        }
+
+        const contentType = resp.headers.get('content-type') || '';
+        const text = await resp.text();
+
+        if (text.trim().startsWith('<') || text.includes('<!DOCTYPE') || !contentType.includes('json')) {
+          if (text.includes('找不到網頁') || text.includes('檔案不存在') || resp.status === 404) {
+            throw new Error("ERR_404_NOT_FOUND");
+          }
+          throw new Error("ERR_AUTH_OR_HTML");
+        }
+
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (e) {
+          throw new Error("ERR_JSON_PARSE");
+        }
 
         if (data.success) {
           activeApiUrl = url;
-          localStorage.setItem('mpscore_gas_url', url);
+          localStorage.setItem('mpscore_gas_url', activeApiUrl);
 
           const navBadge = document.getElementById('navStatusBadge');
           if (navBadge) {
@@ -1103,7 +1123,7 @@
                 <div class="text-xs text-emerald-700 mt-1 space-y-1">
                   <div>• 試算表名稱：<b>${data.sheetTitle || '線上試算表'}</b> ‧ 名冊學生人數：<b>${data.studentCount}</b> 位</div>
                   <div>• 已偵測到的考試分頁：${tabsText}</div>
-                  <div class="text-indigo-900 font-semibold">⚡ 全自動計算引擎已啟用：各科平均、個人排名與 PR 值將由系統即時精算！</div>
+                  <div class="text-indigo-900 font-semibold">⚡ 全自動計算引擎已就緒：各科平均、排名與 PR 值由系統自動精算！</div>
                 </div>
               </div>
               <button onclick="switchTab('printCenter')" class="text-xs font-bold bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 rounded-xl transition shadow-sm flex items-center gap-1">
@@ -1111,48 +1131,54 @@
               </button>
             </div>
           `;
-          
           syncStudentsFromApi(false);
         } else {
           throw new Error(data.message || '連線測試失敗');
         }
       } catch (err) {
-        const isHtmlRedirect = err.message && (err.message.includes('Unexpected token') || err.message.includes('JSON'));
         resBox.className = 'p-5 rounded-2xl text-xs border mt-4 bg-rose-50 border-rose-200 text-rose-900 space-y-3';
         
-        let detailsHtml = '';
-        if (isHtmlRedirect) {
-          detailsHtml = `
-            <div class="bg-white p-3.5 rounded-xl border border-rose-200 text-rose-950 space-y-2">
-              <div class="font-bold text-xs text-rose-800">🔍 系統偵測到 Google 回傳了「登入畫面」而非資料：</div>
-              <ul class="list-disc pl-4 space-y-1 text-slate-700 text-[11px] leading-relaxed">
-                <li><b>原因 A（最常見）：存取權限未選【所有人】</b><br>在 Apps Script 點「部署 > 管理部署」，確認【誰可以存取 (Who has access)】是否設為<b>【所有人 (Anyone)】</b>。若設為「僅限我」，瀏覽器會因需要登入而被擋下。</li>
-                <li><b>原因 B：使用了 40 行自動更新版但未授權外連</b><br>請在 Apps Script 頂部函式選為「setup」並按一次「執行」完成授權；<b>或者直接改用【模式 B：完整單機版】（推薦，零權限衝突）</b>。</li>
+        if (err.message === "ERR_404_NOT_FOUND") {
+          resBox.innerHTML = `
+            <div class="font-bold text-sm text-rose-900 flex items-center gap-1.5">
+              <span>❌ 連線失敗：Google 回應此網址不存在 (404 檔案不存在)</span>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-rose-200 text-slate-700 space-y-2 text-xs leading-relaxed">
+              <div class="font-bold text-rose-800">🔍 為什麼會發生此問題？</div>
+              <div>您貼上的這串網址在 Google 雲端中<b>已失效、已被刪除、或複製時漏掉字元</b>。</div>
+              <div class="font-bold text-slate-800 pt-1">👉 3 步快速修復：</div>
+              <ol class="list-decimal pl-4 space-y-1 text-slate-600">
+                <li>回到您的 Google 試算表，點上方選單<b>「擴充功能 > Apps Script」</b>。</li>
+                <li>點右上角藍色<b>「部署」>「管理部署」</b>。</li>
+                <li>點選最新版本，在「網頁應用程式」下方點<b>「複製」</b>最新的網址，重新貼到下方輸入框並按「連線檢測」即可！</li>
+              </ol>
+            </div>
+          `;
+        } else if (err.message === "ERR_AUTH_OR_HTML") {
+          resBox.innerHTML = `
+            <div class="font-bold text-sm text-rose-900 flex items-center gap-1.5">
+              <span>❌ 連線失敗：Google 要求登入帳號 (權限未公開)</span>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-rose-200 text-slate-700 space-y-2 text-xs leading-relaxed">
+              <div class="font-bold text-rose-800">🔍 解決方式：</div>
+              <div>在 Apps Script 點「部署 > 管理部署」修改設定：</div>
+              <ul class="list-disc pl-4 space-y-1 text-slate-600">
+                <li><b>【誰可以存取 (Who has access)】務必選擇【所有人 (Anyone)】！</b>若設為「僅限我」，瀏覽器因無法匿名呼叫而連線失敗。</li>
+                <li>若是使用【模式 A 自動更新版】，請務必在 Apps Script 上方選為「setup」按一次「執行」完成授權；或直接改用【模式 B 完整單機版】免除此授權。</li>
               </ul>
-              <div class="pt-2 border-t border-rose-100 flex items-center justify-between">
-                <span class="text-[11px] text-indigo-700 font-bold">💡 最快解決方式：直接切換至【模式 B：完整單機版程式碼】重新貼上即可！</span>
-                <button type="button" onclick="switchGasMode('standalone'); document.getElementById('copyCodeBtn').scrollIntoView({behavior:'smooth'});" class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 rounded-lg transition shadow-xs">
-                  👉 切換為模式 B 並複製
-                </button>
-              </div>
             </div>
           `;
         } else {
-          detailsHtml = `
-            <div class="space-y-1.5 text-slate-700 text-xs leading-relaxed">
-              <div><b>常見原因 1</b>：在點擊「新部署」時，【誰可以存取】若未設定為<b>【所有人 (Anyone)】</b>，Google 會阻擋瀏覽器連線。</div>
-              <div><b>常見原因 2</b>：試算表缺少名為<b>【學生名冊】</b>的分頁。請點選試算表選單【⚡ MPScore 工具 > 🛠️ 一鍵自動建立標準分頁範本】即可！</div>
+          resBox.innerHTML = `
+            <div class="font-bold text-sm text-rose-900 flex items-center gap-1.5">
+              <span>❌ 連線未成功</span>
+              <span class="text-xs text-rose-600 font-normal">(${err.message})</span>
+            </div>
+            <div class="text-xs text-slate-600 leading-relaxed">
+              ${err.message.includes('學生名冊') ? '試算表缺少名為【學生名冊】的分頁。請點選試算表選單【⚡ MPScore 工具 > 🛠️ 一鍵自動建立標準分頁範本】即可！' : err.message}
             </div>
           `;
         }
-
-        resBox.innerHTML = `
-          <div class="font-bold text-sm text-rose-900 flex items-center gap-1.5">
-            <span>❌ 連線未成功</span>
-            <span class="text-xs text-rose-600 font-normal">(${err.message})</span>
-          </div>
-          ${detailsHtml}
-        `;
       }
     }
 
