@@ -1073,3 +1073,17 @@ function appendExamScores(body) {
     studentCount: formattedRows.length
   };
 }
+
+// ========================================================
+// 核心模組導出 (供 Loader.gs 自動熱更新引導器調用)
+// ========================================================
+var MPScoreEngine = {
+  setupStandardSheets: setupStandardSheets,
+  createNewExamSheetFromRoster: createNewExamSheetFromRoster,
+  syncStudentsFromExamSheet: syncStudentsFromExamSheet,
+  generateTokensForStudents: generateTokensForStudents,
+  previewClassStatistics: previewClassStatistics,
+  handleDoGet: doGet,
+  handleDoPost: doPost
+};
+
