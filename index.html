@@ -1231,9 +1231,11 @@
         </div>
 
       </div>
+    </div>
+  </div>
 
   <!-- ==================== A4 列印與 PDF 匯出對話框 ==================== -->
-  <div id="printPreviewModal" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm hidden overflow-y-auto flex items-start justify-center p-3 md:p-6">
+  <div id="printPreviewModal" onclick="if(event.target === this) closePrintModal()" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm hidden overflow-y-auto flex items-start justify-center p-3 md:p-6">
     <div class="bg-white rounded-3xl shadow-2xl max-w-5xl w-full border border-slate-200 overflow-hidden my-4 flex flex-col max-h-[92vh]">
       
       <!-- Modal 頂部控制列 (列印時隱藏) -->
@@ -1770,6 +1772,28 @@
         }
         loadPreviewForSelectedStudent();
       }
+
+      // 監聽 ESC 鍵關閉 Modal
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          const pModal = document.getElementById('printPreviewModal');
+          if (pModal && !pModal.classList.contains('hidden') && pModal.style.display !== 'none') {
+            closePrintModal();
+          }
+          const cModal = document.getElementById('teacherChangelogModal');
+          if (cModal && !cModal.classList.contains('hidden') && cModal.style.display !== 'none') {
+            closeTeacherChangelogModal();
+          }
+        }
+      });
+
+      // 監聽列印事件前自動保證渲染
+      window.addEventListener('beforeprint', () => {
+        const sheets = document.getElementById('printModalSheets');
+        if (sheets && !sheets.hasChildNodes()) {
+          renderPrintModalPages();
+        }
+      });
     });
 
     // 分頁切換
@@ -1995,7 +2019,14 @@
       if (!modal) return;
       modal.classList.remove('hidden');
       modal.style.display = 'flex';
-      renderPrintModalPages();
+      document.body.style.overflow = 'hidden';
+      const scrollArea = document.getElementById('printModalScrollArea');
+      if (scrollArea) scrollArea.scrollTop = 0;
+      try {
+        renderPrintModalPages();
+      } catch (err) {
+        console.error("renderPrintModalPages error:", err);
+      }
     }
 
     function closePrintModal() {
@@ -2003,6 +2034,7 @@
       if (modal) {
         modal.classList.add('hidden');
         modal.style.display = 'none';
+        document.body.style.overflow = '';
       }
     }
 
@@ -2031,23 +2063,33 @@
       if (examData && visibleCount > 0) {
         const gridColClass = visibleCount === 1 ? 'grid-cols-1' : (visibleCount === 2 ? 'grid-cols-2' : 'grid-cols-3');
         statsBarHtml = `
-          <div class="grid ${gridColClass} gap-1 bg-slate-50 p-1 rounded-lg border border-slate-200 text-center my-1">
-            ${pCfg.showAvg ? `<div><span class="text-[8px] text-slate-400 block">個人總平均</span><span class="font-bold text-amber-800 ${isCompact ? 'text-[11px]' : 'text-xs'}">${examData.studentAverage}分</span></div>` : ''}
-            ${pCfg.showRank ? `<div><span class="text-[8px] text-slate-400 block">班級名次</span><span class="font-bold text-amber-600 ${isCompact ? 'text-[11px]' : 'text-xs'}">第${examData.studentRank}名<span class="text-[8px] font-normal text-slate-400">/${examData.totalStudents}</span></span></div>` : ''}
-            ${pCfg.showClassAvg ? `<div><span class="text-[8px] text-slate-400 block">全班平均</span><span class="font-bold text-slate-700 ${isCompact ? 'text-[11px]' : 'text-xs'}">${examData.classOverallAverage}分</span></div>` : ''}
+          <div class="grid ${gridColClass} gap-1.5 bg-slate-50/80 p-1.5 rounded-xl border border-slate-200 text-center my-1.5 shadow-2xs">
+            ${pCfg.showAvg ? `<div><span class="text-[9px] text-slate-500 font-medium block leading-tight">個人總平均</span><span class="font-black text-amber-800 ${isCompact ? 'text-xs' : 'text-sm'} leading-tight mt-0.5 block">${examData.studentAverage}分</span></div>` : ''}
+            ${pCfg.showRank ? `<div><span class="text-[9px] text-slate-500 font-medium block leading-tight">班級名次</span><span class="font-black text-amber-600 ${isCompact ? 'text-xs' : 'text-sm'} leading-tight mt-0.5 block">第${examData.studentRank}名<span class="text-[8px] font-normal text-slate-400">/${examData.totalStudents}</span></span></div>` : ''}
+            ${pCfg.showClassAvg ? `<div><span class="text-[9px] text-slate-500 font-medium block leading-tight">全班平均</span><span class="font-black text-slate-700 ${isCompact ? 'text-xs' : 'text-sm'} leading-tight mt-0.5 block">${examData.classOverallAverage}分</span></div>` : ''}
           </div>
         `;
       }
 
       let subjectsBarHtml = '';
       if (examData && pCfg.showSubjects && examData.subjects && examData.subjects.length > 0) {
+        const subCount = examData.subjects.length;
+        const colStyle = `grid-template-columns: repeat(${subCount}, minmax(0, 1fr));`;
+        const fontName = isCompact ? 'text-[10px]' : 'text-xs';
+        const fontScore = isCompact ? 'text-xs md:text-sm' : 'text-sm md:text-base';
+        const padClass = isCompact ? 'py-1 px-0.5' : 'py-1.5 px-1';
+
         subjectsBarHtml = `
-          <div class="flex flex-wrap gap-1 text-[9px] bg-amber-50/50 p-1 rounded-lg border border-amber-200 my-0.5">
-            ${examData.subjects.map(s => `
-              <span class="bg-white px-1 py-0.2 rounded border border-amber-200/60 text-slate-700">
-                ${s.name} <b class="text-amber-700">${s.score}</b>${pCfg.showPr && s.pr ? ` <span class="text-amber-700 text-[8px]">(PR${s.pr})</span>` : ''}
-              </span>
-            `).join('')}
+          <div class="w-full bg-amber-50/80 rounded-xl border border-amber-300 ${isCompact ? 'p-1 my-1' : 'p-1.5 my-1.5'} shadow-2xs">
+            <div class="grid gap-1.5 text-center items-stretch" style="${colStyle}">
+              ${examData.subjects.map(s => `
+                <div class="bg-white/95 rounded-lg border border-amber-200/90 ${padClass} flex flex-col items-center justify-center text-center shadow-2xs transition hover:border-amber-300">
+                  <span class="${fontName} font-bold text-slate-700 truncate w-full block leading-tight">${s.name}</span>
+                  <span class="${fontScore} font-black text-amber-800 tracking-tight leading-tight mt-0.5">${s.score}</span>
+                  ${pCfg.showPr && s.pr ? `<span class="text-[8px] font-bold text-amber-700 bg-amber-100/70 px-1 py-0.2 rounded mt-0.5 leading-none">PR${s.pr}</span>` : ''}
+                </div>
+              `).join('')}
+            </div>
           </div>
         `;
       }
