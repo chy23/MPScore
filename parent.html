@@ -598,8 +598,8 @@
           showRadar: vStr.length > 7 ? vStr[7] === '1' : true,
           showTrend: vStr.length > 8 ? vStr[8] === '1' : true,
           showComparison: vStr.length > 9 ? vStr[9] === '1' : true,
-          showDiagnosis: vStr.length > 10 ? vStr[10] === '1' : true,
-          showBoxplot: vStr.length > 11 ? vStr[11] === '1' : true,
+          showDiagnosis: vStr.length > 10 ? vStr[10] === '1' : false,
+          showBoxplot: vStr.length > 11 ? vStr[11] === '1' : false,
           showPrCurve: vStr.length > 12 ? vStr[12] === '1' : true
         };
       }
@@ -609,9 +609,10 @@
         if (saved) return JSON.parse(saved);
       } catch(e) {}
 
+      // 預設不勾選：班級名次/排名、📦 建議箱型圖 (盒鬚圖)、🌱 學習成長小錦囊 (適性建議)
       return {
         showAvg: true,
-        showRank: true,
+        showRank: false,
         showClassAvg: true,
         showSubjects: true,
         showPr: true,
@@ -620,8 +621,8 @@
         showRadar: true,
         showTrend: true,
         showComparison: true,
-        showDiagnosis: true,
-        showBoxplot: true,
+        showDiagnosis: false,
+        showBoxplot: false,
         showPrCurve: true
       };
     }

@@ -606,7 +606,7 @@
                 <span class="font-bold text-slate-800">個人總平均</span>
               </label>
               <label class="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200 cursor-pointer hover:bg-amber-50/50 shadow-2xs transition">
-                <input type="checkbox" id="printOptRank" checked onchange="updatePrintCards()" class="rounded text-amber-700 focus:ring-amber-500 w-4 h-4">
+                <input type="checkbox" id="printOptRank" onchange="updatePrintCards()" class="rounded text-amber-700 focus:ring-amber-500 w-4 h-4">
                 <span class="font-bold text-amber-700">班級名次 / 排名</span>
               </label>
               <label class="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200 cursor-pointer hover:bg-amber-50/50 shadow-2xs transition">
@@ -618,11 +618,11 @@
                 <span class="font-bold text-slate-800">各科原始得分</span>
               </label>
               <label class="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200 cursor-pointer hover:bg-amber-50/50 shadow-2xs transition">
-                <input type="checkbox" id="printOptPr" checked onchange="updatePrintCards()" class="rounded text-amber-700 focus:ring-amber-500 w-4 h-4">
+                <input type="checkbox" id="printOptPr" onchange="updatePrintCards()" class="rounded text-amber-700 focus:ring-amber-500 w-4 h-4">
                 <span class="font-bold text-amber-800">各科 PR 常模等級</span>
               </label>
               <label class="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200 cursor-pointer hover:bg-amber-50/50 shadow-2xs transition">
-                <input type="checkbox" id="printOptToken" checked onchange="updatePrintCards()" class="rounded text-amber-700 focus:ring-amber-500 w-4 h-4">
+                <input type="checkbox" id="printOptToken" onchange="updatePrintCards()" class="rounded text-amber-700 focus:ring-amber-500 w-4 h-4">
                 <span class="font-medium text-slate-700">文字查詢代碼</span>
               </label>
               <label class="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200 cursor-pointer hover:bg-amber-50/50 shadow-2xs transition">
@@ -655,7 +655,7 @@
                   <span class="font-bold text-slate-800">個人總平均</span>
                 </label>
                 <label class="flex items-center gap-2 bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-200 cursor-pointer hover:bg-amber-50/50 transition">
-                  <input type="checkbox" id="webOptRank" checked onchange="updatePrintCards()" class="rounded text-amber-700 focus:ring-amber-500 w-3.5 h-3.5">
+                  <input type="checkbox" id="webOptRank" onchange="updatePrintCards()" class="rounded text-amber-700 focus:ring-amber-500 w-3.5 h-3.5">
                   <span class="font-bold text-amber-700">班級名次</span>
                 </label>
                 <label class="flex items-center gap-2 bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-200 cursor-pointer hover:bg-amber-50/50 transition">
@@ -690,7 +690,7 @@
                   <span class="font-black text-amber-950">🚀 跨次進退步對比卡</span>
                 </label>
                 <label class="flex items-center gap-2 bg-amber-50/50 px-2.5 py-2 rounded-xl border border-amber-200 cursor-pointer hover:bg-amber-100/50 transition">
-                  <input type="checkbox" id="webOptBoxplot" checked onchange="updatePrintCards()" class="rounded text-amber-700 focus:ring-amber-500 w-4 h-4">
+                  <input type="checkbox" id="webOptBoxplot" onchange="updatePrintCards()" class="rounded text-amber-700 focus:ring-amber-500 w-4 h-4">
                   <span class="font-black text-amber-950">📦 建議箱型圖 (盒鬚圖)</span>
                 </label>
                 <label class="flex items-center gap-2 bg-amber-50/50 px-2.5 py-2 rounded-xl border border-amber-200 cursor-pointer hover:bg-amber-100/50 transition">
@@ -698,7 +698,7 @@
                   <span class="font-black text-amber-950">🔔 單科成績落點與分佈曲線</span>
                 </label>
                 <label class="flex items-center gap-2 bg-amber-50/50 px-2.5 py-2 rounded-xl border border-amber-200 cursor-pointer hover:bg-amber-100/50 transition">
-                  <input type="checkbox" id="webOptDiagnosis" checked onchange="updatePrintCards()" class="rounded text-amber-700 focus:ring-amber-500 w-4 h-4">
+                  <input type="checkbox" id="webOptDiagnosis" onchange="updatePrintCards()" class="rounded text-amber-700 focus:ring-amber-500 w-4 h-4">
                   <span class="font-black text-amber-950">🌱 學習成長小錦囊 (適性建議)</span>
                 </label>
               </div>
@@ -786,7 +786,7 @@
               <span class="font-bold text-slate-700">🚀 跨次進退步卡</span>
             </label>
             <label class="inline-flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 shadow-2xs cursor-pointer hover:bg-slate-50 select-none">
-              <input type="checkbox" id="syncOptBoxplot" checked onchange="syncWebCheckbox('webOptBoxplot', this.checked)" class="rounded text-amber-700 focus:ring-amber-500 w-3.5 h-3.5">
+              <input type="checkbox" id="syncOptBoxplot" onchange="syncWebCheckbox('webOptBoxplot', this.checked)" class="rounded text-amber-700 focus:ring-amber-500 w-3.5 h-3.5">
               <span class="font-bold text-slate-700">📦 建議箱型圖</span>
             </label>
             <label class="inline-flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 shadow-2xs cursor-pointer hover:bg-slate-50 select-none">
@@ -794,7 +794,7 @@
               <span class="font-bold text-slate-700">🔔 單科成績分佈曲線</span>
             </label>
             <label class="inline-flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 shadow-2xs cursor-pointer hover:bg-slate-50 select-none">
-              <input type="checkbox" id="syncOptDiagnosis" checked onchange="syncWebCheckbox('webOptDiagnosis', this.checked)" class="rounded text-amber-700 focus:ring-amber-500 w-3.5 h-3.5">
+              <input type="checkbox" id="syncOptDiagnosis" onchange="syncWebCheckbox('webOptDiagnosis', this.checked)" class="rounded text-amber-700 focus:ring-amber-500 w-3.5 h-3.5">
               <span class="font-bold text-slate-700">🌱 學習成長錦囊</span>
             </label>
             <label class="inline-flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 shadow-2xs cursor-pointer hover:bg-slate-50 select-none">
@@ -802,7 +802,7 @@
               <span class="font-bold text-slate-700">個人總平均</span>
             </label>
             <label class="inline-flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 shadow-2xs cursor-pointer hover:bg-slate-50 select-none">
-              <input type="checkbox" id="syncOptRank" checked onchange="syncWebCheckbox('webOptRank', this.checked)" class="rounded text-amber-700 focus:ring-amber-500 w-3.5 h-3.5">
+              <input type="checkbox" id="syncOptRank" onchange="syncWebCheckbox('webOptRank', this.checked)" class="rounded text-amber-700 focus:ring-amber-500 w-3.5 h-3.5">
               <span class="font-bold text-slate-700">班級名次</span>
             </label>
             <label class="inline-flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 shadow-2xs cursor-pointer hover:bg-slate-50 select-none">
@@ -1701,16 +1701,41 @@
 
     // 初始化頁面
     window.addEventListener('DOMContentLoaded', () => {
-      // 恢復上次自訂的勾選設定
+      // 恢復上次自訂的勾選設定 (版本管理至 v4 以確保最新預設不勾選生效)
       try {
-        const savedCfg = JSON.parse(localStorage.getItem('mpscore_visibility_cfg') || '{}');
-        if (savedCfg.showAvg !== undefined && document.getElementById('optShowAvg')) document.getElementById('optShowAvg').checked = savedCfg.showAvg;
-        if (savedCfg.showRank !== undefined && document.getElementById('optShowRank')) document.getElementById('optShowRank').checked = savedCfg.showRank;
-        if (savedCfg.showClassAvg !== undefined && document.getElementById('optShowClassAvg')) document.getElementById('optShowClassAvg').checked = savedCfg.showClassAvg;
-        if (savedCfg.showSubjects !== undefined && document.getElementById('optShowSubjects')) document.getElementById('optShowSubjects').checked = savedCfg.showSubjects;
-        if (savedCfg.showPr !== undefined && document.getElementById('optShowPr')) document.getElementById('optShowPr').checked = savedCfg.showPr;
-        if (savedCfg.showStudentId !== undefined && document.getElementById('optShowStudentId')) document.getElementById('optShowStudentId').checked = savedCfg.showStudentId;
-        if (savedCfg.showFootnote !== undefined && document.getElementById('optShowFootnote')) document.getElementById('optShowFootnote').checked = savedCfg.showFootnote;
+        const cfgVer = localStorage.getItem('mpscore_cfg_version');
+        if (cfgVer !== 'v4') {
+          localStorage.removeItem('mpscore_visibility_cfg');
+          localStorage.removeItem('mpscore_paper_cfg');
+          localStorage.setItem('mpscore_cfg_version', 'v4');
+        } else {
+          const savedCfg = JSON.parse(localStorage.getItem('mpscore_visibility_cfg') || '{}');
+          if (savedCfg.showAvg !== undefined && document.getElementById('webOptAvg')) document.getElementById('webOptAvg').checked = savedCfg.showAvg;
+          if (savedCfg.showRank !== undefined && document.getElementById('webOptRank')) document.getElementById('webOptRank').checked = savedCfg.showRank;
+          if (savedCfg.showClassAvg !== undefined && document.getElementById('webOptClassAvg')) document.getElementById('webOptClassAvg').checked = savedCfg.showClassAvg;
+          if (savedCfg.showSubjects !== undefined && document.getElementById('webOptSubjects')) document.getElementById('webOptSubjects').checked = savedCfg.showSubjects;
+          if (savedCfg.showPr !== undefined && document.getElementById('webOptPr')) document.getElementById('webOptPr').checked = savedCfg.showPr;
+          if (savedCfg.showRadar !== undefined && document.getElementById('webOptRadar')) document.getElementById('webOptRadar').checked = savedCfg.showRadar;
+          if (savedCfg.showTrend !== undefined && document.getElementById('webOptTrend')) document.getElementById('webOptTrend').checked = savedCfg.showTrend;
+          if (savedCfg.showComparison !== undefined && document.getElementById('webOptComparison')) document.getElementById('webOptComparison').checked = savedCfg.showComparison;
+          if (savedCfg.showBoxplot !== undefined && document.getElementById('webOptBoxplot')) document.getElementById('webOptBoxplot').checked = savedCfg.showBoxplot;
+          if (savedCfg.showPrCurve !== undefined && document.getElementById('webOptPrCurve')) document.getElementById('webOptPrCurve').checked = savedCfg.showPrCurve;
+          if (savedCfg.showDiagnosis !== undefined && document.getElementById('webOptDiagnosis')) document.getElementById('webOptDiagnosis').checked = savedCfg.showDiagnosis;
+
+          const savedPaper = JSON.parse(localStorage.getItem('mpscore_paper_cfg') || '{}');
+          if (savedPaper.showAvg !== undefined && document.getElementById('printOptAvg')) document.getElementById('printOptAvg').checked = savedPaper.showAvg;
+          if (savedPaper.showRank !== undefined && document.getElementById('printOptRank')) document.getElementById('printOptRank').checked = savedPaper.showRank;
+          if (savedPaper.showClassAvg !== undefined && document.getElementById('printOptClassAvg')) document.getElementById('printOptClassAvg').checked = savedPaper.showClassAvg;
+          if (savedPaper.showSubjects !== undefined && document.getElementById('printOptSubjects')) document.getElementById('printOptSubjects').checked = savedPaper.showSubjects;
+          if (savedPaper.showPr !== undefined && document.getElementById('printOptPr')) document.getElementById('printOptPr').checked = savedPaper.showPr;
+          if (savedPaper.showToken !== undefined && document.getElementById('printOptToken')) document.getElementById('printOptToken').checked = savedPaper.showToken;
+          if (savedPaper.showStudentId !== undefined && document.getElementById('printOptStudentId')) document.getElementById('printOptStudentId').checked = savedPaper.showStudentId;
+          if (savedPaper.showFootnote !== undefined && document.getElementById('printOptFootnote')) document.getElementById('printOptFootnote').checked = savedPaper.showFootnote;
+
+          if (typeof syncWebToSandboxControls === 'function') {
+            syncWebToSandboxControls();
+          }
+        }
       } catch(e) {}
 
       try {
@@ -2002,12 +2027,14 @@
 
     function buildCardContentHtml(st, pCfg, examData, queryUrl, cardId, schoolTitle, noticeTitle, footnote, isCompact) {
       let statsBarHtml = '';
-      if (examData && (pCfg.showAvg || pCfg.showRank || pCfg.showClassAvg)) {
+      const visibleCount = (pCfg.showAvg ? 1 : 0) + (pCfg.showRank ? 1 : 0) + (pCfg.showClassAvg ? 1 : 0);
+      if (examData && visibleCount > 0) {
+        const gridColClass = visibleCount === 1 ? 'grid-cols-1' : (visibleCount === 2 ? 'grid-cols-2' : 'grid-cols-3');
         statsBarHtml = `
-          <div class="grid grid-cols-3 gap-1 bg-slate-50 p-1 rounded-lg border border-slate-200 text-center my-1">
-            ${pCfg.showAvg ? `<div><span class="text-[8px] text-slate-400 block">個人總平均</span><span class="font-bold text-amber-800 ${isCompact ? 'text-[11px]' : 'text-xs'}">${examData.studentAverage}分</span></div>` : '<div></div>'}
-            ${pCfg.showRank ? `<div><span class="text-[8px] text-slate-400 block">班級名次</span><span class="font-bold text-amber-600 ${isCompact ? 'text-[11px]' : 'text-xs'}">第${examData.studentRank}名<span class="text-[8px] font-normal text-slate-400">/${examData.totalStudents}</span></span></div>` : '<div></div>'}
-            ${pCfg.showClassAvg ? `<div><span class="text-[8px] text-slate-400 block">全班平均</span><span class="font-bold text-slate-700 ${isCompact ? 'text-[11px]' : 'text-xs'}">${examData.classOverallAverage}分</span></div>` : '<div></div>'}
+          <div class="grid ${gridColClass} gap-1 bg-slate-50 p-1 rounded-lg border border-slate-200 text-center my-1">
+            ${pCfg.showAvg ? `<div><span class="text-[8px] text-slate-400 block">個人總平均</span><span class="font-bold text-amber-800 ${isCompact ? 'text-[11px]' : 'text-xs'}">${examData.studentAverage}分</span></div>` : ''}
+            ${pCfg.showRank ? `<div><span class="text-[8px] text-slate-400 block">班級名次</span><span class="font-bold text-amber-600 ${isCompact ? 'text-[11px]' : 'text-xs'}">第${examData.studentRank}名<span class="text-[8px] font-normal text-slate-400">/${examData.totalStudents}</span></span></div>` : ''}
+            ${pCfg.showClassAvg ? `<div><span class="text-[8px] text-slate-400 block">全班平均</span><span class="font-bold text-slate-700 ${isCompact ? 'text-[11px]' : 'text-xs'}">${examData.classOverallAverage}分</span></div>` : ''}
           </div>
         `;
       }
@@ -2937,24 +2964,28 @@
       const elFn = document.getElementById('printOptFootnote');
 
       if (elAvg && elRank && elClassAvg) {
-        return {
+        const cfg = {
           showAvg: elAvg.checked,
           showRank: elRank.checked,
           showClassAvg: elClassAvg.checked,
           showSubjects: elSub ? elSub.checked : true,
-          showPr: elPr ? elPr.checked : true,
-          showToken: elTok ? elTok.checked : true,
+          showPr: elPr ? elPr.checked : false,
+          showToken: elTok ? elTok.checked : false,
           showStudentId: elId ? elId.checked : true,
           showFootnote: elFn ? elFn.checked : true
         };
+        try {
+          localStorage.setItem('mpscore_paper_cfg', JSON.stringify(cfg));
+        } catch(e) {}
+        return cfg;
       }
       return {
         showAvg: true,
-        showRank: true,
+        showRank: false,
         showClassAvg: true,
         showSubjects: true,
-        showPr: true,
-        showToken: true,
+        showPr: false,
+        showToken: false,
         showStudentId: true,
         showFootnote: true
       };
@@ -2980,8 +3011,8 @@
           showRadar: vStr.length > 7 ? vStr[7] === '1' : true,
           showTrend: vStr.length > 8 ? vStr[8] === '1' : true,
           showComparison: vStr.length > 9 ? vStr[9] === '1' : true,
-          showDiagnosis: vStr.length > 10 ? vStr[10] === '1' : true,
-          showBoxplot: vStr.length > 11 ? vStr[11] === '1' : true,
+          showDiagnosis: vStr.length > 10 ? vStr[10] === '1' : false,
+          showBoxplot: vStr.length > 11 ? vStr[11] === '1' : false,
           showPrCurve: vStr.length > 12 ? vStr[12] === '1' : true
         };
       }
@@ -3011,8 +3042,8 @@
           showRadar: elRadar ? elRadar.checked : true,
           showTrend: elTrend ? elTrend.checked : true,
           showComparison: elComp ? elComp.checked : true,
-          showDiagnosis: elDiag ? elDiag.checked : true,
-          showBoxplot: elBoxplot ? elBoxplot.checked : true,
+          showDiagnosis: elDiag ? elDiag.checked : false,
+          showBoxplot: elBoxplot ? elBoxplot.checked : false,
           showPrCurve: elPrCurve ? elPrCurve.checked : true
         };
         try {
@@ -3027,10 +3058,10 @@
         if (saved) return JSON.parse(saved);
       } catch(e) {}
 
-      // 預設全開
+      // 預設不勾選：班級名次/排名、📦 建議箱型圖 (盒鬚圖)、🌱 學習成長小錦囊 (適性建議)
       return {
         showAvg: true,
-        showRank: true,
+        showRank: false,
         showClassAvg: true,
         showSubjects: true,
         showPr: true,
@@ -3039,8 +3070,8 @@
         showRadar: true,
         showTrend: true,
         showComparison: true,
-        showDiagnosis: true,
-        showBoxplot: true,
+        showDiagnosis: false,
+        showBoxplot: false,
         showPrCurve: true
       };
     }
