@@ -11,6 +11,9 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- QRCode.js 本機快速生成 QR Code -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- html2canvas 與 jsPDF 用於客戶端 A4 PDF 視覺化生成與一鍵下載 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <!-- 全域試算表 API 設定檔 -->
   <script src="config.js"></script>
 
@@ -562,7 +565,7 @@
               <span>🔄 從試算表同步名單與成績</span>
             </button>
             <button onclick="openPrintModal()" class="text-xs font-bold bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black px-5 py-2.5 rounded-xl transition flex items-center gap-1.5 shadow-md shadow-amber-500/20 hover:shadow-lg">
-              <span>🖨️ 列印小卡與 PDF 匯出預覽</span>
+              <span>📄 預覽 PDF ‧ 一鍵下載 / 列印</span>
             </button>
           </div>
         </div>
@@ -627,7 +630,7 @@
               </label>
               <label class="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200 cursor-pointer hover:bg-amber-50/50 shadow-2xs transition">
                 <input type="checkbox" id="printOptStudentId" checked onchange="updatePrintCards()" class="rounded text-amber-700 focus:ring-amber-500 w-4 h-4">
-                <span class="font-medium text-slate-700">學生學號</span>
+                <span class="font-medium text-slate-700">班級-座號 (例如: 605-12)</span>
               </label>
               <label class="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200 cursor-pointer hover:bg-amber-50/50 shadow-2xs transition">
                 <input type="checkbox" id="printOptFootnote" checked onchange="updatePrintCards()" class="rounded text-amber-700 focus:ring-amber-500 w-4 h-4">
@@ -1234,7 +1237,7 @@
     </div>
   </div>
 
-  <!-- ==================== A4 列印與 PDF 匯出對話框 ==================== -->
+  <!-- ==================== A4 通知小卡 PDF 預覽與下載列印對話框 ==================== -->
   <div id="printPreviewModal" onclick="if(event.target === this) closePrintModal()" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm hidden overflow-y-auto flex items-start justify-center p-3 md:p-6">
     <div class="bg-white rounded-3xl shadow-2xl max-w-5xl w-full border border-slate-200 overflow-hidden my-4 flex flex-col max-h-[92vh]">
       
@@ -1242,42 +1245,66 @@
       <div class="no-print p-4 md:p-6 bg-slate-900 text-white flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 shrink-0">
         <div>
           <h3 class="text-base md:text-lg font-black flex items-center gap-2">
-            <span>🖨️ A4 通知小卡列印與 PDF 匯出預覽</span>
+            <span>📄 A4 通知小卡 PDF 預覽與一鍵下載</span>
           </h3>
           <p class="text-xs text-slate-300 mt-1">
-            請調整每頁呈現的小卡數量，預覽確認無誤後即可點選列印或匯出 PDF。
+            您可在此即時預覽 A4 分頁版面；確認無誤後，可直接下載家長發放版或教師留存版 PDF，亦可友善列印。
           </p>
         </div>
 
-        <div class="flex items-center gap-3">
-          <button onclick="triggerDirectPrint()" class="bg-amber-500 hover:bg-amber-500 text-slate-950 font-black font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow-lg transition">
-            <span>🖨️ 立即列印 / 另存為 PDF</span>
+        <div class="flex flex-wrap items-center gap-2.5">
+          <button id="downloadParentPdfBtn" onclick="downloadPrintCardsPdf('parent')" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-black px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow-lg shadow-emerald-900/30 transition cursor-pointer active:scale-95">
+            <span>📥 下載【家長發放版】PDF</span>
           </button>
-          <button onclick="closePrintModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-2 rounded-xl text-xs font-bold transition">
+          <button id="downloadTeacherPdfBtn" onclick="downloadPrintCardsPdf('teacher')" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow-lg shadow-indigo-900/30 transition cursor-pointer active:scale-95">
+            <span>📋 下載【教師留存版】PDF (含代碼)</span>
+          </button>
+          <button onclick="triggerDirectPrint()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-3.5 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow-lg transition cursor-pointer active:scale-95">
+            <span>🖨️ 友善列印</span>
+          </button>
+          <button onclick="closePrintModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer">
             ✕ 關閉
           </button>
         </div>
       </div>
 
-      <!-- 每頁卡片數量選擇列 (列印時隱藏) -->
+      <!-- 每頁卡片數量與預覽版本選擇列 (列印時隱藏) -->
       <div class="no-print p-3 md:p-4 bg-amber-50/90 border-b border-amber-200 flex flex-wrap items-center justify-between gap-3 text-xs shrink-0">
-        <div class="flex flex-wrap items-center gap-2">
-          <span class="font-black text-amber-950 flex items-center gap-1">
-            <span>📄 每頁呈現通知單數量：</span>
-          </span>
-          <div class="inline-flex rounded-xl p-1 bg-white border border-amber-200 shadow-2xs gap-1" id="cardsPerPageSelector">
-            <button type="button" onclick="changeCardsPerPage(4)" data-count="4" class="cards-per-page-btn px-3 py-1 rounded-lg font-black text-xs transition bg-amber-500 text-slate-950 shadow-xs">
-              4 張 (2×2 經典推薦)
-            </button>
-            <button type="button" onclick="changeCardsPerPage(6)" data-count="6" class="cards-per-page-btn px-3 py-1 rounded-lg font-bold text-xs text-slate-600 hover:text-amber-700 transition">
-              6 張 (2×3 省紙精巧)
-            </button>
-            <button type="button" onclick="changeCardsPerPage(8)" data-count="8" class="cards-per-page-btn px-3 py-1 rounded-lg font-bold text-xs text-slate-600 hover:text-amber-700 transition">
-              8 張 (2×4 輕量隨身)
-            </button>
-            <button type="button" onclick="changeCardsPerPage(2)" data-count="2" class="cards-per-page-btn px-3 py-1 rounded-lg font-bold text-xs text-slate-600 hover:text-amber-700 transition">
-              2 張 (1×2 詳盡大字)
-            </button>
+        <div class="flex flex-wrap items-center gap-4">
+          <!-- 預覽版本切換 -->
+          <div class="flex items-center gap-1.5">
+            <span class="font-black text-amber-950 flex items-center gap-1">
+              <span>📋 預覽版本：</span>
+            </span>
+            <div class="inline-flex rounded-xl p-1 bg-white border border-amber-200 shadow-2xs gap-1" id="printEditionSelector">
+              <button type="button" onclick="switchPrintEdition('parent')" id="editionBtn-parent" class="px-2.5 py-1 rounded-lg font-black text-xs transition bg-amber-500 text-slate-950 shadow-xs cursor-pointer">
+                👨‍👩‍👧 家長版 (無代碼)
+              </button>
+              <button type="button" onclick="switchPrintEdition('teacher')" id="editionBtn-teacher" class="px-2.5 py-1 rounded-lg font-bold text-xs text-slate-600 hover:text-amber-700 transition cursor-pointer">
+                🧑‍🏫 教師版 (含代碼)
+              </button>
+            </div>
+          </div>
+
+          <!-- 每頁卡片數量選擇 -->
+          <div class="flex items-center gap-1.5">
+            <span class="font-black text-amber-950 flex items-center gap-1">
+              <span>📄 每頁數量：</span>
+            </span>
+            <div class="inline-flex rounded-xl p-1 bg-white border border-amber-200 shadow-2xs gap-1" id="cardsPerPageSelector">
+              <button type="button" onclick="changeCardsPerPage(4)" data-count="4" class="cards-per-page-btn px-2.5 py-1 rounded-lg font-black text-xs transition bg-amber-500 text-slate-950 shadow-xs cursor-pointer">
+                4 張 (2×2 經典)
+              </button>
+              <button type="button" onclick="changeCardsPerPage(6)" data-count="6" class="cards-per-page-btn px-2.5 py-1 rounded-lg font-bold text-xs text-slate-600 hover:text-amber-700 transition cursor-pointer">
+                6 張 (2×3 省紙)
+              </button>
+              <button type="button" onclick="changeCardsPerPage(8)" data-count="8" class="cards-per-page-btn px-2.5 py-1 rounded-lg font-bold text-xs text-slate-600 hover:text-amber-700 transition cursor-pointer">
+                8 張 (2×4 隨身)
+              </button>
+              <button type="button" onclick="changeCardsPerPage(2)" data-count="2" class="cards-per-page-btn px-2.5 py-1 rounded-lg font-bold text-xs text-slate-600 hover:text-amber-700 transition cursor-pointer">
+                2 張 (1×2 大字)
+              </button>
+            </div>
           </div>
         </div>
 
@@ -1291,10 +1318,10 @@
       <!-- 預覽滾動區 -->
       <div class="p-4 md:p-8 bg-slate-100 overflow-y-auto flex-1 space-y-8" id="printModalScrollArea">
         <!-- 提示小條 -->
-        <div class="no-print max-w-3xl mx-auto bg-amber-50 text-amber-800 text-xs px-4 py-2.5 rounded-xl border border-amber-200 flex items-center justify-between shadow-2xs">
+        <div class="no-print max-w-3xl mx-auto bg-amber-50 text-amber-900 text-xs px-4 py-2.5 rounded-xl border border-amber-200 flex items-center justify-between shadow-2xs">
           <div class="flex items-center gap-2">
             <span>💡</span>
-            <span>在瀏覽器列印對話框中，目的端選擇<b>【另存為 PDF】</b>即可匯出 PDF 檔案；勾選<b>【背景圖形】</b>以確保底色與邊框清晰！</span>
+            <span><b>PDF 預覽提示：</b>下方即為真實 A4 分頁畫面。點選上方<b>【📥 下載家長發放版 PDF】</b>發給家長（乾淨無代碼），亦可點選<b>【📋 下載教師留存版 PDF】</b>保存全班學生代碼以備查閱補發！</span>
           </div>
         </div>
 
@@ -1399,11 +1426,12 @@
 
             <div>
               <h4 class="font-bold text-amber-950 text-xs flex items-center gap-1.5 mb-1">
-                <span>🖨️</span> A4 列印小卡彈窗即時預覽與版面密度調節
+                <span>📄</span> A4 通知小卡即時 PDF 預覽與一鍵下載提供（NEW!）
               </h4>
               <ul class="list-disc list-inside space-y-1 text-slate-600 pl-1">
-                <li>點擊「列印小卡」立即彈出全視窗 A4 預覽，支援自選每頁 <b>2 / 4 / 6 / 8 張</b> 自由排版。</li>
-                <li>自動分頁運算（Break-after Page），支援瀏覽器一鍵高畫質列印與另存為 PDF。</li>
+                <li><b>全視窗 A4 PDF 視覺化預覽</b>：支援 2 / 4 / 6 / 8 張即時排版調節，預覽滿意後一鍵直接生成並下載多頁高畫質 PDF，無須手動設定印表機另存。</li>
+                <li><b>支援雙版本一鍵下載</b>：提供【家長發放版】（無代碼乾淨版）與【教師留存版】（含每位學生專屬代碼以備查閱補發），滿足親師雙向需求。</li>
+                <li><b>學生身分標示優化</b>：精準顯示「班級-座號（如：605-12）」，移除冗餘內嵌提示字句，版面俐落大器。</li>
               </ul>
             </div>
 
@@ -1597,11 +1625,11 @@
 
     // 依據全班 24 人動態產出包含每位學生專屬代碼 (DEMO01 ~ DEMO25) 的名冊
     const DEMO_STUDENTS = DEMO_RAW_EXAM1.map(st => ({
-      className: '701',
+      className: '605',
       seatNumber: st.seat,
       name: st.name,
       token: 'DEMO' + st.seat,
-      studentId: '701-' + st.seat
+      studentId: '605-' + st.seat
     }));
 
     // 示範第 2 次考試 (114學年度第2學期期末考)
@@ -2011,8 +2039,25 @@
       loadPreviewForSelectedStudent();
     }
 
-    // 渲染 A4 列印小卡 (依據教師自選勾選之統計事項動態呈現)
+    // 渲染 A4 列印小卡與 PDF 匯出 (依據教師自選勾選之統計事項動態呈現)
     let currentCardsPerPage = 4;
+    let currentPrintEdition = 'parent'; // 'parent' (無代碼) 或 'teacher' (含代碼)
+
+    function switchPrintEdition(edition) {
+      currentPrintEdition = (edition === 'teacher') ? 'teacher' : 'parent';
+      const btnParent = document.getElementById('editionBtn-parent');
+      const btnTeacher = document.getElementById('editionBtn-teacher');
+      if (btnParent && btnTeacher) {
+        if (currentPrintEdition === 'teacher') {
+          btnTeacher.className = 'px-2.5 py-1 rounded-lg font-black text-xs transition bg-amber-500 text-slate-950 shadow-xs cursor-pointer';
+          btnParent.className = 'px-2.5 py-1 rounded-lg font-bold text-xs text-slate-600 hover:text-amber-700 transition cursor-pointer';
+        } else {
+          btnParent.className = 'px-2.5 py-1 rounded-lg font-black text-xs transition bg-amber-500 text-slate-950 shadow-xs cursor-pointer';
+          btnTeacher.className = 'px-2.5 py-1 rounded-lg font-bold text-xs text-slate-600 hover:text-amber-700 transition cursor-pointer';
+        }
+      }
+      renderPrintModalPages();
+    }
 
     function openPrintModal() {
       const modal = document.getElementById('printPreviewModal');
@@ -2022,11 +2067,7 @@
       document.body.style.overflow = 'hidden';
       const scrollArea = document.getElementById('printModalScrollArea');
       if (scrollArea) scrollArea.scrollTop = 0;
-      try {
-        renderPrintModalPages();
-      } catch (err) {
-        console.error("renderPrintModalPages error:", err);
-      }
+      switchPrintEdition('parent');
     }
 
     function closePrintModal() {
@@ -2043,9 +2084,9 @@
       document.querySelectorAll('.cards-per-page-btn').forEach(btn => {
         const c = parseInt(btn.getAttribute('data-count'), 10);
         if (c === currentCardsPerPage) {
-          btn.className = 'cards-per-page-btn px-3 py-1 rounded-lg font-black text-xs transition bg-amber-500 text-slate-950 shadow-xs';
+          btn.className = 'cards-per-page-btn px-2.5 py-1 rounded-lg font-black text-xs transition bg-amber-500 text-slate-950 shadow-xs cursor-pointer';
         } else {
-          btn.className = 'cards-per-page-btn px-3 py-1 rounded-lg font-bold text-xs text-slate-600 hover:text-amber-700 transition';
+          btn.className = 'cards-per-page-btn px-2.5 py-1 rounded-lg font-bold text-xs text-slate-600 hover:text-amber-700 transition cursor-pointer';
         }
       });
       renderPrintModalPages();
@@ -2055,6 +2096,102 @@
       setTimeout(() => {
         window.print();
       }, 100);
+    }
+
+    async function downloadPrintCardsPdf(targetEdition) {
+      const editionToExport = targetEdition || currentPrintEdition;
+      const prevEdition = currentPrintEdition;
+
+      if (editionToExport !== prevEdition) {
+        switchPrintEdition(editionToExport);
+        await new Promise(r => setTimeout(r, 120));
+      }
+
+      const sheets = document.querySelectorAll('#printModalSheets .a4-print-sheet');
+      if (!sheets || sheets.length === 0) {
+        alert("尚未生成小卡內容，請稍候再試。");
+        return;
+      }
+
+      const activeBtnId = (editionToExport === 'teacher') ? 'downloadTeacherPdfBtn' : 'downloadParentPdfBtn';
+      const btn = document.getElementById(activeBtnId);
+      const origText = btn ? btn.innerHTML : '';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<span>⏳ 準備匯出 PDF (0/${sheets.length}頁)...</span>`;
+      }
+
+      try {
+        if (typeof window.jspdf === 'undefined' || typeof html2canvas === 'undefined') {
+          alert("正在為您開啟瀏覽器列印/另存 PDF 視窗...");
+          triggerDirectPrint();
+          if (btn) {
+            btn.innerHTML = origText;
+            btn.disabled = false;
+          }
+          return;
+        }
+
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({
+          orientation: 'portrait',
+          unit: 'mm',
+          format: 'a4',
+          compress: true
+        });
+        const pdfWidth = 210;
+        const pdfHeight = 297;
+
+        for (let i = 0; i < sheets.length; i++) {
+          if (btn) {
+            btn.innerHTML = `<span>⏳ 生成 PDF (${i + 1}/${sheets.length}頁)...</span>`;
+          }
+          const sheet = sheets[i];
+          const prevRadius = sheet.style.borderRadius;
+          const prevShadow = sheet.style.boxShadow;
+          sheet.style.borderRadius = '0px';
+          sheet.style.boxShadow = 'none';
+
+          const canvas = await html2canvas(sheet, {
+            scale: 2,
+            useCORS: true,
+            logging: false,
+            backgroundColor: '#ffffff'
+          });
+
+          sheet.style.borderRadius = prevRadius;
+          sheet.style.boxShadow = prevShadow;
+
+          const imgData = canvas.toDataURL('image/jpeg', 0.95);
+          if (i > 0) {
+            pdf.addPage('a4', 'portrait');
+          }
+          pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
+        }
+
+        const schoolTitle = document.getElementById('cardSchoolTitle') ? document.getElementById('cardSchoolTitle').value.trim() : (localStorage.getItem('mpscore_school_title') || '學校');
+        const noticeTitle = document.getElementById('cardNoticeTitle') ? document.getElementById('cardNoticeTitle').value.trim() : '個別成績通知單';
+        const suffix = (editionToExport === 'teacher') ? '【教師留存版_含代碼】' : '【家長發放版】';
+        const filename = `${schoolTitle}_${noticeTitle}_${suffix}.pdf`.replace(/[\/\\:*?"<>|]/g, '_');
+
+        pdf.save(filename);
+
+        if (btn) {
+          btn.innerHTML = `<span>✅ ${editionToExport === 'teacher' ? '教師版' : '家長版'} 下載完成！</span>`;
+          setTimeout(() => {
+            btn.innerHTML = origText;
+            btn.disabled = false;
+          }, 3000);
+        }
+      } catch (err) {
+        console.error("PDF generation error:", err);
+        alert("PDF 生成遇到狀況，將自動開啟瀏覽器另存 PDF 視窗。");
+        triggerDirectPrint();
+        if (btn) {
+          btn.innerHTML = origText;
+          btn.disabled = false;
+        }
+      }
     }
 
     function buildCardContentHtml(st, pCfg, examData, queryUrl, cardId, schoolTitle, noticeTitle, footnote, isCompact) {
@@ -2110,17 +2247,14 @@
           <div class="flex items-center justify-between gap-2 my-1">
             <div class="space-y-0.5 flex-1 min-w-0">
               <div class="${isCompact ? 'text-sm' : 'text-base'} font-black text-slate-900">${st.name} <span class="text-[10px] font-normal text-slate-500">(${st.seatNumber}號)</span></div>
-              ${pCfg.showStudentId && st.studentId ? `<div class="text-[10px] text-slate-500">學號：<span class="font-mono text-slate-700">${st.studentId}</span></div>` : ''}
+              ${pCfg.showStudentId && (st.studentId || (st.className && st.seatNumber)) ? `<div class="text-[10px] text-slate-500 font-medium">班級-座號：<span class="font-mono text-slate-700 font-bold">${st.studentId || (st.className + '-' + st.seatNumber)}</span></div>` : ''}
               
               ${pCfg.showToken ? `
-                <div class="text-[10px] text-amber-950 font-bold bg-amber-50 px-1.5 py-0.5 rounded inline-block">
-                  代碼：<span class="font-mono ${isCompact ? 'text-xs' : 'text-sm'} tracking-wider text-amber-700">${st.token}</span>
+                <div class="text-[10px] text-amber-950 font-bold bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200/90 inline-flex items-center gap-1 shadow-2xs mt-0.5">
+                  <span class="text-amber-700 font-bold">代碼：</span>
+                  <span class="font-mono ${isCompact ? 'text-xs' : 'text-sm'} font-black tracking-wider text-amber-800">${st.token}</span>
                 </div>
-              ` : `
-                <div class="text-[9px] text-emerald-700 font-bold bg-emerald-50 px-1 py-0.2 rounded inline-block">
-                  🔒 代碼已安全內嵌於 QR
-                </div>
-              `}
+              ` : ''}
             </div>
 
             <!-- QR Code 容器 -->
@@ -2414,7 +2548,13 @@
       if (!sheetsContainer) return;
       sheetsContainer.innerHTML = '';
 
-      const pCfg = getPaperPrintConfig();
+      const baseCfg = getPaperPrintConfig();
+      const pCfg = Object.assign({}, baseCfg);
+      if (currentPrintEdition === 'teacher') {
+        pCfg.showToken = true;
+      } else {
+        pCfg.showToken = false;
+      }
       const schoolTitle = document.getElementById('cardSchoolTitle') ? document.getElementById('cardSchoolTitle').value : (localStorage.getItem('mpscore_school_title') || '新北市林口區麗園國民小學');
       const noticeTitle = document.getElementById('cardNoticeTitle') ? document.getElementById('cardNoticeTitle').value : '115學年第一學期期中評量個別成績單';
       const footnote = document.getElementById('cardFootnote') ? document.getElementById('cardFootnote').value : '';
@@ -2477,11 +2617,11 @@
         sheetEl.appendChild(gridEl);
 
         const footerEl = document.createElement('div');
-        footerEl.className = 'no-print text-center text-[10px] text-slate-400 pt-2 border-t border-slate-200 mt-2 flex justify-between items-center';
+        footerEl.className = 'text-center text-[10px] text-slate-400 pt-2 border-t border-slate-200 mt-2 flex justify-between items-center';
         footerEl.innerHTML = `
           <span>✂️ 請沿虛線裁切發給家長</span>
-          <span class="font-bold">第 ${p + 1} / ${totalPages} 頁 (每頁 ${currentCardsPerPage} 張)</span>
-          <span>MPScore 智慧個別成績通知單</span>
+          <span class="font-bold text-slate-600">第 ${p + 1} / ${totalPages} 頁 ‧ ${currentPrintEdition === 'teacher' ? '🧑‍🏫【教師留存版・含代碼】' : '👨‍👩‍👧【家長發放版】'} (每頁 ${currentCardsPerPage} 張)</span>
+          <span>MPScore 智慧通知小卡</span>
         `;
         sheetEl.appendChild(footerEl);
         sheetsContainer.appendChild(sheetEl);
