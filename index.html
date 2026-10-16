@@ -677,8 +677,15 @@
             </div>
 
             <!-- 圖像統計與學習診斷項目 -->
+            <!-- 圖像統計與學習診斷項目 -->
             <div class="pt-2 border-t border-slate-100">
-              <div class="text-[10px] font-bold text-amber-950 mb-1.5">圖像統計與學習診斷項目：</div>
+              <div class="flex flex-wrap items-center justify-between gap-1.5 mb-1.5">
+                <div class="text-[10px] font-bold text-amber-950">圖像統計與學習診斷項目：</div>
+                <div id="duplicateComparisonNotice" class="hidden text-[10px] font-bold text-amber-900 bg-amber-100/90 border border-amber-300/80 px-2.5 py-0.5 rounded-full flex items-center gap-1.5 shadow-2xs transition-all">
+                  <span>💡</span>
+                  <span>排版提醒：<b>跨次對比卡</b> 與 <b>跨次啞鈴圖</b> 功能相近，建議導師二擇一呈現使手機版面更俐落</span>
+                </div>
+              </div>
               <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs text-slate-700">
                 <label class="flex items-center gap-2 bg-amber-50/50 px-2.5 py-2 rounded-xl border border-amber-200 cursor-pointer hover:bg-amber-100/50 transition">
                   <input type="checkbox" id="webOptRadar" checked onchange="updatePrintCards()" class="rounded text-amber-700 focus:ring-amber-500 w-4 h-4">
@@ -688,9 +695,12 @@
                   <input type="checkbox" id="webOptTrend" checked onchange="updatePrintCards()" class="rounded text-amber-700 focus:ring-amber-500 w-4 h-4">
                   <span class="font-black text-amber-950">📈 歷次成長曲線圖</span>
                 </label>
-                <label class="flex items-center gap-2 bg-amber-50/50 px-2.5 py-2 rounded-xl border border-amber-200 cursor-pointer hover:bg-amber-100/50 transition">
-                  <input type="checkbox" id="webOptComparison" checked onchange="updatePrintCards()" class="rounded text-amber-700 focus:ring-amber-500 w-4 h-4">
-                  <span class="font-black text-amber-950">🚀 跨次進退步對比卡</span>
+                <label class="flex items-center justify-between gap-1.5 bg-amber-50/50 px-2.5 py-2 rounded-xl border border-amber-200 cursor-pointer hover:bg-amber-100/50 transition">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <input type="checkbox" id="webOptComparison" checked onchange="updatePrintCards()" class="rounded text-amber-700 focus:ring-amber-500 w-4 h-4">
+                    <span class="font-black text-amber-950 truncate">🚀 跨次進退步對比卡</span>
+                  </div>
+                  <span class="text-[9px] font-bold text-amber-800 bg-amber-200/80 border border-amber-300 px-1.5 py-0.5 rounded-md shrink-0">💡 建議二擇一</span>
                 </label>
                 <label class="flex items-center gap-2 bg-amber-50/50 px-2.5 py-2 rounded-xl border border-amber-200 cursor-pointer hover:bg-amber-100/50 transition">
                   <input type="checkbox" id="webOptBoxplot" onchange="updatePrintCards()" class="rounded text-amber-700 focus:ring-amber-500 w-4 h-4">
@@ -712,16 +722,19 @@
                   <input type="checkbox" id="webOptTScore" onchange="updatePrintCards()" class="rounded text-amber-700 focus:ring-amber-500 w-4 h-4">
                   <span class="font-black text-amber-950">⚖️ 標準化 T 分數離差尺</span>
                 </label>
-                <label class="flex items-center gap-2 bg-amber-50/50 px-2.5 py-2 rounded-xl border border-amber-200 cursor-pointer hover:bg-amber-100/50 transition">
-                  <input type="checkbox" id="webOptDumbbell" onchange="updatePrintCards()" class="rounded text-amber-700 focus:ring-amber-500 w-4 h-4">
-                  <span class="font-black text-amber-950">🏋️ 跨次進退步啞鈴圖</span>
+                <label class="flex items-center justify-between gap-1.5 bg-amber-50/50 px-2.5 py-2 rounded-xl border border-amber-200 cursor-pointer hover:bg-amber-100/50 transition">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <input type="checkbox" id="webOptDumbbell" checked onchange="updatePrintCards()" class="rounded text-amber-700 focus:ring-amber-500 w-4 h-4">
+                    <span class="font-black text-amber-950 truncate">🏋️ 跨次進退步啞鈴圖</span>
+                  </div>
+                  <span class="text-[9px] font-bold text-amber-800 bg-amber-200/80 border border-amber-300 px-1.5 py-0.5 rounded-md shrink-0">💡 建議二擇一</span>
                 </label>
                 <label class="flex items-center gap-2 bg-amber-50/50 px-2.5 py-2 rounded-xl border border-amber-200 cursor-pointer hover:bg-amber-100/50 transition">
-                  <input type="checkbox" id="webOptStrengthsMatrix" onchange="updatePrintCards()" class="rounded text-amber-700 focus:ring-amber-500 w-4 h-4">
+                  <input type="checkbox" id="webOptStrengthsMatrix" checked onchange="updatePrintCards()" class="rounded text-amber-700 focus:ring-amber-500 w-4 h-4">
                   <span class="font-black text-amber-950">🧭 優勢與動能四象限</span>
                 </label>
                 <label class="flex items-center gap-2 bg-amber-50/50 px-2.5 py-2 rounded-xl border border-amber-200 cursor-pointer hover:bg-amber-100/50 transition">
-                  <input type="checkbox" id="webOptMilestoneJourney" onchange="updatePrintCards()" class="rounded text-amber-700 focus:ring-amber-500 w-4 h-4">
+                  <input type="checkbox" id="webOptMilestoneJourney" checked onchange="updatePrintCards()" class="rounded text-amber-700 focus:ring-amber-500 w-4 h-4">
                   <span class="font-black text-amber-950">🗺️ 學習歷程足跡地圖</span>
                 </label>
               </div>
@@ -793,7 +806,10 @@
             <span class="font-bold text-amber-950 flex items-center gap-1.5">
               <span>⚡ 即時顯示控制（勾選立刻在下方手機看到效果，並同步套用於列印小卡與 QR Code）：</span>
             </span>
-            <span class="text-[11px] text-amber-700 font-semibold bg-amber-100/80 px-2 py-0.5 rounded-full">即勾即變 ‧ 100% 真實手機畫面</span>
+            <div class="flex items-center gap-2">
+              <span id="sbDuplicateComparisonNotice" class="hidden text-[11px] font-bold text-amber-900 bg-amber-200/90 border border-amber-300 px-2 py-0.5 rounded-full transition-all">💡 建議：跨次進退步卡與啞鈴圖二擇一</span>
+              <span class="text-[11px] text-amber-700 font-semibold bg-amber-100/80 px-2 py-0.5 rounded-full">即勾即變 ‧ 100% 真實手機畫面</span>
+            </div>
           </div>
           <div class="flex flex-wrap gap-2 text-xs">
             <label class="inline-flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 shadow-2xs cursor-pointer hover:bg-slate-50 select-none">
@@ -807,6 +823,7 @@
             <label class="inline-flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 shadow-2xs cursor-pointer hover:bg-slate-50 select-none">
               <input type="checkbox" id="syncOptComparison" checked onchange="syncWebCheckbox('webOptComparison', this.checked)" class="rounded text-amber-700 focus:ring-amber-500 w-3.5 h-3.5">
               <span class="font-bold text-slate-700">🚀 跨次進退步卡</span>
+              <span class="text-[9px] font-bold text-amber-700 bg-amber-100 px-1 py-0.2 rounded">二擇一</span>
             </label>
             <label class="inline-flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 shadow-2xs cursor-pointer hover:bg-slate-50 select-none">
               <input type="checkbox" id="syncOptBoxplot" onchange="syncWebCheckbox('webOptBoxplot', this.checked)" class="rounded text-amber-700 focus:ring-amber-500 w-3.5 h-3.5">
@@ -849,15 +866,16 @@
               <span class="font-bold text-slate-700">⚖️ T 分數離差尺</span>
             </label>
             <label class="inline-flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 shadow-2xs cursor-pointer hover:bg-slate-50 select-none">
-              <input type="checkbox" id="syncOptDumbbell" onchange="syncWebCheckbox('webOptDumbbell', this.checked)" class="rounded text-amber-700 focus:ring-amber-500 w-3.5 h-3.5">
+              <input type="checkbox" id="syncOptDumbbell" checked onchange="syncWebCheckbox('webOptDumbbell', this.checked)" class="rounded text-amber-700 focus:ring-amber-500 w-3.5 h-3.5">
               <span class="font-bold text-slate-700">🏋️ 跨次啞鈴圖</span>
+              <span class="text-[9px] font-bold text-amber-700 bg-amber-100 px-1 py-0.2 rounded">二擇一</span>
             </label>
             <label class="inline-flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 shadow-2xs cursor-pointer hover:bg-slate-50 select-none">
-              <input type="checkbox" id="syncOptStrengthsMatrix" onchange="syncWebCheckbox('webOptStrengthsMatrix', this.checked)" class="rounded text-amber-700 focus:ring-amber-500 w-3.5 h-3.5">
+              <input type="checkbox" id="syncOptStrengthsMatrix" checked onchange="syncWebCheckbox('webOptStrengthsMatrix', this.checked)" class="rounded text-amber-700 focus:ring-amber-500 w-3.5 h-3.5">
               <span class="font-bold text-slate-700">🧭 四象限動能矩陣</span>
             </label>
             <label class="inline-flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 shadow-2xs cursor-pointer hover:bg-slate-50 select-none">
-              <input type="checkbox" id="syncOptMilestoneJourney" onchange="syncWebCheckbox('webOptMilestoneJourney', this.checked)" class="rounded text-amber-700 focus:ring-amber-500 w-3.5 h-3.5">
+              <input type="checkbox" id="syncOptMilestoneJourney" checked onchange="syncWebCheckbox('webOptMilestoneJourney', this.checked)" class="rounded text-amber-700 focus:ring-amber-500 w-3.5 h-3.5">
               <span class="font-bold text-slate-700">🗺️ 歷程足跡地圖</span>
             </label>
           </div>
@@ -1539,7 +1557,7 @@
           <div>
             <div class="flex items-center gap-2">
               <h3 class="text-base md:text-lg font-black tracking-tight text-white">MPScore 系統詳細更新紀錄</h3>
-              <span class="text-[10px] bg-emerald-500 text-white font-black px-2 py-0.5 rounded-full">v2.5 最新版</span>
+              <span class="text-[10px] bg-emerald-500 text-white font-black px-2 py-0.5 rounded-full">v2.6 最新版</span>
             </div>
             <p class="text-xs text-slate-300 mt-0.5">持續精進 ‧ 獻給每一位用心教學與親師引導的教育工作者</p>
           </div>
@@ -1563,8 +1581,13 @@
           </div>
 
           <div class="space-y-3.5">
-            <div class="p-3 bg-amber-50/80 rounded-2xl border border-amber-200/80 text-[11px] text-amber-950 font-bold">
-              💡 <b>全新統計選項預設說明</b>：為尊重教師班級經營方針，5 款全新統計視覺化項目<b>「預設皆為不勾選」</b>。教師可於後台設定依班級需求單獨勾選啟用，勾選後立即呈現在家長端手機畫面與 QR Code 中！
+            <div class="p-3 bg-amber-50/80 rounded-2xl border border-amber-200/80 text-[11px] text-amber-950 font-bold space-y-1">
+              <div>💡 <b>全新統計選項預設與排版建議說明</b>：</div>
+              <ul class="list-disc list-inside font-normal text-slate-700 pl-1 space-y-0.5">
+                <li><b>預設勾選</b>：🏋️ 跨次進退步啞鈴圖、🧭 優勢與動能四象限、🗺️ 學習歷程足跡地圖 為預設勾選，協助親師全面掌握跨次成長軌跡。</li>
+                <li><b>預設不勾選</b>：🐝 蜜蜂聚落散佈圖、⚖️ 標準化 T 分數離差尺 維持預設不勾選，保留給有深度常模診斷需求的班級自主啟用。</li>
+                <li><b>導師排版建議（建議二擇一）</b>：【🚀 跨次成長進步對比卡】與【🏋️ 跨次進退步啞鈴圖】皆著重呈現前後次進退幅度，系統貼心標註「建議二擇一」提醒，維持家長端手機閱讀的俐落美感。</li>
+              </ul>
             </div>
 
             <div>
@@ -1975,13 +1998,13 @@
 
     // 初始化頁面
     window.addEventListener('DOMContentLoaded', () => {
-      // 恢復上次自訂的勾選設定 (版本管理至 v5 以確保最新預設不勾選生效)
+      // 恢復上次自訂的勾選設定 (版本管理至 v6 以確保最新預設勾選與提示生效)
       try {
         const cfgVer = localStorage.getItem('mpscore_cfg_version');
-        if (cfgVer !== 'v5') {
+        if (cfgVer !== 'v6') {
           localStorage.removeItem('mpscore_visibility_cfg');
           localStorage.removeItem('mpscore_paper_cfg');
-          localStorage.setItem('mpscore_cfg_version', 'v5');
+          localStorage.setItem('mpscore_cfg_version', 'v6');
         } else {
           const savedCfg = JSON.parse(localStorage.getItem('mpscore_visibility_cfg') || '{}');
           if (savedCfg.showAvg !== undefined && document.getElementById('webOptAvg')) document.getElementById('webOptAvg').checked = savedCfg.showAvg;
@@ -2016,6 +2039,10 @@
           }
         }
       } catch(e) {}
+
+      if (typeof checkComparisonDumbbellRecommendation === 'function') {
+        checkComparisonDumbbellRecommendation();
+      }
 
       try {
         initCardTitles();
@@ -2914,11 +2941,22 @@
       }
     }
 
+    function checkComparisonDumbbellRecommendation() {
+      const elComp = document.getElementById('webOptComparison');
+      const elDumb = document.getElementById('webOptDumbbell');
+      const notice = document.getElementById('duplicateComparisonNotice');
+      const sbNotice = document.getElementById('sbDuplicateComparisonNotice');
+      const bothChecked = !!(elComp && elComp.checked && elDumb && elDumb.checked);
+      if (notice) notice.classList.toggle('hidden', !bothChecked);
+      if (sbNotice) sbNotice.classList.toggle('hidden', !bothChecked);
+    }
+
     function updatePrintCards() {
       getActiveVisibilityConfig();
       if (typeof syncWebToSandboxControls === 'function') {
         syncWebToSandboxControls();
       }
+      checkComparisonDumbbellRecommendation();
       renderPrintCards(cachedStudents);
       loadPreviewForSelectedStudent();
       if (currentStudentExams && currentStudentExams.length > 0) {
@@ -3488,9 +3526,9 @@
           showPrCurve: elPrCurve ? elPrCurve.checked : true,
           showBeeswarm: elBeeswarm ? elBeeswarm.checked : false,
           showTScore: elTScore ? elTScore.checked : false,
-          showDumbbell: elDumbbell ? elDumbbell.checked : false,
-          showStrengthsMatrix: elStrengthsMatrix ? elStrengthsMatrix.checked : false,
-          showMilestoneJourney: elMilestoneJourney ? elMilestoneJourney.checked : false
+          showDumbbell: elDumbbell ? elDumbbell.checked : true,
+          showStrengthsMatrix: elStrengthsMatrix ? elStrengthsMatrix.checked : true,
+          showMilestoneJourney: elMilestoneJourney ? elMilestoneJourney.checked : true
         };
         try {
           localStorage.setItem('mpscore_visibility_cfg', JSON.stringify(cfg));
@@ -3504,7 +3542,7 @@
         if (saved) return JSON.parse(saved);
       } catch(e) {}
 
-      // 預設不勾選：班級名次/排名、建議箱型圖、學習診斷錦囊，以及 5 款全新統計模組
+      // 預設勾選：啞鈴圖、四象限動能、學習歷程足跡；預設不勾選：蜜蜂圖、T分數尺、排名、箱型圖、學習錦囊
       return {
         showAvg: true,
         showRank: false,
@@ -3521,9 +3559,9 @@
         showPrCurve: true,
         showBeeswarm: false,
         showTScore: false,
-        showDumbbell: false,
-        showStrengthsMatrix: false,
-        showMilestoneJourney: false
+        showDumbbell: true,
+        showStrengthsMatrix: true,
+        showMilestoneJourney: true
       };
     }
 

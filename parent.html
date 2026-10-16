@@ -745,7 +745,7 @@
         if (saved) return JSON.parse(saved);
       } catch(e) {}
 
-      // 預設不勾選：班級名次/排名、建議箱型圖、學習診斷錦囊，以及 5 款全新統計模組
+      // 預設勾選：啞鈴圖、四象限動能、學習歷程足跡；預設不勾選：蜜蜂圖、T分數尺、排名、箱型圖、學習錦囊
       return {
         showAvg: true,
         showRank: false,
@@ -762,9 +762,9 @@
         showPrCurve: true,
         showBeeswarm: false,
         showTScore: false,
-        showDumbbell: false,
-        showStrengthsMatrix: false,
-        showMilestoneJourney: false
+        showDumbbell: true,
+        showStrengthsMatrix: true,
+        showMilestoneJourney: true
       };
     }
 
