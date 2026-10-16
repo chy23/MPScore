@@ -676,7 +676,7 @@
               </div>
             </div>
 
-            <!-- 圖像統計與學習診斷類 -->
+            <!-- 圖像統計與學習診斷項目 -->
             <div class="pt-2 border-t border-slate-100">
               <div class="text-[10px] font-bold text-amber-950 mb-1.5">圖像統計與學習診斷項目：</div>
               <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs text-slate-700">
@@ -703,6 +703,26 @@
                 <label class="flex items-center gap-2 bg-amber-50/50 px-2.5 py-2 rounded-xl border border-amber-200 cursor-pointer hover:bg-amber-100/50 transition">
                   <input type="checkbox" id="webOptDiagnosis" onchange="updatePrintCards()" class="rounded text-amber-700 focus:ring-amber-500 w-4 h-4">
                   <span class="font-black text-amber-950">🌱 學習成長小錦囊 (適性建議)</span>
+                </label>
+                <label class="flex items-center gap-2 bg-amber-50/50 px-2.5 py-2 rounded-xl border border-amber-200 cursor-pointer hover:bg-amber-100/50 transition">
+                  <input type="checkbox" id="webOptBeeswarm" onchange="updatePrintCards()" class="rounded text-amber-700 focus:ring-amber-500 w-4 h-4">
+                  <span class="font-black text-amber-950">🐝 蜜蜂聚落散佈圖</span>
+                </label>
+                <label class="flex items-center gap-2 bg-amber-50/50 px-2.5 py-2 rounded-xl border border-amber-200 cursor-pointer hover:bg-amber-100/50 transition">
+                  <input type="checkbox" id="webOptTScore" onchange="updatePrintCards()" class="rounded text-amber-700 focus:ring-amber-500 w-4 h-4">
+                  <span class="font-black text-amber-950">⚖️ 標準化 T 分數離差尺</span>
+                </label>
+                <label class="flex items-center gap-2 bg-amber-50/50 px-2.5 py-2 rounded-xl border border-amber-200 cursor-pointer hover:bg-amber-100/50 transition">
+                  <input type="checkbox" id="webOptDumbbell" onchange="updatePrintCards()" class="rounded text-amber-700 focus:ring-amber-500 w-4 h-4">
+                  <span class="font-black text-amber-950">🏋️ 跨次進退步啞鈴圖</span>
+                </label>
+                <label class="flex items-center gap-2 bg-amber-50/50 px-2.5 py-2 rounded-xl border border-amber-200 cursor-pointer hover:bg-amber-100/50 transition">
+                  <input type="checkbox" id="webOptStrengthsMatrix" onchange="updatePrintCards()" class="rounded text-amber-700 focus:ring-amber-500 w-4 h-4">
+                  <span class="font-black text-amber-950">🧭 優勢與動能四象限</span>
+                </label>
+                <label class="flex items-center gap-2 bg-amber-50/50 px-2.5 py-2 rounded-xl border border-amber-200 cursor-pointer hover:bg-amber-100/50 transition">
+                  <input type="checkbox" id="webOptMilestoneJourney" onchange="updatePrintCards()" class="rounded text-amber-700 focus:ring-amber-500 w-4 h-4">
+                  <span class="font-black text-amber-950">🗺️ 學習歷程足跡地圖</span>
                 </label>
               </div>
             </div>
@@ -819,6 +839,26 @@
             <label class="inline-flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 shadow-2xs cursor-pointer hover:bg-slate-50 select-none">
               <input type="checkbox" id="syncOptPr" checked onchange="syncWebCheckbox('webOptPr', this.checked)" class="rounded text-amber-700 focus:ring-amber-500 w-3.5 h-3.5">
               <span class="font-bold text-slate-700">PR 百分位數</span>
+            </label>
+            <label class="inline-flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 shadow-2xs cursor-pointer hover:bg-slate-50 select-none">
+              <input type="checkbox" id="syncOptBeeswarm" onchange="syncWebCheckbox('webOptBeeswarm', this.checked)" class="rounded text-amber-700 focus:ring-amber-500 w-3.5 h-3.5">
+              <span class="font-bold text-slate-700">🐝 蜜蜂聚落圖</span>
+            </label>
+            <label class="inline-flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 shadow-2xs cursor-pointer hover:bg-slate-50 select-none">
+              <input type="checkbox" id="syncOptTScore" onchange="syncWebCheckbox('webOptTScore', this.checked)" class="rounded text-amber-700 focus:ring-amber-500 w-3.5 h-3.5">
+              <span class="font-bold text-slate-700">⚖️ T 分數離差尺</span>
+            </label>
+            <label class="inline-flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 shadow-2xs cursor-pointer hover:bg-slate-50 select-none">
+              <input type="checkbox" id="syncOptDumbbell" onchange="syncWebCheckbox('webOptDumbbell', this.checked)" class="rounded text-amber-700 focus:ring-amber-500 w-3.5 h-3.5">
+              <span class="font-bold text-slate-700">🏋️ 跨次啞鈴圖</span>
+            </label>
+            <label class="inline-flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 shadow-2xs cursor-pointer hover:bg-slate-50 select-none">
+              <input type="checkbox" id="syncOptStrengthsMatrix" onchange="syncWebCheckbox('webOptStrengthsMatrix', this.checked)" class="rounded text-amber-700 focus:ring-amber-500 w-3.5 h-3.5">
+              <span class="font-bold text-slate-700">🧭 四象限動能矩陣</span>
+            </label>
+            <label class="inline-flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 shadow-2xs cursor-pointer hover:bg-slate-50 select-none">
+              <input type="checkbox" id="syncOptMilestoneJourney" onchange="syncWebCheckbox('webOptMilestoneJourney', this.checked)" class="rounded text-amber-700 focus:ring-amber-500 w-3.5 h-3.5">
+              <span class="font-bold text-slate-700">🗺️ 歷程足跡地圖</span>
             </label>
           </div>
         </div>
@@ -947,6 +987,76 @@
                 </div>
                 <!-- SVG 曲線圖容器 -->
                 <div id="sbPrCurveContainer"></div>
+              </div>
+
+              <!-- 🐝 蜜蜂聚落散佈圖 (微觀落點群) -->
+              <div id="sbBeeswarmCard" class="hidden bg-white p-4 rounded-3xl shadow-sm border border-slate-200/80 space-y-2">
+                <div class="flex items-center justify-between border-b pb-1.5">
+                  <div class="font-black text-[11px] text-slate-900 flex items-center gap-1">
+                    <span>🐝</span>
+                    <span>蜜蜂聚落散佈圖 (微觀落點群)</span>
+                  </div>
+                  <span id="sbBeeswarmBadge" class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">--</span>
+                </div>
+                <div class="text-[10px] text-slate-400">匿名呈現班級微觀成績聚集 ‧ 凸顯個人落點</div>
+                <div id="sbBeeswarmTabs" class="flex flex-wrap gap-1 bg-slate-100/80 p-1 rounded-2xl"></div>
+                <div id="sbBeeswarmContainer" class="bg-slate-100/80 rounded-2xl p-2 border border-slate-200/80"></div>
+                <div id="sbBeeswarmAnalysis" class="text-[10px] text-slate-600 bg-amber-50/60 p-2.5 rounded-xl border border-amber-200/70"></div>
+              </div>
+
+              <!-- ⚖️ 標準化 T 分數離差尺 -->
+              <div id="sbTScoreCard" class="hidden bg-white p-4 rounded-3xl shadow-sm border border-slate-200/80 space-y-2">
+                <div class="flex items-center justify-between border-b pb-1.5">
+                  <div class="font-black text-[11px] text-slate-900 flex items-center gap-1">
+                    <span>⚖️</span>
+                    <span>標準化 T 分數離差尺 (去偏常模)</span>
+                  </div>
+                  <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">基準 T=50</span>
+                </div>
+                <div class="text-[10px] text-slate-400">消除各科試卷難易度偏差 ‧ 以 50 為全班中心基準</div>
+                <div id="sbTScoreContainer" class="space-y-2 pt-1"></div>
+                <div class="text-[9px] text-slate-500 bg-slate-50 p-2 rounded-xl border border-slate-200/70 leading-relaxed">
+                  💡 <b>T 分數導讀</b>：50 為班級均標，大於 50 代表高於全班平均（+10 代表超越 1 個標準差），能客觀跨科橫向比較。
+                </div>
+              </div>
+
+              <!-- 🏋️ 跨次進退步啞鈴圖 -->
+              <div id="sbDumbbellCard" class="hidden bg-white p-4 rounded-3xl shadow-sm border border-slate-200/80 space-y-2">
+                <div class="flex items-center justify-between border-b pb-1.5">
+                  <div class="font-black text-[11px] text-slate-900 flex items-center gap-1">
+                    <span>🏋️</span>
+                    <span>跨次進退步啞鈴圖 (成長軌跡)</span>
+                  </div>
+                  <span id="sbDumbbellBadge" class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">--</span>
+                </div>
+                <div id="sbDumbbellSubTitle" class="text-[10px] text-slate-400">前次 (灰點) 與本次 (亮點) 的各科跨度與進步箭頭</div>
+                <div id="sbDumbbellContainer" class="space-y-2 pt-1"></div>
+              </div>
+
+              <!-- 🧭 學科優勢與成長動能四象限矩陣 -->
+              <div id="sbStrengthsMatrixCard" class="hidden bg-white p-4 rounded-3xl shadow-sm border border-slate-200/80 space-y-2">
+                <div class="flex items-center justify-between border-b pb-1.5">
+                  <div class="font-black text-[11px] text-slate-900 flex items-center gap-1">
+                    <span>🧭</span>
+                    <span>學科優勢與成長動能四象限</span>
+                  </div>
+                  <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">適性引導</span>
+                </div>
+                <div class="text-[10px] text-slate-400">橫軸表現 PR × 縱軸成長動能 Δ ‧ 看見亮點與潛力</div>
+                <div id="sbStrengthsMatrixContainer" class="pt-1"></div>
+              </div>
+
+              <!-- 🗺️ 學習歷程成長足跡地圖 -->
+              <div id="sbMilestoneJourneyCard" class="hidden bg-white p-4 rounded-3xl shadow-sm border border-slate-200/80 space-y-2">
+                <div class="flex items-center justify-between border-b pb-1.5">
+                  <div class="font-black text-[11px] text-slate-900 flex items-center gap-1">
+                    <span>🗺️</span>
+                    <span>學習歷程成長足跡地圖</span>
+                  </div>
+                  <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">成就勳章</span>
+                </div>
+                <div class="text-[10px] text-slate-400">串聯整學期每場評量里程 ‧ 自動頒發教育榮譽徽章</div>
+                <div id="sbMilestoneJourneyContainer" class="space-y-2 pt-1"></div>
               </div>
 
               <!-- 📋 各科成績與成長常模明細表 -->
@@ -1193,6 +1303,88 @@
           <div id="pPrCurveContainer"></div>
         </div>
 
+        <!-- 🐝 蜜蜂聚落散佈圖 (微觀落點群) -->
+        <div id="pBeeswarmCard" class="hidden bg-white/90 backdrop-blur-md rounded-3xl shadow-sm border border-slate-200/80 p-5 space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+            <div>
+              <div class="font-black text-xs text-slate-900 flex items-center gap-1.5">
+                <span class="text-base">🐝</span>
+                <span>蜜蜂聚落散佈圖 (微觀落點群)</span>
+              </div>
+              <div class="text-[10px] text-slate-400 mt-0.5">匿名呈現班級微觀成績聚集 ‧ 凸顯個人落點與聚落分佈</div>
+            </div>
+            <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200" id="pBeeswarmBadge">--</span>
+          </div>
+          <!-- 科目頁籤 -->
+          <div id="pBeeswarmTabs" class="flex flex-wrap gap-1.5 bg-slate-100/80 p-1 rounded-2xl"></div>
+          <!-- SVG 散佈圖容器 -->
+          <div id="pBeeswarmContainer" class="bg-slate-100/80 rounded-2xl p-3 border border-slate-200/80"></div>
+          <div id="pBeeswarmAnalysis" class="text-xs text-slate-600 bg-amber-50/60 p-3 rounded-xl border border-amber-200/70 leading-relaxed"></div>
+        </div>
+
+        <!-- ⚖️ 標準化 T 分數離差尺 -->
+        <div id="pTScoreCard" class="hidden bg-white/90 backdrop-blur-md rounded-3xl shadow-sm border border-slate-200/80 p-5 space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+            <div>
+              <div class="font-black text-xs text-slate-900 flex items-center gap-1.5">
+                <span class="text-base">⚖️</span>
+                <span>標準化 T 分數離差尺 (去偏常模)</span>
+              </div>
+              <div class="text-[10px] text-slate-400 mt-0.5">消除各科試卷難易度偏差 ‧ 以 50 為全班中心基準</div>
+            </div>
+            <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">基準 T=50</span>
+          </div>
+          <div id="pTScoreContainer" class="space-y-2.5 pt-1"></div>
+          <div class="text-[11px] text-slate-500 bg-slate-50 p-3 rounded-xl border border-slate-200/70 leading-relaxed">
+            💡 <b>T 分數導讀</b>：50 為班級均標，大於 50 代表高於全班平均（+10 代表超越 1 個標準差），能客觀跨科橫向比較。
+          </div>
+        </div>
+
+        <!-- 🏋️ 跨次進退步啞鈴圖 -->
+        <div id="pDumbbellCard" class="hidden bg-white/90 backdrop-blur-md rounded-3xl shadow-sm border border-slate-200/80 p-5 space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+            <div>
+              <div class="font-black text-xs text-slate-900 flex items-center gap-1.5">
+                <span class="text-base">🏋️</span>
+                <span>跨次進退步啞鈴圖 (成長軌跡)</span>
+              </div>
+              <div id="pDumbbellSubTitle" class="text-[10px] text-slate-400 mt-0.5">前次 (灰點) 與本次 (亮點) 的各科跨度與進步箭頭</div>
+            </div>
+            <span id="pDumbbellBadge" class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600">--</span>
+          </div>
+          <div id="pDumbbellContainer" class="space-y-2.5 pt-1"></div>
+        </div>
+
+        <!-- 🧭 學科優勢與成長動能四象限矩陣 -->
+        <div id="pStrengthsMatrixCard" class="hidden bg-white/90 backdrop-blur-md rounded-3xl shadow-sm border border-slate-200/80 p-5 space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+            <div>
+              <div class="font-black text-xs text-slate-900 flex items-center gap-1.5">
+                <span class="text-base">🧭</span>
+                <span>學科優勢與成長動能四象限</span>
+              </div>
+              <div class="text-[10px] text-slate-400 mt-0.5">橫軸表現 PR × 縱軸成長動能 Δ ‧ 看見亮點與潛力</div>
+            </div>
+            <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">適性引導</span>
+          </div>
+          <div id="pStrengthsMatrixContainer" class="pt-1"></div>
+        </div>
+
+        <!-- 🗺️ 學習歷程成長足跡地圖 -->
+        <div id="pMilestoneJourneyCard" class="hidden bg-white/90 backdrop-blur-md rounded-3xl shadow-sm border border-slate-200/80 p-5 space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+            <div>
+              <div class="font-black text-xs text-slate-900 flex items-center gap-1.5">
+                <span class="text-base">🗺️</span>
+                <span>學習歷程成長足跡地圖</span>
+              </div>
+              <div class="text-[10px] text-slate-400 mt-0.5">串聯整學期每場評量里程 ‧ 自動頒發教育榮譽徽章</div>
+            </div>
+            <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">成就勳章</span>
+          </div>
+          <div id="pMilestoneJourneyContainer" class="space-y-2.5 pt-1"></div>
+        </div>
+
         <!-- 📋 各科成績與表現常模明細 -->
         <div class="bg-white/90 backdrop-blur-md rounded-3xl shadow-sm border border-slate-200/80 overflow-hidden">
           <div class="p-3.5 border-b border-slate-100 font-bold text-xs text-slate-800 flex justify-between items-center">
@@ -1360,11 +1552,63 @@
       <!-- 更新日誌內容滾動區 -->
       <div class="p-5 md:p-8 overflow-y-auto space-y-6 text-xs text-slate-700 bg-slate-50/50 leading-relaxed">
         
-        <!-- v2.5 版本里程碑 -->
-        <div class="bg-white p-5 rounded-3xl border border-amber-200 shadow-sm space-y-4 relative overflow-hidden">
+        <!-- v2.6 版本里程碑 -->
+        <div class="bg-white p-5 rounded-3xl border border-amber-300 shadow-sm space-y-4 relative overflow-hidden ring-2 ring-amber-400/20">
           <div class="flex items-center justify-between border-b border-slate-100 pb-3">
             <div class="flex items-center gap-2">
-              <span class="text-xs font-black bg-amber-500 text-slate-950 font-black px-2.5 py-1 rounded-xl shadow-xs">v2.5</span>
+              <span class="text-xs font-black bg-amber-500 text-slate-950 font-black px-2.5 py-1 rounded-xl shadow-xs">v2.6 最新版</span>
+              <span class="text-sm font-black text-slate-900">5 大多元教育統計模組全新上線 ‧ 教師端自主控管</span>
+            </div>
+            <span class="text-[11px] text-slate-400 font-mono font-bold">2026-10-16</span>
+          </div>
+
+          <div class="space-y-3.5">
+            <div class="p-3 bg-amber-50/80 rounded-2xl border border-amber-200/80 text-[11px] text-amber-950 font-bold">
+              💡 <b>全新統計選項預設說明</b>：為尊重教師班級經營方針，5 款全新統計視覺化項目<b>「預設皆為不勾選」</b>。教師可於後台設定依班級需求單獨勾選啟用，勾選後立即呈現在家長端手機畫面與 QR Code 中！
+            </div>
+
+            <div>
+              <h4 class="font-bold text-amber-950 text-xs flex items-center gap-1.5 mb-1">
+                <span>🐝</span> 1. 蜜蜂聚落散佈圖（Beeswarm Plot）
+              </h4>
+              <p class="text-slate-600 text-[11px]">微觀呈現每位同學的匿名散佈點群，完整保留分數分佈的真實顆粒度，並以呼吸光暈高亮標記學生個人落點，一眼辨識身處的核心聚落或領跑前緣。</p>
+            </div>
+
+            <div>
+              <h4 class="font-bold text-amber-950 text-xs flex items-center gap-1.5 mb-1">
+                <span>⚖️</span> 2. 標準化 T 分數離差尺（T-Score Deviation Gauge）
+              </h4>
+              <p class="text-slate-600 text-[11px]">以 T=50 為全班平均中心基準（每 10 分為 1 個標準差），徹底消除不同試卷題目難易度產生的偏態，讓孩子各科實力立足在公平客觀天平上。</p>
+            </div>
+
+            <div>
+              <h4 class="font-bold text-amber-950 text-xs flex items-center gap-1.5 mb-1">
+                <span>🏋️</span> 3. 跨次進退步啞鈴圖（Connected Dumbbell Plot）
+              </h4>
+              <p class="text-slate-600 text-[11px]">以橫向啞鈴連接線對比前次（灰點）與本次（琥珀亮點）成績，綠色箭頭直觀指向成長跨度，用成長型思維聚焦於「進步幅度」而非單次排名。</p>
+            </div>
+
+            <div>
+              <h4 class="font-bold text-amber-950 text-xs flex items-center gap-1.5 mb-1">
+                <span>🧭</span> 4. 學科優勢與成長動能四象限矩陣（Strengths & Momentum 2x2 Matrix）
+              </h4>
+              <p class="text-slate-600 text-[11px]">橫軸當前表現 PR × 縱軸成長動能 Δ，劃分四大正向引導象限（🌟 優勢發光、🚀 黑馬蓄力、🌿 細心守成、🌱 親師伴讀），輔導親師因材施教。</p>
+            </div>
+
+            <div>
+              <h4 class="font-bold text-amber-950 text-xs flex items-center gap-1.5 mb-1">
+                <span>🗺️</span> 5. 學習歷程成長足跡地圖（Milestone Journey Trail）
+              </h4>
+              <p class="text-slate-600 text-[11px]">將一學期的評量串聯為縱向冒險成長足跡，自動依據歷程表現動態頒發教育徽章（🎖️ 破風躍進獎、🛡️ 定海神針獎、🌟 全能卓越獎），激勵孩子持續前行。</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- v2.5 版本里程碑 -->
+        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4 relative overflow-hidden">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-black bg-slate-100 text-slate-700 px-2.5 py-1 rounded-xl">v2.5</span>
               <span class="text-sm font-black text-slate-900">全新統計方法重構 ‧ Apple HIG 人文視覺體驗</span>
             </div>
             <span class="text-[11px] text-slate-400 font-mono font-bold">2026-10-15</span>
@@ -1731,13 +1975,13 @@
 
     // 初始化頁面
     window.addEventListener('DOMContentLoaded', () => {
-      // 恢復上次自訂的勾選設定 (版本管理至 v4 以確保最新預設不勾選生效)
+      // 恢復上次自訂的勾選設定 (版本管理至 v5 以確保最新預設不勾選生效)
       try {
         const cfgVer = localStorage.getItem('mpscore_cfg_version');
-        if (cfgVer !== 'v4') {
+        if (cfgVer !== 'v5') {
           localStorage.removeItem('mpscore_visibility_cfg');
           localStorage.removeItem('mpscore_paper_cfg');
-          localStorage.setItem('mpscore_cfg_version', 'v4');
+          localStorage.setItem('mpscore_cfg_version', 'v5');
         } else {
           const savedCfg = JSON.parse(localStorage.getItem('mpscore_visibility_cfg') || '{}');
           if (savedCfg.showAvg !== undefined && document.getElementById('webOptAvg')) document.getElementById('webOptAvg').checked = savedCfg.showAvg;
@@ -1751,6 +1995,11 @@
           if (savedCfg.showBoxplot !== undefined && document.getElementById('webOptBoxplot')) document.getElementById('webOptBoxplot').checked = savedCfg.showBoxplot;
           if (savedCfg.showPrCurve !== undefined && document.getElementById('webOptPrCurve')) document.getElementById('webOptPrCurve').checked = savedCfg.showPrCurve;
           if (savedCfg.showDiagnosis !== undefined && document.getElementById('webOptDiagnosis')) document.getElementById('webOptDiagnosis').checked = savedCfg.showDiagnosis;
+          if (savedCfg.showBeeswarm !== undefined && document.getElementById('webOptBeeswarm')) document.getElementById('webOptBeeswarm').checked = savedCfg.showBeeswarm;
+          if (savedCfg.showTScore !== undefined && document.getElementById('webOptTScore')) document.getElementById('webOptTScore').checked = savedCfg.showTScore;
+          if (savedCfg.showDumbbell !== undefined && document.getElementById('webOptDumbbell')) document.getElementById('webOptDumbbell').checked = savedCfg.showDumbbell;
+          if (savedCfg.showStrengthsMatrix !== undefined && document.getElementById('webOptStrengthsMatrix')) document.getElementById('webOptStrengthsMatrix').checked = savedCfg.showStrengthsMatrix;
+          if (savedCfg.showMilestoneJourney !== undefined && document.getElementById('webOptMilestoneJourney')) document.getElementById('webOptMilestoneJourney').checked = savedCfg.showMilestoneJourney;
 
           const savedPaper = JSON.parse(localStorage.getItem('mpscore_paper_cfg') || '{}');
           if (savedPaper.showAvg !== undefined && document.getElementById('printOptAvg')) document.getElementById('printOptAvg').checked = savedPaper.showAvg;
@@ -3195,7 +3444,12 @@
           showComparison: vStr.length > 9 ? vStr[9] === '1' : true,
           showDiagnosis: vStr.length > 10 ? vStr[10] === '1' : false,
           showBoxplot: vStr.length > 11 ? vStr[11] === '1' : false,
-          showPrCurve: vStr.length > 12 ? vStr[12] === '1' : true
+          showPrCurve: vStr.length > 12 ? vStr[12] === '1' : true,
+          showBeeswarm: vStr.length > 13 ? vStr[13] === '1' : false,
+          showTScore: vStr.length > 14 ? vStr[14] === '1' : false,
+          showDumbbell: vStr.length > 15 ? vStr[15] === '1' : false,
+          showStrengthsMatrix: vStr.length > 16 ? vStr[16] === '1' : false,
+          showMilestoneJourney: vStr.length > 17 ? vStr[17] === '1' : false
         };
       }
 
@@ -3211,6 +3465,11 @@
       const elDiag = document.getElementById('webOptDiagnosis') || document.getElementById('optShowDiagnosis');
       const elBoxplot = document.getElementById('webOptBoxplot');
       const elPrCurve = document.getElementById('webOptPrCurve');
+      const elBeeswarm = document.getElementById('webOptBeeswarm');
+      const elTScore = document.getElementById('webOptTScore');
+      const elDumbbell = document.getElementById('webOptDumbbell');
+      const elStrengthsMatrix = document.getElementById('webOptStrengthsMatrix');
+      const elMilestoneJourney = document.getElementById('webOptMilestoneJourney');
 
       if (elAvg && elRank && elClassAvg) {
         const cfg = {
@@ -3226,7 +3485,12 @@
           showComparison: elComp ? elComp.checked : true,
           showDiagnosis: elDiag ? elDiag.checked : false,
           showBoxplot: elBoxplot ? elBoxplot.checked : false,
-          showPrCurve: elPrCurve ? elPrCurve.checked : true
+          showPrCurve: elPrCurve ? elPrCurve.checked : true,
+          showBeeswarm: elBeeswarm ? elBeeswarm.checked : false,
+          showTScore: elTScore ? elTScore.checked : false,
+          showDumbbell: elDumbbell ? elDumbbell.checked : false,
+          showStrengthsMatrix: elStrengthsMatrix ? elStrengthsMatrix.checked : false,
+          showMilestoneJourney: elMilestoneJourney ? elMilestoneJourney.checked : false
         };
         try {
           localStorage.setItem('mpscore_visibility_cfg', JSON.stringify(cfg));
@@ -3240,7 +3504,7 @@
         if (saved) return JSON.parse(saved);
       } catch(e) {}
 
-      // 預設不勾選：班級名次/排名、📦 建議箱型圖 (盒鬚圖)、🌱 學習成長小錦囊 (適性建議)
+      // 預設不勾選：班級名次/排名、建議箱型圖、學習診斷錦囊，以及 5 款全新統計模組
       return {
         showAvg: true,
         showRank: false,
@@ -3254,7 +3518,12 @@
         showComparison: true,
         showDiagnosis: false,
         showBoxplot: false,
-        showPrCurve: true
+        showPrCurve: true,
+        showBeeswarm: false,
+        showTScore: false,
+        showDumbbell: false,
+        showStrengthsMatrix: false,
+        showMilestoneJourney: false
       };
     }
 
@@ -3273,7 +3542,12 @@
         cfg.showComparison,
         cfg.showDiagnosis,
         cfg.showBoxplot,
-        cfg.showPrCurve
+        cfg.showPrCurve,
+        cfg.showBeeswarm,
+        cfg.showTScore,
+        cfg.showDumbbell,
+        cfg.showStrengthsMatrix,
+        cfg.showMilestoneJourney
       ].map(v => v ? 1 : 0).join('');
     }
 
@@ -3297,7 +3571,12 @@
         'webOptRank': 'syncOptRank',
         'webOptClassAvg': 'syncOptClassAvg',
         'webOptSubjects': 'syncOptSubjects',
-        'webOptPr': 'syncOptPr'
+        'webOptPr': 'syncOptPr',
+        'webOptBeeswarm': 'syncOptBeeswarm',
+        'webOptTScore': 'syncOptTScore',
+        'webOptDumbbell': 'syncOptDumbbell',
+        'webOptStrengthsMatrix': 'syncOptStrengthsMatrix',
+        'webOptMilestoneJourney': 'syncOptMilestoneJourney'
       };
       for (const [wId, sId] of Object.entries(mapping)) {
         const wEl = document.getElementById(wId);
@@ -3530,9 +3809,14 @@
         `;
       }
 
-      // 5. 渲染 📦 建議箱型圖 與 🔔 常態 PR 落點曲線圖
+      // 5. 渲染 📦 建議箱型圖 與 🔔 常態 PR 落點曲線圖與 5 大全新統計模組
       renderBoxplotView(curExam, 'p');
       renderPrCurveView(curExam, 'p');
+      renderBeeswarmView(curExam, 'p');
+      renderTScoreView(curExam, 'p');
+      renderDumbbellView(currentStudentExams, curExam, 'p');
+      renderStrengthsMatrixView(currentStudentExams, curExam, 'p');
+      renderMilestoneJourneyView(currentStudentExams, curExam, 'p');
 
       // 6. 依權限動態隱藏/顯示各卡片
       const radarCard = document.getElementById('pRadarCard');
@@ -4323,6 +4607,581 @@
       `;
     }
 
+    // ==========================================
+    // 🐝 蜜蜂聚落散佈圖 (Beeswarm / Dot Density Plot)
+    // ==========================================
+    let parentBeeswarmSubIdx = 0;
+    let sbBeeswarmSubIdx = 0;
+
+    function renderBeeswarmView(curExam, prefix) {
+      const isSb = prefix === 'sb';
+      const cardEl = document.getElementById(isSb ? 'sbBeeswarmCard' : 'pBeeswarmCard');
+      if (!cardEl) return;
+      const cfg = getActiveVisibilityConfig();
+      if (!cfg.showBeeswarm || !curExam || !curExam.subjects || curExam.subjects.length === 0) {
+        cardEl.classList.add('hidden');
+        return;
+      }
+      cardEl.classList.remove('hidden');
+
+      const container = document.getElementById(isSb ? 'sbBeeswarmContainer' : 'pBeeswarmContainer');
+      const tabsContainer = document.getElementById(isSb ? 'sbBeeswarmTabs' : 'pBeeswarmTabs');
+      const badgeEl = document.getElementById(isSb ? 'sbBeeswarmBadge' : 'pBeeswarmBadge');
+      const analysisEl = document.getElementById(isSb ? 'sbBeeswarmAnalysis' : 'pBeeswarmAnalysis');
+      if (!container) return;
+
+      const subs = curExam.subjects;
+      let activeIdx = isSb ? sbBeeswarmSubIdx : parentBeeswarmSubIdx;
+      if (activeIdx >= subs.length) {
+        activeIdx = 0;
+        if (isSb) sbBeeswarmSubIdx = 0; else parentBeeswarmSubIdx = 0;
+      }
+
+      // 1. 科目切換頁籤
+      if (tabsContainer) {
+        tabsContainer.innerHTML = '';
+        subs.forEach((sub, idx) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.onclick = () => {
+            if (isSb) sbBeeswarmSubIdx = idx; else parentBeeswarmSubIdx = idx;
+            renderBeeswarmView(curExam, prefix);
+          };
+          const isActive = idx === activeIdx;
+          btn.className = isActive
+            ? `px-2.5 py-1 rounded-xl font-black ${isSb ? 'text-[10px]' : 'text-xs'} bg-amber-500 text-slate-950 font-black shadow-xs transition`
+            : `px-2.5 py-1 rounded-xl font-bold ${isSb ? 'text-[10px]' : 'text-xs'} bg-slate-100 text-slate-600 hover:bg-slate-200 transition`;
+          btn.innerText = `${sub.name} (${sub.score}分)`;
+          tabsContainer.appendChild(btn);
+        });
+      }
+
+      const activeSub = subs[activeIdx];
+      const score = activeSub.score !== undefined ? activeSub.score : 0;
+      const cAvg = activeSub.classAverage !== undefined ? activeSub.classAverage : 75;
+      const med = activeSub.median !== undefined ? activeSub.median : cAvg;
+      const pr = activeSub.pr !== undefined ? activeSub.pr : 50;
+
+      // 2. 徽章狀態
+      if (badgeEl) {
+        if (score >= cAvg + 10) {
+          badgeEl.className = 'text-[9px] sm:text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200';
+          badgeEl.innerText = '🌟 領跑群前列';
+        } else if (score >= cAvg) {
+          badgeEl.className = 'text-[9px] sm:text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200';
+          badgeEl.innerText = '✨ 核心聚落前緣';
+        } else if (score >= cAvg - 10) {
+          badgeEl.className = 'text-[9px] sm:text-[10px] font-black px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200';
+          badgeEl.innerText = '🌿 核心中堅聚落';
+        } else {
+          badgeEl.className = 'text-[9px] sm:text-[10px] font-black px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200';
+          badgeEl.innerText = '🌱 潛力蓄力群';
+        }
+      }
+
+      // 3. 蜜蜂聚落座標運算
+      const samples = getSubjectScoreSamples(activeSub);
+      const sorted = [...samples].sort((a, b) => a - b);
+      const svgW = 500, svgH = 130;
+      const xMin = 35, xMax = 465;
+      const getX = (val) => xMin + (Math.max(0, Math.min(100, val)) / 100) * (xMax - xMin);
+
+      const r = 4.2;
+      const y0 = 65;
+      const placed = [];
+      const offsets = [0, 8.5, -8.5, 17, -17, 25.5, -25.5, 34, -34];
+
+      sorted.forEach(s => {
+        const x = getX(s);
+        let chosenY = y0;
+        let found = false;
+        for (let dy of offsets) {
+          const testY = y0 + dy;
+          let collision = false;
+          for (let p of placed) {
+            const dist = Math.hypot(x - p.x, testY - p.y);
+            if (dist < r * 2 - 0.5) {
+              collision = true;
+              break;
+            }
+          }
+          if (!collision) {
+            chosenY = testY;
+            found = true;
+            break;
+          }
+        }
+        if (!found) {
+          chosenY = y0 + (Math.random() - 0.5) * 40;
+        }
+        placed.push({ x, y: chosenY, s });
+      });
+
+      const stX = getX(score);
+      const avgX = getX(cAvg);
+      const medX = getX(med);
+
+      container.innerHTML = `
+        <svg viewBox="0 0 ${svgW} ${svgH}" class="w-full h-auto overflow-visible select-none">
+          <!-- 刻度參考垂直虛線 -->
+          ${[0, 20, 40, 60, 80, 100].map(v => `
+            <line x1="${getX(v)}" y1="18" x2="${getX(v)}" y2="108" stroke="${v === 60 ? '#f59e0b' : '#cbd5e1'}" stroke-width="${v === 60 ? '1.5' : '1'}" stroke-dasharray="${v === 60 ? '3,3' : '2,2'}" />
+            <text x="${getX(v)}" y="122" font-size="8.5" fill="${v === 60 ? '#d97706' : '#94a3b8'}" font-weight="${v === 60 ? '900' : 'bold'}" text-anchor="middle">${v}分</text>
+          `).join('')}
+
+          <!-- 基準水平軸 -->
+          <line x1="${xMin}" y1="108" x2="${xMax}" y2="108" stroke="#64748b" stroke-width="1.2" />
+
+          <!-- 班均線 -->
+          <line x1="${avgX}" y1="20" x2="${avgX}" y2="108" stroke="#059669" stroke-width="1.8" stroke-dasharray="3,3" />
+          <g transform="translate(${avgX}, 14)">
+            <rect x="-26" y="-10" width="52" height="15" rx="7.5" fill="#059669" />
+            <text x="0" y="1" font-size="8" font-weight="900" fill="#ffffff" text-anchor="middle">班均 ${cAvg}</text>
+          </g>
+
+          <!-- 中位數線 -->
+          ${Math.abs(medX - avgX) > 15 ? `
+            <line x1="${medX}" y1="20" x2="${medX}" y2="108" stroke="#64748b" stroke-width="1.2" stroke-dasharray="2,2" />
+            <g transform="translate(${medX}, 14)">
+              <rect x="-28" y="-10" width="56" height="15" rx="7.5" fill="#475569" />
+              <text x="0" y="1" font-size="8" font-weight="900" fill="#ffffff" text-anchor="middle">中位 ${med}</text>
+            </g>
+          ` : ''}
+
+          <!-- 同學匿名散佈點 -->
+          ${placed.map(p => `
+            <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${r}" fill="#94a3b8" fill-opacity="0.6" stroke="#64748b" stroke-width="0.8" />
+          `).join('')}
+
+          <!-- 學生個人得分落點 (呼吸光暈與定位標籤) -->
+          <circle cx="${stX}" cy="${y0}" r="11" fill="rgba(245, 158, 11, 0.25)" stroke="#f59e0b" stroke-width="1.8" stroke-dasharray="3,2">
+            <animate attributeName="r" values="9;12;9" dur="2s" repeatCount="indefinite" />
+          </circle>
+          <circle cx="${stX}" cy="${y0}" r="5.5" fill="#f59e0b" stroke="#78350f" stroke-width="2.2" />
+          <line x1="${stX}" y1="${y0 - 6}" x2="${stX}" y2="${y0 - 24}" stroke="#d97706" stroke-width="2" />
+          <g transform="translate(${Math.max(50, Math.min(svgW - 50, stX))}, ${y0 - 32})">
+            <rect x="-42" y="-11" width="84" height="20" rx="10" fill="#d97706" filter="drop-shadow(0 2px 4px rgba(217,119,6,0.35))" />
+            <text x="0" y="2" font-size="9" font-weight="900" fill="#ffffff" text-anchor="middle">你: ${score}分 (PR ${pr})</text>
+          </g>
+        </svg>
+      `;
+
+      if (analysisEl) {
+        analysisEl.innerHTML = `
+          <div class="font-bold text-slate-800 flex items-center justify-between mb-1">
+            <span class="flex items-center gap-1"><span>🐝</span> <b>【${activeSub.name}】微觀落點聚落解讀</b></span>
+            <span class="text-[9px] text-amber-800 font-black">每個圓點代表 1 位同學匿名成績</span>
+          </div>
+          <p class="text-slate-600 leading-relaxed">
+            全班同學成績在 <b>${Math.max(40, cAvg - 8)} ~ ${Math.min(100, cAvg + 12)} 分</b> 形成密集微觀聚落。
+            孩子落點在 <b>${score} 分</b>，在全班 24 人中高於 <b>${pr}%</b> 的同學。
+            ${score >= cAvg ? '穩居班級優勢區間，具備扎實掌握度！' : '處於積極追趕的蓄力區間，加強觀念扎根隨時能向前跨進！'}
+          </p>
+        `;
+      }
+    }
+
+    // ==========================================
+    // ⚖️ 標準化 T 分數離差尺 (T-Score Deviation Gauge)
+    // ==========================================
+    function renderTScoreView(curExam, prefix) {
+      const isSb = prefix === 'sb';
+      const cardEl = document.getElementById(isSb ? 'sbTScoreCard' : 'pTScoreCard');
+      if (!cardEl) return;
+      const cfg = getActiveVisibilityConfig();
+      if (!cfg.showTScore || !curExam || !curExam.subjects || curExam.subjects.length === 0) {
+        cardEl.classList.add('hidden');
+        return;
+      }
+      cardEl.classList.remove('hidden');
+
+      const container = document.getElementById(isSb ? 'sbTScoreContainer' : 'pTScoreContainer');
+      if (!container) return;
+
+      container.innerHTML = '';
+      curExam.subjects.forEach(sub => {
+        const samples = getSubjectScoreSamples(sub);
+        const cAvg = sub.classAverage !== undefined ? sub.classAverage : 75;
+        const score = sub.score !== undefined ? sub.score : 0;
+
+        let variance = 0;
+        samples.forEach(s => { variance += Math.pow(s - cAvg, 2); });
+        const stdDev = Math.max(4, Math.sqrt(variance / samples.length));
+        const z = (score - cAvg) / stdDev;
+        const tScore = Math.max(20, Math.min(80, Math.round((50 + z * 10) * 10) / 10));
+        const diffFrom50 = Math.round((tScore - 50) * 10) / 10;
+
+        const leftPercent = Math.min(50, ((Math.min(50, tScore) - 20) / 60) * 100);
+        const widthPercent = (Math.abs(tScore - 50) / 60) * 100;
+        const dotPercent = ((tScore - 20) / 60) * 100;
+
+        let tierTag = '';
+        let barColor = '';
+        if (tScore >= 60) {
+          tierTag = '<span class="text-[9px] font-black px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">🌟 卓越優勢 (+1σ)</span>';
+          barColor = 'bg-gradient-to-r from-amber-500 to-emerald-500';
+        } else if (tScore >= 50) {
+          tierTag = '<span class="text-[9px] font-black px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">🌿 穩健前段</span>';
+          barColor = 'bg-amber-500';
+        } else if (tScore >= 40) {
+          tierTag = '<span class="text-[9px] font-black px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">🌱 核心常模 (-1σ內)</span>';
+          barColor = 'bg-sky-500';
+        } else {
+          tierTag = '<span class="text-[9px] font-black px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200">💡 扎根扶持</span>';
+          barColor = 'bg-rose-400';
+        }
+
+        container.innerHTML += `
+          <div class="p-2.5 bg-slate-50/80 rounded-2xl border border-slate-200/80 space-y-1.5">
+            <div class="flex items-center justify-between text-xs">
+              <div class="flex items-center gap-1.5 font-bold text-slate-800">
+                <span class="font-black text-slate-900">【${sub.name}】</span>
+                <span class="text-[11px] text-slate-500 font-medium">原始得分: <b class="text-amber-800">${score}</b>分 (班均 ${cAvg})</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="font-mono font-black text-amber-900 bg-amber-100/80 px-2 py-0.5 rounded-lg text-xs">T = ${tScore.toFixed(1)}</span>
+                ${tierTag}
+              </div>
+            </div>
+
+            <!-- T 分數離差標尺 (基準線 50) -->
+            <div class="relative h-6 w-full flex items-center px-1 bg-slate-200/60 rounded-xl overflow-hidden border border-slate-300/70">
+              <!-- 背景參考刻度 -->
+              ${[30, 40, 50, 60, 70].map(t => {
+                const p = ((t - 20) / 60) * 100;
+                return `
+                  <div class="absolute h-full w-px ${t === 50 ? 'bg-amber-600/60 z-10 w-[1.5px]' : 'bg-slate-300'}" style="left: ${p}%;"></div>
+                  <span class="absolute -bottom-0.5 text-[7.5px] font-mono text-slate-400 -translate-x-1/2 pointer-events-none" style="left: ${p}%;">${t}</span>
+                `;
+              }).join('')}
+
+              <!-- 離差長條 -->
+              <div class="absolute h-3 rounded-full ${barColor} shadow-2xs z-20" style="left: ${tScore >= 50 ? '50%' : leftPercent + '%'}; width: ${Math.max(1.5, widthPercent)}%;"></div>
+
+              <!-- 得分點 -->
+              <div class="absolute w-4 h-4 bg-white border-2 border-amber-600 rounded-full z-30 shadow-md flex items-center justify-center -translate-x-1/2" style="left: ${dotPercent}%;" title="T分數: ${tScore}">
+                <div class="w-1.5 h-1.5 rounded-full bg-amber-500"></div>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    // ==========================================
+    // 🏋️ 跨次進退步啞鈴圖 (Dumbbell Plot)
+    // ==========================================
+    function renderDumbbellView(allExams, curExam, prefix) {
+      const isSb = prefix === 'sb';
+      const cardEl = document.getElementById(isSb ? 'sbDumbbellCard' : 'pDumbbellCard');
+      if (!cardEl) return;
+      const cfg = getActiveVisibilityConfig();
+      if (!cfg.showDumbbell || !curExam || !curExam.subjects || curExam.subjects.length === 0) {
+        cardEl.classList.add('hidden');
+        return;
+      }
+      cardEl.classList.remove('hidden');
+
+      const container = document.getElementById(isSb ? 'sbDumbbellContainer' : 'pDumbbellContainer');
+      const badgeEl = document.getElementById(isSb ? 'sbDumbbellBadge' : 'pDumbbellBadge');
+      const subTitleEl = document.getElementById(isSb ? 'sbDumbbellSubTitle' : 'pDumbbellSubTitle');
+      if (!container) return;
+
+      const curIdx = allExams ? allExams.indexOf(curExam) : -1;
+      if (!allExams || allExams.length <= 1 || curIdx <= 0) {
+        if (badgeEl) {
+          badgeEl.className = 'text-[9px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500';
+          badgeEl.innerText = '初始基準評量';
+        }
+        if (subTitleEl) subTitleEl.innerText = '此為第一場基準評量，累積第二場考試後自動繪製跨科啞鈴軌跡！';
+        container.innerHTML = `
+          <div class="p-4 bg-amber-50/50 rounded-2xl border border-amber-200/60 text-center space-y-1.5">
+            <div class="text-2xl">🌱</div>
+            <div class="font-black text-slate-800 text-xs">首場基準考試 ‧ 成長蓄勢待發</div>
+            <p class="text-[11px] text-slate-500 leading-relaxed max-w-sm mx-auto">
+              系統已成功建立本場各科基準得分。待後續考試成績登記後，將自動在此繪製每一學科的<b>跨次進步延伸啞鈴條與成長箭頭</b>！
+            </p>
+          </div>
+        `;
+        return;
+      }
+
+      const prevExam = allExams[curIdx - 1];
+      if (subTitleEl) subTitleEl.innerText = `對比【${prevExam.sheetName || prevExam.examTitle}】➔【${curExam.sheetName || curExam.examTitle}】`;
+
+      let improvedCount = 0;
+      let totalCount = 0;
+      let html = '';
+
+      curExam.subjects.forEach(cSub => {
+        const pSub = prevExam.subjects ? prevExam.subjects.find(s => s.name === cSub.name) : null;
+        if (!pSub) return;
+        totalCount++;
+
+        const s1 = pSub.score;
+        const s2 = cSub.score;
+        const diff = Math.round((s2 - s1) * 10) / 10;
+        if (diff > 0) improvedCount++;
+
+        const p1 = Math.max(0, Math.min(100, s1));
+        const p2 = Math.max(0, Math.min(100, s2));
+        const leftP = Math.min(p1, p2);
+        const barW = Math.abs(p2 - p1);
+
+        let deltaBadge = '';
+        let lineColor = '';
+        let arrow = '';
+        if (diff > 0) {
+          deltaBadge = `<span class="text-emerald-700 bg-emerald-50 border border-emerald-200 font-black text-[10px] px-2 py-0.5 rounded-full">+${diff} 分 📈</span>`;
+          lineColor = 'bg-emerald-500';
+          arrow = `<span class="text-emerald-600 text-xs font-bold">➔</span>`;
+        } else if (diff === 0) {
+          deltaBadge = `<span class="text-slate-600 bg-slate-100 font-bold text-[10px] px-2 py-0.5 rounded-full">持平 ➖</span>`;
+          lineColor = 'bg-slate-400';
+        } else {
+          deltaBadge = `<span class="text-rose-700 bg-rose-50 border border-rose-200 font-black text-[10px] px-2 py-0.5 rounded-full">${diff} 分 📉</span>`;
+          lineColor = 'bg-rose-400';
+          arrow = `<span class="text-rose-500 text-xs font-bold">➔</span>`;
+        }
+
+        html += `
+          <div class="p-2.5 bg-slate-50/90 rounded-2xl border border-slate-200/80 space-y-1.5">
+            <div class="flex items-center justify-between text-xs font-bold">
+              <span class="text-slate-800 font-black flex items-center gap-1.5">
+                <span>【${cSub.name}】</span>
+                <span class="text-slate-400 font-normal text-[11px]">${s1}分 ${arrow} <b class="text-amber-800 font-bold">${s2}分</b></span>
+              </span>
+              ${deltaBadge}
+            </div>
+
+            <!-- 啞鈴長條軌跡 -->
+            <div class="relative h-6 w-full flex items-center px-1 bg-slate-200/60 rounded-xl overflow-hidden border border-slate-300/70">
+              <!-- 刻度標示 -->
+              ${[0, 25, 50, 75, 100].map(v => `
+                <div class="absolute h-full w-px bg-slate-300" style="left: ${v}%;"></div>
+              `).join('')}
+
+              <!-- 啞鈴連接桿 -->
+              ${barW > 0 ? `
+                <div class="absolute h-2 rounded-full ${lineColor} shadow-2xs z-10" style="left: ${leftP}%; width: ${Math.max(1, barW)}%;"></div>
+              ` : ''}
+
+              <!-- 前次點 (灰點) -->
+              <div class="absolute w-3.5 h-3.5 bg-slate-400 border border-white rounded-full z-20 flex items-center justify-center -translate-x-1/2" style="left: ${p1}%;" title="前次: ${s1}分"></div>
+
+              <!-- 本次點 (亮眼琥珀點) -->
+              <div class="absolute w-4 h-4 bg-amber-500 border-2 border-white rounded-full z-30 shadow-md flex items-center justify-center -translate-x-1/2" style="left: ${p2}%;" title="本次: ${s2}分">
+                <div class="w-1 h-1 rounded-full bg-white"></div>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+
+      if (badgeEl) {
+        badgeEl.className = 'text-[9px] font-black px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200';
+        badgeEl.innerText = `${improvedCount} / ${totalCount} 科進步躍升 🌟`;
+      }
+      container.innerHTML = html;
+    }
+
+    // ==========================================
+    // 🧭 學科優勢與成長動能四象限矩陣 (Strengths & Momentum Matrix)
+    // ==========================================
+    function renderStrengthsMatrixView(allExams, curExam, prefix) {
+      const isSb = prefix === 'sb';
+      const cardEl = document.getElementById(isSb ? 'sbStrengthsMatrixCard' : 'pStrengthsMatrixCard');
+      if (!cardEl) return;
+      const cfg = getActiveVisibilityConfig();
+      if (!cfg.showStrengthsMatrix || !curExam || !curExam.subjects || curExam.subjects.length === 0) {
+        cardEl.classList.add('hidden');
+        return;
+      }
+      cardEl.classList.remove('hidden');
+
+      const container = document.getElementById(isSb ? 'sbStrengthsMatrixContainer' : 'pStrengthsMatrixContainer');
+      if (!container) return;
+
+      const curIdx = allExams ? allExams.indexOf(curExam) : -1;
+      const prevExam = (allExams && curIdx > 0) ? allExams[curIdx - 1] : null;
+
+      const qAdvantage = []; // 右上: PR >= 50, Δ >= 0 (優勢發光)
+      const qDarkHorse = []; // 左上: PR < 50, Δ > 0 (黑馬蓄力)
+      const qConsolidate = []; // 右下: PR >= 50, Δ < 0 (細心守成)
+      const qCompanion = []; // 左下: PR < 50, Δ <= 0 (親師伴讀)
+
+      curExam.subjects.forEach(cSub => {
+        const pr = cSub.pr !== undefined ? cSub.pr : 50;
+        let delta = 0;
+        if (prevExam && prevExam.subjects) {
+          const pSub = prevExam.subjects.find(s => s.name === cSub.name);
+          if (pSub) delta = Math.round((cSub.score - pSub.score) * 10) / 10;
+        } else {
+          delta = Math.round((cSub.score - cSub.classAverage) * 10) / 10;
+        }
+
+        const pill = {
+          name: cSub.name,
+          score: cSub.score,
+          pr,
+          delta
+        };
+
+        if (pr >= 50 && delta >= 0) {
+          qAdvantage.push(pill);
+        } else if (pr < 50 && delta > 0) {
+          qDarkHorse.push(pill);
+        } else if (pr >= 50 && delta < 0) {
+          qConsolidate.push(pill);
+        } else {
+          qCompanion.push(pill);
+        }
+      });
+
+      const renderPills = (list, tagColor) => {
+        if (list.length === 0) return '<div class="text-[10px] text-slate-400 italic py-1">目前無此區學科</div>';
+        return list.map(item => `
+          <div class="inline-flex items-center gap-1 px-2 py-1 rounded-xl ${tagColor} border text-[10px] font-bold shadow-2xs">
+            <span>${item.name}</span>
+            <span class="font-black">${item.score}分</span>
+            <span class="text-[9px] opacity-80">(PR ${item.pr} · ${item.delta >= 0 ? '+' + item.delta : item.delta})</span>
+          </div>
+        `).join(' ');
+      };
+
+      container.innerHTML = `
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+          <!-- 左上: 🚀 黑馬蓄力區 -->
+          <div class="p-3 bg-sky-50/70 rounded-2xl border border-sky-200/80 space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="font-black text-sky-950 flex items-center gap-1"><span>🚀</span> 黑馬蓄力區</span>
+              <span class="text-[9px] text-sky-700 bg-sky-100 font-bold px-1.5 py-0.2 rounded-md">衝勁突破</span>
+            </div>
+            <p class="text-[10px] text-sky-800 leading-snug">雖在均標以下，但進步幅度非常耀眼！堅持努力，突破在即。</p>
+            <div class="flex flex-wrap gap-1 pt-1">
+              ${renderPills(qDarkHorse, 'bg-white text-sky-900 border-sky-200')}
+            </div>
+          </div>
+
+          <!-- 右上: 🌟 優勢發光區 -->
+          <div class="p-3 bg-emerald-50/70 rounded-2xl border border-emerald-200/80 space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="font-black text-emerald-950 flex items-center gap-1"><span>🌟</span> 優勢發光區</span>
+              <span class="text-[9px] text-emerald-700 bg-emerald-100 font-bold px-1.5 py-0.2 rounded-md">實力穩固</span>
+            </div>
+            <p class="text-[10px] text-emerald-800 leading-snug">實力高於均標且持續進步！鼓勵自主探索，發揮強項帶動自信。</p>
+            <div class="flex flex-wrap gap-1 pt-1">
+              ${renderPills(qAdvantage, 'bg-white text-emerald-900 border-emerald-200')}
+            </div>
+          </div>
+
+          <!-- 左下: 🌱 親師伴讀區 -->
+          <div class="p-3 bg-rose-50/70 rounded-2xl border border-rose-200/80 space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="font-black text-rose-950 flex items-center gap-1"><span>🌱</span> 親師伴讀區</span>
+              <span class="text-[9px] text-rose-700 bg-rose-100 font-bold px-1.5 py-0.2 rounded-md">耐心打底</span>
+            </div>
+            <p class="text-[10px] text-rose-800 leading-snug">基礎概念尚待拆解釐清，需要親師多給予安全感與小步引導。</p>
+            <div class="flex flex-wrap gap-1 pt-1">
+              ${renderPills(qCompanion, 'bg-white text-rose-900 border-rose-200')}
+            </div>
+          </div>
+
+          <!-- 右下: 🌿 細心守成區 -->
+          <div class="p-3 bg-amber-50/70 rounded-2xl border border-amber-200/80 space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="font-black text-amber-950 flex items-center gap-1"><span>🌿</span> 細心守成區</span>
+              <span class="text-[9px] text-amber-700 bg-amber-100 font-bold px-1.5 py-0.2 rounded-md">調穩作答</span>
+            </div>
+            <p class="text-[10px] text-amber-800 leading-snug">底子優秀扎實，本次僅微幅波動，留意粗心與答題時間即可重返顛峰。</p>
+            <div class="flex flex-wrap gap-1 pt-1">
+              ${renderPills(qConsolidate, 'bg-white text-amber-900 border-amber-200')}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // ==========================================
+    // 🗺️ 學習歷程成長足跡地圖 (Milestone Journey Trail)
+    // ==========================================
+    function renderMilestoneJourneyView(allExams, curExam, prefix) {
+      const isSb = prefix === 'sb';
+      const cardEl = document.getElementById(isSb ? 'sbMilestoneJourneyCard' : 'pMilestoneJourneyCard');
+      if (!cardEl) return;
+      const cfg = getActiveVisibilityConfig();
+      if (!cfg.showMilestoneJourney || !allExams || allExams.length === 0) {
+        cardEl.classList.add('hidden');
+        return;
+      }
+      cardEl.classList.remove('hidden');
+
+      const container = document.getElementById(isSb ? 'sbMilestoneJourneyContainer' : 'pMilestoneJourneyContainer');
+      if (!container) return;
+
+      const curIdx = allExams.indexOf(curExam);
+      const visibleExams = curIdx >= 0 ? allExams.slice(0, curIdx + 1) : allExams;
+
+      container.innerHTML = `
+        <div class="relative pl-6 space-y-4 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-gradient-to-b before:from-amber-400 before:via-amber-500 before:to-orange-400">
+          ${visibleExams.map((ex, idx) => {
+            const isCurrent = (idx === visibleExams.length - 1);
+            const avg = ex.studentAverage ? ex.studentAverage.toFixed(1) : '--';
+            const cAvg = ex.classOverallAverage ? ex.classOverallAverage.toFixed(1) : '--';
+
+            const badges = [];
+            if (idx === 0) {
+              badges.push({ icon: '🌱', title: '啟程扎根獎', desc: '順利完成首場學期評量' });
+            }
+            if (ex.studentAverage >= 85) {
+              badges.push({ icon: '🛡️', title: '定海神針獎', desc: '平均高分穩定發揮' });
+            }
+            if (idx > 0) {
+              const prevEx = visibleExams[idx - 1];
+              const diff = ex.studentAverage - prevEx.studentAverage;
+              if (diff >= 2) {
+                badges.push({ icon: '🎖️', title: '破風躍進獎', desc: `總均顯著成長 +${diff.toFixed(1)}分` });
+              }
+            }
+            if (ex.subjects && ex.subjects.every(s => s.score >= s.classAverage)) {
+              badges.push({ icon: '🌟', title: '全能卓越獎', desc: '全科高於班級平均' });
+            }
+            if (badges.length === 0) {
+              badges.push({ icon: '✨', title: '堅毅奮發獎', desc: '持續耕耘 ‧ 累積能量' });
+            }
+
+            return `
+              <div class="relative p-3 bg-white rounded-2xl border ${isCurrent ? 'border-amber-400 ring-2 ring-amber-400/20' : 'border-slate-200/80'} shadow-xs space-y-2">
+                <div class="absolute -left-[27px] top-3.5 w-6 h-6 rounded-full ${isCurrent ? 'bg-amber-500 ring-4 ring-amber-200' : 'bg-slate-300'} text-white flex items-center justify-center font-black text-[10px] shadow-sm">
+                  ${idx + 1}
+                </div>
+
+                <div class="flex items-center justify-between border-b pb-1.5">
+                  <div class="font-black text-xs text-slate-900 flex items-center gap-1.5">
+                    <span>站點 ${idx + 1}：${ex.sheetName || ex.examTitle}</span>
+                    ${isCurrent ? '<span class="text-[9px] bg-amber-500 text-white font-black px-1.5 py-0.2 rounded-full">當前評量</span>' : ''}
+                  </div>
+                  <div class="text-[11px] font-mono font-black text-amber-800">
+                    均分 ${avg} <span class="text-slate-400 text-[10px] font-normal">(班均 ${cAvg})</span>
+                  </div>
+                </div>
+
+                <div class="flex flex-wrap gap-1.5">
+                  ${badges.map(b => `
+                    <span class="inline-flex items-center gap-1 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-xl text-[10px] font-black text-amber-950 shadow-2xs">
+                      <span>${b.icon}</span>
+                      <span>${b.title}</span>
+                      <span class="text-[9px] text-amber-700 font-normal">(${b.desc})</span>
+                    </span>
+                  `).join('')}
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
     let sbRadarInst = null;
     let sbTrendInst = null;
     let sbStudentExams = [];
@@ -4347,7 +5206,12 @@
         webOptComparison: 'syncOptComparison',
         webOptBoxplot: 'syncOptBoxplot',
         webOptPrCurve: 'syncOptPrCurve',
-        webOptDiagnosis: 'syncOptDiagnosis'
+        webOptDiagnosis: 'syncOptDiagnosis',
+        webOptBeeswarm: 'syncOptBeeswarm',
+        webOptTScore: 'syncOptTScore',
+        webOptDumbbell: 'syncOptDumbbell',
+        webOptStrengthsMatrix: 'syncOptStrengthsMatrix',
+        webOptMilestoneJourney: 'syncOptMilestoneJourney'
       };
       for (const [wId, sId] of Object.entries(map)) {
         const wEl = document.getElementById(wId);
@@ -4650,9 +5514,14 @@
         }
       }
 
-      // 4b. 📦 建議箱型圖 與 🔔 常態 PR 落點曲線圖
+      // 4b. 📦 建議箱型圖 與 🔔 常態 PR 落點曲線圖與 5 大全新統計模組
       renderBoxplotView(curExam, 'sb');
       renderPrCurveView(curExam, 'sb');
+      renderBeeswarmView(curExam, 'sb');
+      renderTScoreView(curExam, 'sb');
+      renderDumbbellView(sbStudentExams, curExam, 'sb');
+      renderStrengthsMatrixView(sbStudentExams, curExam, 'sb');
+      renderMilestoneJourneyView(sbStudentExams, curExam, 'sb');
 
       // 5. 📋 各科成績與常模明細表
       const scoreCard = document.getElementById('sbScoreCard');
@@ -4849,6 +5718,61 @@
           </div>
           <p class="text-slate-600 text-[11px]">
             多邊形雷達圖呈現孩子在各領域的平衡發展，系統更結合楊家驊老師 <b>GradeInterpr</b> 學習診斷資料庫，自動為各科提供親切、具體的伴讀引導處方，給予孩子正向賦能。
+          </p>
+        </div>
+
+        <!-- 5. 🐝 蜜蜂聚落散佈圖 (微觀落點群) -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-200/70 space-y-2 shadow-2xs">
+          <div class="flex items-center gap-2 text-amber-950 font-bold text-xs">
+            <span class="p-1 rounded-lg bg-amber-100 text-amber-800">🐝</span>
+            <span>5. 蜜蜂聚落散佈圖（微觀落點群）</span>
+          </div>
+          <p class="text-slate-600 text-[11px]">
+            以匿名圓點呈現班級全體同學的微觀真實分數，避免單一平均值遮蔽真實分佈。孩子個人落點以暖黃光暈圓點標示，直觀透視孩子是處於核心群聚前緣、領跑群或追趕群。
+          </p>
+        </div>
+
+        <!-- 6. ⚖️ 標準化 T 分數離差尺 -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-200/70 space-y-2 shadow-2xs">
+          <div class="flex items-center gap-2 text-amber-950 font-bold text-xs">
+            <span class="p-1 rounded-lg bg-amber-100 text-amber-800">⚖️</span>
+            <span>6. 標準化 T 分數離差尺（去偏常模）</span>
+          </div>
+          <p class="text-slate-600 text-[11px]">
+            每次評量題目難易度皆不同，T 分數以全班平均值為中心基準點（T=50），每 10 分代表一個標準差。消除考卷偏難或偏易造成的失真，客觀橫向對比各學科相對優勢。
+          </p>
+        </div>
+
+        <!-- 7. 🏋️ 跨次進退步啞鈴圖 -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-200/70 space-y-2 shadow-2xs">
+          <div class="flex items-center gap-2 text-amber-950 font-bold text-xs">
+            <span class="p-1 rounded-lg bg-amber-100 text-amber-800">🏋️</span>
+            <span>7. 跨次進退步啞鈴圖（科目成長差）</span>
+          </div>
+          <p class="text-slate-600 text-[11px]">
+            橫向啞鈴連接前次考試（灰點）與本次考試（亮點）。向右延伸的綠色箭頭代表進步跨度，一目了然看見各學科的突破幅度，用成長型思維為孩子加油喝采。
+          </p>
+        </div>
+
+        <!-- 8. 🧭 學科優勢與成長動能四象限矩陣 -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-200/70 space-y-2 shadow-2xs">
+          <div class="flex items-center gap-2 text-amber-950 font-bold text-xs">
+            <span class="p-1 rounded-lg bg-amber-100 text-amber-800">🧭</span>
+            <span>8. 學科優勢與成長動能四象限矩陣</span>
+          </div>
+          <p class="text-slate-600 text-[11px]">
+            橫軸代表「當前表現 PR」，縱軸代表「進步動能 Δ」。分為四象限（🌟 優勢發光、🚀 黑馬蓄力、🌿 細心守成、🌱 親師伴讀），幫助親師針對不同學科採取適性引導方針。
+          </p>
+        </div>
+
+        <!-- 9. 🗺️ 學習歷程成長足跡地圖 -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-200/70 space-y-2 shadow-2xs">
+          <div class="flex items-center gap-2 text-amber-950 font-bold text-xs">
+            <span class="p-1 rounded-lg bg-amber-100 text-amber-800">🗺️</span>
+            <span>9. 學習歷程成長足跡地圖（成就徽章）</span>
+          </div>
+          <p class="text-slate-600 text-[11px]">
+            將學期中每場評量串連成成長冒險地圖，系統根據歷程自動頒發榮譽勳章（如：🎖️ 破風躍進獎、🛡️ 定海神針獎、🌟 全能卓越獎），見證孩子點滴累積的努力！
           </p>
         </div>
 
