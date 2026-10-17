@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>學生學習成長手札 ‧ 個別成績與成長常模</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -21,13 +21,17 @@
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
       background-color: #F8F9FA;
+      padding-bottom: max(4rem, calc(2rem + env(safe-area-inset-bottom)));
+    }
+    header {
+      padding-top: max(0.875rem, env(safe-area-inset-top));
     }
     button, select, input, .touch-target {
       -webkit-tap-highlight-color: transparent;
-      transition: transform 0.12s cubic-bezier(0.3, 0, 0, 1), box-shadow 0.15s ease, background-color 0.15s ease;
+      transition: transform 0.12s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.15s ease, background-color 0.15s ease;
     }
     button:active, .touch-target:active {
-      transform: scale(0.97);
+      transform: scale(0.975);
     }
     @keyframes pulseFast {
       0%, 100% { opacity: 1; }
@@ -36,11 +40,13 @@
     .animate-pulse-fast {
       animation: pulseFast 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
     }
+    /* 🍎 Apple Liquid Glass 工藝：頂部光邊、立體通透感、飽和度調諧 */
     .apple-glass {
-      background: rgba(255, 255, 255, 0.92);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(226, 232, 240, 0.85);
+      background: rgba(255, 255, 255, 0.90);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid rgba(226, 232, 240, 0.75);
+      border-top: 1px solid rgba(255, 255, 255, 0.95);
       box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.03), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
     }
     .segmented-pill {
@@ -48,9 +54,32 @@
       font-weight: 700;
       transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
+    /* 🍎 iOS Safari 防止表單點擊強制放大 */
+    @media (max-width: 640px) {
+      select, input[type="text"], input[type="search"] {
+        font-size: 16px !important;
+      }
+    }
+    /* 🍎 無障礙偏好：減少動態效果 (Reduced Motion) */
+    @media (prefers-reduced-motion: reduce) {
+      *, ::before, ::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+    /* 🍎 無障礙偏好：減少透明度 (Reduced Transparency) */
+    @media (prefers-reduced-transparency: reduce) {
+      .apple-glass, .backdrop-blur-md, .backdrop-blur-xl {
+        background: #ffffff !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+      }
+    }
   </style>
 </head>
-<body class="text-slate-800 min-h-screen pb-16 selection:bg-amber-500 selection:text-slate-950">
+<body class="text-slate-800 min-h-screen selection:bg-amber-500 selection:text-slate-950">
 
   <!-- ==================== 溫暖純淨家長查詢專屬前台 ==================== -->
   <header class="apple-glass sticky top-0 z-40 text-slate-800 transition-all border-b border-slate-200/70">
@@ -322,7 +351,7 @@
             </div>
 
             <!-- 科目切換頁籤 (Apple Segmented Control) -->
-            <div id="pPrCurveTabs" class="flex flex-wrap gap-1.5 bg-slate-100/80 p-1.5 rounded-2xl"></div>
+            <div id="pPrCurveTabs" class="flex flex-wrap gap-1 bg-slate-200/70 p-1 rounded-2xl border border-slate-300/40 shadow-inner"></div>
 
             <!-- 跨次考試疊加控制列 (Apple HIG Segmented/Dropdown) -->
             <div class="flex items-center justify-between gap-2 px-3 py-2 bg-slate-50/90 rounded-2xl border border-slate-200/60 text-xs">
@@ -352,8 +381,8 @@
               <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200" id="pBoxplotActiveZoneBadge">--</span>
             </div>
 
-            <!-- 科目切換頁籤 -->
-            <div id="pBoxplotSubjectTabs" class="flex flex-wrap gap-1.5 bg-slate-100/80 p-1.5 rounded-2xl"></div>
+            <!-- 科目切換頁籤 (Apple Segmented Control) -->
+            <div id="pBoxplotSubjectTabs" class="flex flex-wrap gap-1 bg-slate-200/70 p-1 rounded-2xl border border-slate-300/40 shadow-inner"></div>
 
             <!-- 箱型圖幾何圖表容器 -->
             <div id="pBoxplotChartContainer" class="bg-slate-100/80 rounded-2xl p-4 border border-slate-200/80 space-y-3"></div>
@@ -374,7 +403,8 @@
               </div>
               <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200" id="pBeeswarmBadge">--</span>
             </div>
-            <div id="pBeeswarmTabs" class="flex flex-wrap gap-1.5 bg-slate-100/80 p-1.5 rounded-2xl"></div>
+            <!-- 科目切換頁籤 (Apple Segmented Control) -->
+            <div id="pBeeswarmTabs" class="flex flex-wrap gap-1 bg-slate-200/70 p-1 rounded-2xl border border-slate-300/40 shadow-inner"></div>
             <div id="pBeeswarmContainer" class="bg-slate-100/80 rounded-2xl p-4 border border-slate-200/80"></div>
             <div id="pBeeswarmAnalysis" class="text-xs text-slate-600 bg-amber-50/60 p-3 rounded-2xl border border-amber-200/70 leading-relaxed"></div>
           </div>
@@ -467,10 +497,13 @@
     <div class="text-[10px] text-slate-400">專屬隱私保護 ‧ 需掃描個別專屬 QR Code 方能開啟查詢，守護孩子學習隱私</div>
   </footer>
 
-  <!-- ==================== 家長端：新統計方法與圖表說明彈窗 ==================== -->
-  <div id="parentStatsHelpModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-lg w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden border border-slate-100 animate-in fade-in zoom-in duration-200">
+  <!-- ==================== 家長端：新統計方法與圖表說明彈窗 (Apple HIG Bottom Sheet) ==================== -->
+  <div id="parentStatsHelpModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 transition-all">
+    <div class="bg-white rounded-t-[32px] sm:rounded-3xl max-w-lg w-full max-h-[92vh] sm:max-h-[90vh] flex flex-col shadow-2xl overflow-hidden border border-slate-100 animate-in fade-in zoom-in duration-200">
       
+      <!-- iOS Mobile Grabber Handle (拖曳導引把手) -->
+      <div class="w-10 h-1.5 bg-white/40 rounded-full mx-auto mt-2.5 -mb-2 sm:hidden z-10"></div>
+
       <!-- Modal 標題列 -->
       <div class="bg-gradient-to-r from-amber-600 via-amber-700 to-slate-900 text-white p-5 flex items-center justify-between shrink-0">
         <div class="flex items-center gap-3">
@@ -484,7 +517,7 @@
             <p class="text-xs text-amber-100 mt-0.5">以正向成長思維，看見孩子的真實學習定位與進步足跡</p>
           </div>
         </div>
-        <button onclick="closeParentStatsHelpModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-slate-200 hover:text-white flex items-center justify-center font-bold text-sm transition active:scale-90 cursor-pointer">
+        <button onclick="closeParentStatsHelpModal()" aria-label="關閉" class="w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 active:bg-white/30 text-slate-200 hover:text-white flex items-center justify-center font-bold text-base transition active:scale-95 cursor-pointer shrink-0">
           ✕
         </button>
       </div>
@@ -643,10 +676,13 @@
     </div>
   </div>
 
-  <!-- ==================== 📷 即時相機掃描 QR Code 彈窗 (Apple HIG Sheet Modal) ==================== -->
-  <div id="qrScannerModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-sm sm:max-w-md w-full shadow-2xl border border-slate-100 overflow-hidden transform transition-all flex flex-col max-h-[92vh] animate-in fade-in zoom-in-95 duration-200">
+  <!-- ==================== 📷 即時相機掃描 QR Code 彈窗 (Apple HIG Bottom Sheet) ==================== -->
+  <div id="qrScannerModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 transition-all">
+    <div class="bg-white rounded-t-[32px] sm:rounded-3xl max-w-sm sm:max-w-md w-full shadow-2xl border border-slate-100 overflow-hidden transform transition-all flex flex-col max-h-[92vh] animate-in fade-in zoom-in-95 duration-200">
       
+      <!-- iOS Mobile Grabber Handle (拖曳導引把手) -->
+      <div class="w-10 h-1.5 bg-slate-300 rounded-full mx-auto mt-2.5 -mb-2 sm:hidden z-10"></div>
+
       <!-- 頂部標題列 -->
       <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/90 shrink-0">
         <div class="flex items-center gap-2.5">
@@ -658,7 +694,7 @@
             <p class="text-[11px] text-slate-500">對準通知單上的專屬代碼圖形</p>
           </div>
         </div>
-        <button onclick="closeQrScannerModal()" class="w-8 h-8 rounded-full bg-slate-200/80 hover:bg-slate-300 active:scale-90 text-slate-600 flex items-center justify-center transition cursor-pointer text-xs font-bold">
+        <button onclick="closeQrScannerModal()" aria-label="關閉" class="w-11 h-11 rounded-full bg-slate-200/80 hover:bg-slate-300 active:bg-slate-400/80 text-slate-700 flex items-center justify-center transition active:scale-95 cursor-pointer text-sm font-bold shrink-0">
           ✕
         </button>
       </div>
@@ -1053,7 +1089,7 @@
       if (errBox) errBox.classList.add('hidden');
 
       if (typeof Html5Qrcode === 'undefined') {
-        alert('QR Code 辨識工具載入中，請稍候重試。');
+        showAppleToast('QR Code 辨識工具載入中，請稍候重試。', 'warning');
         return;
       }
 
@@ -1416,6 +1452,59 @@
     }
 
     // ==========================================
+    // 🍎 Apple HIG Toast / HUD Notification System
+    // 非同步非阻塞浮動膠囊通知，全面取代 window.alert()
+    // ==========================================
+    function showAppleToast(message, type = 'info') {
+      let toastContainer = document.getElementById('appleToastContainer');
+      if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'appleToastContainer';
+        toastContainer.className = 'fixed top-4 inset-x-0 z-[100] flex flex-col items-center pointer-events-none gap-2 px-4';
+        document.body.appendChild(toastContainer);
+      }
+
+      const toast = document.createElement('div');
+      toast.className = 'pointer-events-auto transform transition-all duration-300 ease-out translate-y-[-20px] opacity-0 scale-95 flex items-center gap-2.5 px-4 py-2.5 rounded-2xl shadow-xl border backdrop-blur-xl text-xs sm:text-sm font-bold tracking-tight max-w-md w-auto text-left';
+      
+      let icon = '✨';
+      let colorStyles = 'bg-white/95 text-slate-800 border-slate-200/80 shadow-slate-900/10';
+      if (type === 'success') {
+        icon = '✅';
+        colorStyles = 'bg-emerald-950/90 text-white border-emerald-500/30 shadow-emerald-950/20';
+      } else if (type === 'warning' || type === 'error') {
+        icon = type === 'error' ? '⚠️' : '💡';
+        colorStyles = 'bg-amber-950/90 text-white border-amber-500/30 shadow-amber-950/20';
+      } else if (type === 'info') {
+        icon = 'ℹ️';
+        colorStyles = 'bg-slate-900/90 text-white border-white/20 shadow-black/25';
+      }
+
+      toast.className += ' ' + colorStyles;
+      toast.innerHTML = `<span class="text-base shrink-0">${icon}</span><span class="leading-snug">${(message || '').replace(/\n/g, '<br>')}</span>`;
+
+      toastContainer.appendChild(toast);
+
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-[-20px]', 'opacity-0', 'scale-95');
+        toast.classList.add('translate-y-0', 'opacity-100', 'scale-100');
+      });
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100', 'scale-100');
+        toast.classList.add('translate-y-[-10px]', 'opacity-0', 'scale-95');
+        setTimeout(() => {
+          toast.remove();
+        }, 320);
+      }, 3500);
+    }
+
+    // 攔截並優雅轉接 window.alert
+    window.alert = function(msg) {
+      showAppleToast(msg, 'info');
+    };
+
+    // ==========================================
     // 🔒 個資法去識別化保護
     // 規範：三個字名字中間變圈圈 (陳小明 ➔ 陳○明)
     //      兩個字名字第二個字變圈圈 (陳華 ➔ 陳○)
@@ -1436,7 +1525,7 @@
 
     function renderParentDashboard(student, rawExams) {
       if (!rawExams || rawExams.length === 0) {
-        alert('此學生目前尚無任何考試成績資料。');
+        showAppleToast('此學生目前尚無任何考試成績資料。', 'warning');
         return;
       }
 
@@ -1805,9 +1894,9 @@
         const isActive = idx === parentBoxplotSubIdx;
         const theme = getSubjectTheme(sub.name);
         btn.className = isActive
-          ? `px-3 py-1.5 rounded-xl font-black text-xs ${theme.activeTab} transition`
-          : `px-3 py-1.5 rounded-xl font-bold text-xs ${theme.lightBg} ${theme.textDark} border ${theme.lightBorder} hover:brightness-95 transition`;
-        btn.innerText = `${sub.name} (${sub.score}分)`;
+          ? `px-3 py-1.5 rounded-xl font-black text-xs bg-white text-slate-900 shadow-xs border border-black/5 transition-all duration-150 active:scale-95 flex items-center gap-1.5`
+          : `px-3 py-1.5 rounded-xl font-medium text-xs text-slate-600 hover:text-slate-900 hover:bg-white/40 transition-all duration-150 active:scale-95 flex items-center gap-1.5`;
+        btn.innerHTML = `<span class="w-2 h-2 rounded-full ${theme.dot}"></span><span>${sub.name}</span> <span class="${isActive ? 'text-amber-800 font-bold' : 'text-slate-400 font-normal'}">(${sub.score}分)</span>`;
         tabsContainer.appendChild(btn);
       });
 
@@ -2020,9 +2109,9 @@
           const isActive = idx === parentPrCurveSubIdx;
           const theme = getSubjectTheme(sub.name);
           btn.className = isActive
-            ? `px-3 py-1.5 rounded-xl font-black text-xs ${theme.activeTab} transition`
-            : `px-3 py-1.5 rounded-xl font-bold text-xs ${theme.lightBg} ${theme.textDark} border ${theme.lightBorder} hover:brightness-95 transition`;
-          btn.innerText = `${sub.name} (${sub.score}分)`;
+            ? `px-3 py-1.5 rounded-xl font-black text-xs bg-white text-slate-900 shadow-xs border border-black/5 transition-all duration-150 active:scale-95 flex items-center gap-1.5`
+            : `px-3 py-1.5 rounded-xl font-medium text-xs text-slate-600 hover:text-slate-900 hover:bg-white/40 transition-all duration-150 active:scale-95 flex items-center gap-1.5`;
+          btn.innerHTML = `<span class="w-2 h-2 rounded-full ${theme.dot}"></span><span>${sub.name}</span> <span class="${isActive ? 'text-amber-800 font-bold' : 'text-slate-400 font-normal'}">(${sub.score}分)</span>`;
           tabsContainer.appendChild(btn);
         });
       }
@@ -2441,9 +2530,9 @@
           const isActive = idx === parentBeeswarmSubIdx;
           const theme = getSubjectTheme(sub.name);
           btn.className = isActive
-            ? `px-3 py-1.5 rounded-xl font-black text-xs ${theme.activeTab} transition`
-            : `px-3 py-1.5 rounded-xl font-bold text-xs ${theme.lightBg} ${theme.textDark} border ${theme.lightBorder} hover:brightness-95 transition`;
-          btn.innerText = `${sub.name} (${sub.score}分)`;
+            ? `px-3 py-1.5 rounded-xl font-black text-xs bg-white text-slate-900 shadow-xs border border-black/5 transition-all duration-150 active:scale-95 flex items-center gap-1.5`
+            : `px-3 py-1.5 rounded-xl font-medium text-xs text-slate-600 hover:text-slate-900 hover:bg-white/40 transition-all duration-150 active:scale-95 flex items-center gap-1.5`;
+          btn.innerHTML = `<span class="w-2 h-2 rounded-full ${theme.dot}"></span><span>${sub.name}</span> <span class="${isActive ? 'text-amber-800 font-bold' : 'text-slate-400 font-normal'}">(${sub.score}分)</span>`;
           tabsContainer.appendChild(btn);
         });
       }

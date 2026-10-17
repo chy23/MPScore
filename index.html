@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>MPScore - 智慧學生成績與學習診斷平台</title>
   
   <!-- Tailwind CSS -->
@@ -21,9 +21,56 @@
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
+    :root {
+      --font-system: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "PingFang TC", "Noto Sans TC", sans-serif;
+    }
     body {
-      font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: var(--font-system);
       -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      padding-bottom: max(3rem, calc(1.5rem + env(safe-area-inset-bottom)));
+    }
+    header {
+      padding-top: max(0.5rem, env(safe-area-inset-top));
+    }
+    button, select, input, .touch-target {
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.12s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.15s ease, background-color 0.15s ease;
+    }
+    button:active, .touch-target:active {
+      transform: scale(0.975);
+    }
+    /* 🍎 Apple Liquid Glass 工藝：頂部光邊、立體通透感、飽和度調諧 */
+    .apple-glass {
+      background: rgba(255, 255, 255, 0.90);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid rgba(226, 232, 240, 0.75);
+      border-top: 1px solid rgba(255, 255, 255, 0.95);
+      box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.03), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
+    }
+    /* 🍎 iOS Safari 防止表單點擊強制放大 */
+    @media (max-width: 640px) {
+      select, input[type="text"], input[type="search"] {
+        font-size: 16px !important;
+      }
+    }
+    /* 🍎 無障礙偏好：減少動態效果 (Reduced Motion) */
+    @media (prefers-reduced-motion: reduce) {
+      *, ::before, ::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+    /* 🍎 無障礙偏好：減少透明度 (Reduced Transparency) */
+    @media (prefers-reduced-transparency: reduce) {
+      .apple-glass, .backdrop-blur-md, .backdrop-blur-xl {
+        background: #ffffff !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+      }
     }
     
     /* A4 列印排版與預覽樣式 */
@@ -980,8 +1027,8 @@
                   <span id="sbBoxplotActiveZoneBadge" class="text-[9px] font-black px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">--</span>
                 </div>
                 <div class="text-[10px] text-slate-400">復刻 GradeInterpr 幾何盒鬚圖 ‧ 點擊科目切換</div>
-                <!-- 科目頁籤 -->
-                <div id="sbBoxplotTabs" class="flex flex-wrap gap-1 bg-slate-100/80 p-1 rounded-2xl"></div>
+                <!-- 科目頁籤 (Apple Segmented Control) -->
+                <div id="sbBoxplotTabs" class="flex flex-wrap gap-1 bg-slate-200/70 p-1 rounded-2xl border border-slate-300/40 shadow-inner"></div>
                 <!-- 幾何圖表容器 -->
                 <div id="sbBoxplotChartArea" class="bg-slate-100/80 rounded-2xl p-3 border border-slate-200/80"></div>
                 <!-- 4 區間解讀 (正向教育成長心態) -->
@@ -998,8 +1045,8 @@
                   <span id="sbPrCurveBadge" class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">--</span>
                 </div>
                 <div class="text-[10px] text-slate-400">呈現選取科目的班級成績真實分佈 ‧ 學生個人得分落點</div>
-                <!-- 科目頁籤 -->
-                <div id="sbPrCurveTabs" class="flex flex-wrap gap-1 bg-slate-100/80 p-1 rounded-2xl"></div>
+                <!-- 科目頁籤 (Apple Segmented Control) -->
+                <div id="sbPrCurveTabs" class="flex flex-wrap gap-1 bg-slate-200/70 p-1 rounded-2xl border border-slate-300/40 shadow-inner"></div>
                 <!-- 跨次考試疊加控制列 -->
                 <div class="flex items-center justify-between gap-1.5 px-2 py-1 bg-slate-50 rounded-xl border border-slate-200/60 text-[10px]">
                   <div class="flex items-center gap-1 font-bold text-slate-700">
@@ -1024,7 +1071,8 @@
                   <span id="sbBeeswarmBadge" class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">--</span>
                 </div>
                 <div class="text-[10px] text-slate-400">匿名呈現班級微觀成績聚集 ‧ 凸顯個人落點</div>
-                <div id="sbBeeswarmTabs" class="flex flex-wrap gap-1 bg-slate-100/80 p-1 rounded-2xl"></div>
+                <!-- 科目頁籤 (Apple Segmented Control) -->
+                <div id="sbBeeswarmTabs" class="flex flex-wrap gap-1 bg-slate-200/70 p-1 rounded-2xl border border-slate-300/40 shadow-inner"></div>
                 <div id="sbBeeswarmContainer" class="bg-slate-100/80 rounded-2xl p-2 border border-slate-200/80"></div>
                 <div id="sbBeeswarmAnalysis" class="text-[10px] text-slate-600 bg-amber-50/60 p-2.5 rounded-xl border border-amber-200/70"></div>
               </div>
@@ -1324,7 +1372,8 @@
             </div>
             <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200" id="pBoxplotActiveZoneBadge">--</span>
           </div>
-          <div id="pBoxplotSubjectTabs" class="flex flex-wrap gap-1.5 bg-slate-100/80 p-1 rounded-2xl"></div>
+          <!-- 科目頁籤 (Apple Segmented Control) -->
+          <div id="pBoxplotSubjectTabs" class="flex flex-wrap gap-1 bg-slate-200/70 p-1 rounded-2xl border border-slate-300/40 shadow-inner"></div>
           <div id="pBoxplotChartContainer" class="bg-slate-100/80 rounded-2xl p-4 border border-slate-200/80 space-y-3"></div>
           <div id="pBoxplotZoneCards" class="grid grid-cols-2 gap-2 text-[11px]"></div>
         </div>
@@ -1346,8 +1395,8 @@
               <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200" id="pPrCurveBadge">--</span>
             </div>
           </div>
-          <!-- 科目頁籤 -->
-          <div id="pPrCurveTabs" class="flex flex-wrap gap-1.5 bg-slate-100/80 p-1 rounded-2xl"></div>
+          <!-- 科目頁籤 (Apple Segmented Control) -->
+          <div id="pPrCurveTabs" class="flex flex-wrap gap-1 bg-slate-200/70 p-1 rounded-2xl border border-slate-300/40 shadow-inner"></div>
           <!-- 跨次考試疊加控制列 -->
           <div class="flex items-center justify-between gap-2 px-2.5 py-1.5 bg-slate-50/90 rounded-2xl border border-slate-200/60 text-xs">
             <div class="flex items-center gap-1 font-bold text-slate-700">
@@ -1374,8 +1423,8 @@
             </div>
             <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200" id="pBeeswarmBadge">--</span>
           </div>
-          <!-- 科目頁籤 -->
-          <div id="pBeeswarmTabs" class="flex flex-wrap gap-1.5 bg-slate-100/80 p-1 rounded-2xl"></div>
+          <!-- 科目頁籤 (Apple Segmented Control) -->
+          <div id="pBeeswarmTabs" class="flex flex-wrap gap-1 bg-slate-200/70 p-1 rounded-2xl border border-slate-300/40 shadow-inner"></div>
           <!-- SVG 散佈圖容器 -->
           <div id="pBeeswarmContainer" class="bg-slate-100/80 rounded-2xl p-3 border border-slate-200/80"></div>
           <div id="pBeeswarmAnalysis" class="text-xs text-slate-600 bg-amber-50/60 p-3 rounded-xl border border-amber-200/70 leading-relaxed"></div>
@@ -1513,7 +1562,7 @@
           <button onclick="triggerDirectPrint()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-3.5 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow-lg transition cursor-pointer active:scale-95">
             <span>🖨️ 友善列印</span>
           </button>
-          <button onclick="closePrintModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer">
+          <button onclick="closePrintModal()" aria-label="關閉" class="bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-slate-200 px-4 min-h-[44px] rounded-xl text-xs font-bold transition flex items-center justify-center cursor-pointer">
             ✕ 關閉
           </button>
         </div>
@@ -1585,10 +1634,13 @@
     </div>
   </div>
 
-  <!-- ==================== 📋 教師端詳細系統更新紀錄 Modal ==================== -->
-  <div id="teacherChangelogModal" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-md hidden overflow-y-auto flex items-start justify-center p-3 md:p-6 transition-all">
-    <div class="bg-white rounded-3xl shadow-2xl max-w-3xl w-full border border-slate-200 overflow-hidden my-6 flex flex-col max-h-[90vh]">
+  <!-- ==================== 📋 教師端詳細系統更新紀錄 Modal (Apple HIG Bottom Sheet) ==================== -->
+  <div id="teacherChangelogModal" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-md hidden overflow-y-auto flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-6 transition-all">
+    <div class="bg-white rounded-t-[32px] sm:rounded-3xl shadow-2xl max-w-3xl w-full border border-slate-200 overflow-hidden sm:my-6 flex flex-col max-h-[92vh] sm:max-h-[90vh]">
       
+      <!-- iOS Mobile Grabber Handle (拖曳導引把手) -->
+      <div class="w-10 h-1.5 bg-white/40 rounded-full mx-auto mt-2.5 -mb-2 sm:hidden z-10"></div>
+
       <!-- Modal 頂部標題列 -->
       <div class="p-5 md:p-6 bg-gradient-to-r from-amber-600 via-amber-700 to-slate-900 text-white flex items-center justify-between border-b border-slate-800 shrink-0">
         <div class="flex items-center gap-3">
@@ -1603,7 +1655,7 @@
             <p class="text-xs text-slate-300 mt-0.5">持續精進 ‧ 獻給每一位用心教學與親師引導的教育工作者</p>
           </div>
         </div>
-        <button onclick="closeTeacherChangelogModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center font-bold text-sm transition active:scale-90 cursor-pointer">
+        <button onclick="closeTeacherChangelogModal()" aria-label="關閉" class="w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 active:bg-white/30 text-slate-200 hover:text-white flex items-center justify-center font-bold text-base transition active:scale-95 cursor-pointer shrink-0">
           ✕
         </button>
       </div>
@@ -1816,6 +1868,59 @@
 
   <!-- ==================== JavaScript 核心邏輯 ==================== -->
   <script>
+    // ==========================================
+    // 🍎 Apple HIG Toast / HUD Notification System
+    // 非同步非阻塞浮動膠囊通知，全面取代 window.alert()
+    // ==========================================
+    function showAppleToast(message, type = 'info') {
+      let toastContainer = document.getElementById('appleToastContainer');
+      if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'appleToastContainer';
+        toastContainer.className = 'fixed top-4 inset-x-0 z-[100] flex flex-col items-center pointer-events-none gap-2 px-4';
+        document.body.appendChild(toastContainer);
+      }
+
+      const toast = document.createElement('div');
+      toast.className = 'pointer-events-auto transform transition-all duration-300 ease-out translate-y-[-20px] opacity-0 scale-95 flex items-center gap-2.5 px-4 py-2.5 rounded-2xl shadow-xl border backdrop-blur-xl text-xs sm:text-sm font-bold tracking-tight max-w-md w-auto text-left';
+      
+      let icon = '✨';
+      let colorStyles = 'bg-white/95 text-slate-800 border-slate-200/80 shadow-slate-900/10';
+      if (type === 'success') {
+        icon = '✅';
+        colorStyles = 'bg-emerald-950/90 text-white border-emerald-500/30 shadow-emerald-950/20';
+      } else if (type === 'warning' || type === 'error') {
+        icon = type === 'error' ? '⚠️' : '💡';
+        colorStyles = 'bg-amber-950/90 text-white border-amber-500/30 shadow-amber-950/20';
+      } else if (type === 'info') {
+        icon = 'ℹ️';
+        colorStyles = 'bg-slate-900/90 text-white border-white/20 shadow-black/25';
+      }
+
+      toast.className += ' ' + colorStyles;
+      toast.innerHTML = `<span class="text-base shrink-0">${icon}</span><span class="leading-snug">${(message || '').replace(/\n/g, '<br>')}</span>`;
+
+      toastContainer.appendChild(toast);
+
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-[-20px]', 'opacity-0', 'scale-95');
+        toast.classList.add('translate-y-0', 'opacity-100', 'scale-100');
+      });
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100', 'scale-100');
+        toast.classList.add('translate-y-[-10px]', 'opacity-0', 'scale-95');
+        setTimeout(() => {
+          toast.remove();
+        }, 320);
+      }, 3500);
+    }
+
+    // 攔截並優雅轉接 window.alert
+    window.alert = function(msg) {
+      showAppleToast(msg, 'info');
+    };
+
     // --- 來自楊家驊老師 GradeInterpr 的專家學習診斷資料庫 ---
     const GRADE_INTERPR_ADVICE = {
       '國語': {
@@ -2189,7 +2294,7 @@
       const resBox = document.getElementById('checkResultBox');
 
       if (!url) {
-        if (showAlert) alert('請先貼上 Apps Script 網頁應用程式網址！');
+        if (showAlert) showAppleToast('請先貼上 Apps Script 網頁應用程式網址！', 'warning');
         return;
       }
 
@@ -2335,11 +2440,11 @@
           }
           renderPrintCards(cachedStudents);
           updatePreviewStudentOptions(cachedStudents);
-          if (alertSuccess) alert(`✨ 成功同步 ${data.students.length} 位學生名冊與考試統計！`);
+          if (alertSuccess) showAppleToast(`✨ 成功同步 ${data.students.length} 位學生名冊與考試統計！`, 'success');
         }
       } catch(e) {
         console.error(e);
-        if (alertSuccess) alert('同步失敗: ' + e.message);
+        if (alertSuccess) showAppleToast('同步失敗: ' + e.message, 'error');
       }
     }
 
@@ -2426,7 +2531,7 @@
 
       const sheets = document.querySelectorAll('#printModalSheets .a4-print-sheet');
       if (!sheets || sheets.length === 0) {
-        alert("尚未生成小卡內容，請稍候再試。");
+        showAppleToast("尚未生成小卡內容，請稍候再試。", "warning");
         return;
       }
 
@@ -2440,7 +2545,7 @@
 
       try {
         if (typeof window.jspdf === 'undefined' || typeof html2canvas === 'undefined') {
-          alert("正在為您開啟瀏覽器列印/另存 PDF 視窗...");
+          showAppleToast("正在為您開啟瀏覽器列印/另存 PDF 視窗...", "info");
           triggerDirectPrint();
           if (btn) {
             btn.innerHTML = origText;
@@ -2502,7 +2607,7 @@
         }
       } catch (err) {
         console.error("PDF generation error:", err);
-        alert("PDF 生成遇到狀況，將自動開啟瀏覽器另存 PDF 視窗。");
+        showAppleToast("PDF 生成遇到狀況，將自動開啟瀏覽器另存視窗。", "warning");
         triggerDirectPrint();
         if (btn) {
           btn.innerHTML = origText;
@@ -3036,14 +3141,14 @@
     // 將網頁輸入之成績一鍵直接上傳為 Google 試算表新考試分頁
     async function uploadExamScoresToGoogle() {
       if (!activeApiUrl) {
-        alert('請先在【步驟 3】貼上 Google Apps Script 網址並完成連線檢測，才能直接上傳至 Google 試算表！');
+        showAppleToast('請先在【步驟 3】貼上 Google Apps Script 網址並完成連線檢測，才能直接上傳至 Google 試算表！', 'warning');
         switchTab('wizard');
         return;
       }
 
       const raw = document.getElementById('rawExcelInput').value.trim();
       if (!raw) {
-        alert('請先在輸入區填入成績資料！');
+        showAppleToast('請先在輸入區填入成績資料！', 'warning');
         return;
       }
 
@@ -3052,7 +3157,7 @@
 
       const lines = raw.split('\n').map(l => l.trim()).filter(l => l);
       if (lines.length < 2) {
-        alert('成績資料格式不完整，需包含標題列與學生列！');
+        showAppleToast('成績資料格式不完整，需包含標題列與學生列！', 'warning');
         return;
       }
 
@@ -3086,13 +3191,13 @@
         });
         const data = await resp.json();
         if (data.success) {
-          alert('🎉 ' + data.message + '\n\n試算表已成功新增分頁【' + examTitle + '】，網站將自動為您刷新同步！');
+          showAppleToast('🎉 ' + data.message + '，試算表已成功新增分頁【' + examTitle + '】，網站將自動刷新同步！', 'success');
           syncStudentsFromApi(false);
         } else {
-          alert('上傳失敗: ' + (data.message || '未知錯誤'));
+          showAppleToast('上傳失敗: ' + (data.message || '未知錯誤'), 'error');
         }
       } catch (err) {
-        alert('上傳發生異常: ' + err.message);
+        showAppleToast('上傳發生異常: ' + err.message, 'error');
       } finally {
         btn.innerHTML = originalText;
         btn.disabled = false;
@@ -3109,13 +3214,13 @@
       const text = document.getElementById('rawExcelInput').value.trim();
       const resBox = document.getElementById('calcPreviewResult');
       if (!text) {
-        alert('請先貼上成績資料！');
+        showAppleToast('請先貼上成績資料！', 'warning');
         return;
       }
 
       const lines = text.split('\n').map(l => l.trim()).filter(l => l);
       if (lines.length < 2) {
-        alert('至少需包含標題列與 1 筆學生分數！');
+        showAppleToast('至少需包含標題列與 1 筆學生分數！', 'warning');
         return;
       }
 
@@ -3332,7 +3437,7 @@
       if (errBox) errBox.classList.add('hidden');
 
       if (typeof Html5Qrcode === 'undefined') {
-        alert('QR Code 辨識工具載入中，請稍候重試。');
+        showAppleToast('QR Code 辨識工具載入中，請稍候重試。', 'warning');
         return;
       }
 
@@ -4270,10 +4375,11 @@
             renderBoxplotView(curExam, prefix);
           };
           const isActive = idx === activeIdx;
+          const theme = getSubjectTheme(sub.name);
           btn.className = isActive
-            ? `px-2.5 py-1 rounded-xl font-black ${isSb ? 'text-[10px]' : 'text-xs'} bg-amber-500 text-slate-950 font-black shadow-xs transition`
-            : `px-2.5 py-1 rounded-xl font-bold ${isSb ? 'text-[10px]' : 'text-xs'} bg-slate-100 text-slate-600 hover:bg-slate-200 transition`;
-          btn.innerText = `${sub.name} (${sub.score}分)`;
+            ? `px-3 py-1.5 rounded-xl font-black ${isSb ? 'text-[10px]' : 'text-xs'} bg-white text-slate-900 shadow-xs border border-black/5 transition-all duration-150 active:scale-95 flex items-center gap-1.5`
+            : `px-3 py-1.5 rounded-xl font-medium ${isSb ? 'text-[10px]' : 'text-xs'} text-slate-600 hover:text-slate-900 hover:bg-white/40 transition-all duration-150 active:scale-95 flex items-center gap-1.5`;
+          btn.innerHTML = `<span class="w-1.5 h-1.5 rounded-full ${theme.dot}"></span><span>${sub.name}</span> <span class="${isActive ? 'text-amber-800 font-bold' : 'text-slate-400 font-normal'}">(${sub.score}分)</span>`;
           tabsContainer.appendChild(btn);
         });
       }
@@ -4518,10 +4624,11 @@
             renderPrCurveView(curExam, prefix);
           };
           const isActive = idx === activeIdx;
+          const theme = getSubjectTheme(sub.name);
           btn.className = isActive
-            ? `px-2.5 py-1 rounded-xl font-black ${isSb ? 'text-[10px]' : 'text-xs'} bg-amber-500 text-slate-950 font-black shadow-xs transition`
-            : `px-2.5 py-1 rounded-xl font-bold ${isSb ? 'text-[10px]' : 'text-xs'} bg-slate-100 text-slate-600 hover:bg-slate-200 transition`;
-          btn.innerText = `${sub.name} (${sub.score}分)`;
+            ? `px-3 py-1.5 rounded-xl font-black ${isSb ? 'text-[10px]' : 'text-xs'} bg-white text-slate-900 shadow-xs border border-black/5 transition-all duration-150 active:scale-95 flex items-center gap-1.5`
+            : `px-3 py-1.5 rounded-xl font-medium ${isSb ? 'text-[10px]' : 'text-xs'} text-slate-600 hover:text-slate-900 hover:bg-white/40 transition-all duration-150 active:scale-95 flex items-center gap-1.5`;
+          btn.innerHTML = `<span class="w-1.5 h-1.5 rounded-full ${theme.dot}"></span><span>${sub.name}</span> <span class="${isActive ? 'text-amber-800 font-bold' : 'text-slate-400 font-normal'}">(${sub.score}分)</span>`;
           tabsContainer.appendChild(btn);
         });
       }
@@ -4961,10 +5068,11 @@
             renderBeeswarmView(curExam, prefix);
           };
           const isActive = idx === activeIdx;
+          const theme = getSubjectTheme(sub.name);
           btn.className = isActive
-            ? `px-2.5 py-1 rounded-xl font-black ${isSb ? 'text-[10px]' : 'text-xs'} bg-amber-500 text-slate-950 font-black shadow-xs transition`
-            : `px-2.5 py-1 rounded-xl font-bold ${isSb ? 'text-[10px]' : 'text-xs'} bg-slate-100 text-slate-600 hover:bg-slate-200 transition`;
-          btn.innerText = `${sub.name} (${sub.score}分)`;
+            ? `px-3 py-1.5 rounded-xl font-black ${isSb ? 'text-[10px]' : 'text-xs'} bg-white text-slate-900 shadow-xs border border-black/5 transition-all duration-150 active:scale-95 flex items-center gap-1.5`
+            : `px-3 py-1.5 rounded-xl font-medium ${isSb ? 'text-[10px]' : 'text-xs'} text-slate-600 hover:text-slate-900 hover:bg-white/40 transition-all duration-150 active:scale-95 flex items-center gap-1.5`;
+          btn.innerHTML = `<span class="w-1.5 h-1.5 rounded-full ${theme.dot}"></span><span>${sub.name}</span> <span class="${isActive ? 'text-amber-800 font-bold' : 'text-slate-400 font-normal'}">(${sub.score}分)</span>`;
           tabsContainer.appendChild(btn);
         });
       }
@@ -5931,10 +6039,13 @@
       }
     }
   </script>
-  <!-- ==================== 家長端：新統計方法與圖表說明彈窗 ==================== -->
-  <div id="parentStatsHelpModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-lg w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden border border-slate-100 animate-in fade-in zoom-in duration-200">
+  <!-- ==================== 家長端：新統計方法與圖表說明彈窗 (Apple HIG Bottom Sheet) ==================== -->
+  <div id="parentStatsHelpModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 transition-all">
+    <div class="bg-white rounded-t-[32px] sm:rounded-3xl max-w-lg w-full max-h-[92vh] sm:max-h-[90vh] flex flex-col shadow-2xl overflow-hidden border border-slate-100 animate-in fade-in zoom-in duration-200">
       
+      <!-- iOS Mobile Grabber Handle (拖曳導引把手) -->
+      <div class="w-10 h-1.5 bg-white/40 rounded-full mx-auto mt-2.5 -mb-2 sm:hidden z-10"></div>
+
       <!-- Modal 標題列 -->
       <div class="bg-gradient-to-r from-amber-600 via-amber-700 to-slate-900 text-white p-5 flex items-center justify-between shrink-0">
         <div class="flex items-center gap-3">
@@ -5948,7 +6059,7 @@
             <p class="text-xs text-amber-100 mt-0.5">以正向成長思維，看見孩子的真實學習定位與進步足跡</p>
           </div>
         </div>
-        <button onclick="closeParentStatsHelpModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-slate-200 hover:text-white flex items-center justify-center font-bold text-sm transition active:scale-90 cursor-pointer">
+        <button onclick="closeParentStatsHelpModal()" aria-label="關閉" class="w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 active:bg-white/30 text-slate-200 hover:text-white flex items-center justify-center font-bold text-base transition active:scale-95 cursor-pointer shrink-0">
           ✕
         </button>
       </div>
@@ -6107,10 +6218,13 @@
     </div>
   </div>
 
-  <!-- ==================== 📷 即時相機掃描 QR Code 彈窗 (Apple HIG Sheet Modal) ==================== -->
-  <div id="qrScannerModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-sm sm:max-w-md w-full shadow-2xl border border-slate-100 overflow-hidden transform transition-all flex flex-col max-h-[92vh] animate-in fade-in zoom-in-95 duration-200">
+  <!-- ==================== 📷 即時相機掃描 QR Code 彈窗 (Apple HIG Bottom Sheet) ==================== -->
+  <div id="qrScannerModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 transition-all">
+    <div class="bg-white rounded-t-[32px] sm:rounded-3xl max-w-sm sm:max-w-md w-full shadow-2xl border border-slate-100 overflow-hidden transform transition-all flex flex-col max-h-[92vh] animate-in fade-in zoom-in-95 duration-200">
       
+      <!-- iOS Mobile Grabber Handle (拖曳導引把手) -->
+      <div class="w-10 h-1.5 bg-slate-300 rounded-full mx-auto mt-2.5 -mb-2 sm:hidden z-10"></div>
+
       <!-- 頂部標題列 -->
       <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/90 shrink-0">
         <div class="flex items-center gap-2.5">
@@ -6122,7 +6236,7 @@
             <p class="text-[11px] text-slate-500">對準通知單上的專屬代碼圖形</p>
           </div>
         </div>
-        <button onclick="closeQrScannerModal()" class="w-8 h-8 rounded-full bg-slate-200/80 hover:bg-slate-300 active:scale-90 text-slate-600 flex items-center justify-center transition cursor-pointer text-xs font-bold">
+        <button onclick="closeQrScannerModal()" aria-label="關閉" class="w-11 h-11 rounded-full bg-slate-200/80 hover:bg-slate-300 active:bg-slate-400/80 text-slate-700 flex items-center justify-center transition active:scale-95 cursor-pointer text-sm font-bold shrink-0">
           ✕
         </button>
       </div>
