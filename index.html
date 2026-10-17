@@ -897,7 +897,12 @@
                       陳
                     </div>
                     <div>
-                      <div class="text-lg font-black tracking-tight" id="sbStudentName">--</div>
+                      <div class="text-lg font-black tracking-tight flex items-center gap-1.5">
+                        <span id="sbStudentName">--</span>
+                        <span class="text-[9px] font-bold text-amber-100 bg-black/20 px-1.5 py-0.2 rounded-full border border-white/20 tracking-normal flex items-center gap-0.5">
+                          <span>🛡️</span> 去識別化
+                        </span>
+                      </div>
                       <div class="text-[11px] text-amber-100/95 mt-0.5 font-medium flex items-center gap-1">
                         <span class="bg-white/20 px-1.5 py-0.2 rounded-full" id="sbClassName">-- 班</span>
                         <span>座號：<span id="sbSeatNumber" class="font-bold">--</span> 號</span>
@@ -1228,7 +1233,12 @@
                 學
               </div>
               <div>
-                <div class="text-xl font-black tracking-tight" id="pStudentName">--</div>
+                <div class="text-xl font-black tracking-tight flex items-center gap-1.5">
+                  <span id="pStudentName">--</span>
+                  <span class="text-[9px] font-bold text-amber-100 bg-black/20 px-1.5 py-0.2 rounded-full border border-white/20 tracking-normal flex items-center gap-0.5 shadow-2xs">
+                    <span>🛡️</span> 去識別化
+                  </span>
+                </div>
                 <div class="text-xs text-amber-100/95 mt-0.5 font-medium flex items-center gap-1.5">
                   <span class="bg-white/20 px-2 py-0.5 rounded-full" id="pClassName">-- 班</span>
                   <span>座號：<span id="pSeatNumber" class="font-bold">--</span> 號</span>
@@ -3886,9 +3896,28 @@
       }
     }
 
+    // ==========================================
+    // 🔒 個資法去識別化保護
+    // 規範：三個字名字中間變圈圈 (陳小明 ➔ 陳○明)
+    //      兩個字名字第二個字變圈圈 (陳華 ➔ 陳○)
+    //      四個字或以上保留首尾字，中間均替換為圈圈 (歐陽大華 ➔ 歐○○華)
+    // ==========================================
+    function maskStudentName(name) {
+      if (!name) return '--';
+      const clean = name.trim();
+      if (clean.length <= 1) return clean;
+      if (clean.length === 2) {
+        return clean.charAt(0) + '○';
+      }
+      if (clean.length === 3) {
+        return clean.charAt(0) + '○' + clean.charAt(2);
+      }
+      return clean.charAt(0) + '○'.repeat(clean.length - 2) + clean.charAt(clean.length - 1);
+    }
+
     function renderParentDashboard(student, exams) {
       currentStudentExams = exams;
-      document.getElementById('pStudentName').innerText = student.name;
+      document.getElementById('pStudentName').innerText = maskStudentName(student.name);
       const avatarEl = document.getElementById('pStudentAvatar');
       if (avatarEl) avatarEl.innerText = student.name ? student.name.charAt(0) : '學';
       document.getElementById('pClassName').innerText = student.className + ' 班';
@@ -5566,7 +5595,7 @@
       const nameEl = document.getElementById('sbStudentName');
       const clsEl = document.getElementById('sbClassName');
       const seatEl = document.getElementById('sbSeatNumber');
-      if (nameEl) nameEl.innerText = curSt.name;
+      if (nameEl) nameEl.innerText = maskStudentName(curSt.name);
       if (clsEl) clsEl.innerText = curSt.className + ' 班';
       if (seatEl) seatEl.innerText = curSt.seatNumber;
       const avEl = document.getElementById('sbStudentAvatar');

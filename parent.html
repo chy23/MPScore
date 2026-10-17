@@ -190,7 +190,12 @@
               陳
             </div>
             <div>
-              <div class="text-2xl font-black tracking-tight" id="pStudentName">--</div>
+              <div class="text-2xl font-black tracking-tight flex items-center gap-2">
+                <span id="pStudentName">--</span>
+                <span class="text-[10px] font-bold text-amber-100 bg-black/20 px-2 py-0.5 rounded-full border border-white/20 tracking-normal flex items-center gap-1 shadow-2xs">
+                  <span>🛡️</span> 個資去識別化
+                </span>
+              </div>
               <div class="text-xs text-amber-100/95 mt-1 font-medium flex items-center gap-2">
                 <span class="bg-white/20 px-2.5 py-0.5 rounded-full font-bold" id="pClassName">-- 班</span>
                 <span>座號：<span id="pSeatNumber" class="font-bold">--</span> 號</span>
@@ -1410,6 +1415,25 @@
       };
     }
 
+    // ==========================================
+    // 🔒 個資法去識別化保護
+    // 規範：三個字名字中間變圈圈 (陳小明 ➔ 陳○明)
+    //      兩個字名字第二個字變圈圈 (陳華 ➔ 陳○)
+    //      四個字或以上保留首尾字，中間均替換為圈圈 (歐陽大華 ➔ 歐○○華)
+    // ==========================================
+    function maskStudentName(name) {
+      if (!name) return '--';
+      const clean = name.trim();
+      if (clean.length <= 1) return clean;
+      if (clean.length === 2) {
+        return clean.charAt(0) + '○';
+      }
+      if (clean.length === 3) {
+        return clean.charAt(0) + '○' + clean.charAt(2);
+      }
+      return clean.charAt(0) + '○'.repeat(clean.length - 2) + clean.charAt(clean.length - 1);
+    }
+
     function renderParentDashboard(student, rawExams) {
       if (!rawExams || rawExams.length === 0) {
         alert('此學生目前尚無任何考試成績資料。');
@@ -1443,7 +1467,7 @@
 
       currentStudentExams = exams;
 
-      document.getElementById('pStudentName').innerText = student.name;
+      document.getElementById('pStudentName').innerText = maskStudentName(student.name);
       document.getElementById('pClassName').innerText = student.className + ' 班';
       document.getElementById('pSeatNumber').innerText = student.seatNumber;
       const av = document.getElementById('pStudentAvatar');
