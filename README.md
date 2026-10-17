@@ -1,5 +1,9 @@
 # 📊 MPScore - 智慧學生成績與學習診斷引導平台
 
+[![Version](https://img.shields.io/badge/MPScore-v2.7%20最新版-amber.svg)](https://github.com/chiahua/MPScore)
+[![Privacy](https://img.shields.io/badge/個資法-去識別化保護-emerald.svg)](https://github.com/chiahua/MPScore)
+[![Design](https://img.shields.io/badge/Apple%20HIG-人因工藝落地-blue.svg)](https://github.com/chiahua/MPScore)
+
 > **專為國中小與高中教師設計：每次考試就是一個新分頁，老師僅需貼上「各科原始分數」，其他所有「各科班級平均、個人總平均、班級排名、PR值、等第區間、學習診斷評語、跨次考試進退步對比」全交由網站全自動計算！**
 
 ---
@@ -94,4 +98,16 @@
 * **⚡ Apple HUD 浮動膠囊通知**：徹底汰除原生阻斷式 `window.alert()`，改採平滑動態島風格非同步 Toast，資訊傳達溫和不打斷操作。
 * **🎛️ 內嵌式分段控制器 (Inset Segmented Controls)**：科目切換列全面採用 iOS 標準凹槽與白色浮起選中塊，視覺純淨自然。
 * **🛡️ 安全邊界與無障礙降級**：全面支援 `viewport-fit=cover` 與 `safe-area-inset-*` 避免瀏海與手勢條遮擋；內建 `prefers-reduced-motion` 與 `prefers-reduced-transparency` 無障礙回退機制。
+
+---
+
+## 📜 版本更新紀錄 (Release Changelog)
+
+| 版本 | 發布日期 | 重大里程碑與核心變更 |
+| :--- | :--- | :--- |
+| **v2.7** | **2026-10-17** | **🔒 個資法去識別化保護 × 🍎 Apple HIG 人因工藝全面落地 × 📷 零手動輸入隱私閉環**<br>• 家長端學生姓名動態去識別化遮蔽（三字「陳○明」、兩字「王○」、四字「諸○○明」）。<br>• 全面落地 Apple HIG & Apple Design：HUD 浮動通知、iOS 原生底部抽屜工作表 (Bottom Sheet) + Grabber 把手、44×44 pt 觸控熱區、內嵌式分段控制器、Liquid Glass 捕光高光與無障礙相容。<br>• 100% 零手動輸入 QR Code 隱私閉環，杜絕代碼猜測漏洞。<br>• 全面通過無衝突標記與 JavaScript 零語法錯誤驗證，修復 `pScoreTableHead` DOM ID 關聯。 |
+| **v2.6** | **2026-10-16** | **🐝 5 大多元教育統計模組全新上線 ‧ 教師端自主控管**<br>• 🐝 蜜蜂聚落散佈圖（Beeswarm Plot，保留真實分數顆粒度與個人亮點）。<br>• ⚖️ 標準化 T 分數離差尺（T-Score Deviation Gauge，以 T=50 消除題目難易度偏態）。<br>• 🏋️ 跨次進退步啞鈴圖（Connected Dumbbell Plot，聚焦成長跨度）。<br>• 🧭 學科優勢與成長動能四象限矩陣（Strengths & Momentum 2x2 Matrix）。<br>• 🗺️ 學習歷程成長足跡地圖（Milestone Journey Trail，動態頒發成就勳章）。 |
+| **v2.5** | **2026-10-15** | **🔄 全新統計方法重構 ‧ Apple HIG 人文視覺體驗**<br>• 跨次考試成績分佈曲線同圖比對疊加與落點位移軌跡弧線。<br>• 單科真實成績分佈曲線（核密度 KDE 分析）與正向幾何盒鬚圖（Boxplot）。<br>• 導入暖陽琥珀與晨曦芽綠正向視覺語彙，全面汰除冰冷死板診斷。 |
+| **v2.0** | **2026-10-14** | **🖨️ A4 QR Code 家長通知小卡排版中心與 Google Sheets API 即時同步**<br>• 支援單張 A4 直向排版 4 位學生通知單，包含專屬 QR Code、班級平均與個人總平均。<br>• 教師留存版與家長發放版獨立 PDF 輸出。 |
+| **v1.0** | **2026-10-12** | **📊 MPScore 初代誕生**：各科常模換算、班級排名、雷達圖與 GradeInterpr 學習處方自動化。 |
 

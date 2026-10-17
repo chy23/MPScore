@@ -1503,7 +1503,7 @@
             <span class="text-[10px] text-amber-700 font-semibold bg-amber-50 px-2.5 py-0.5 rounded-full">班級常模對照</span>
           </div>
           <table class="w-full text-left text-xs">
-            <thead class="bg-slate-50/80 text-slate-500 font-bold">
+            <thead id="pScoreTableHead" class="bg-slate-50/80 text-slate-500 font-bold">
               <tr>
                 <th class="py-2.5 px-3">科目</th>
                 <th class="py-2.5 px-3 text-center">得分</th>
@@ -1650,7 +1650,7 @@
           <div>
             <div class="flex items-center gap-2">
               <h3 class="text-base md:text-lg font-black tracking-tight text-white">MPScore 系統詳細更新紀錄</h3>
-              <span class="text-[10px] bg-emerald-500 text-white font-black px-2 py-0.5 rounded-full">v2.6 最新版</span>
+              <span class="text-[10px] bg-emerald-500 text-white font-black px-2 py-0.5 rounded-full">v2.7 最新版</span>
             </div>
             <p class="text-xs text-slate-300 mt-0.5">持續精進 ‧ 獻給每一位用心教學與親師引導的教育工作者</p>
           </div>
@@ -1663,11 +1663,62 @@
       <!-- 更新日誌內容滾動區 -->
       <div class="p-5 md:p-8 overflow-y-auto space-y-6 text-xs text-slate-700 bg-slate-50/50 leading-relaxed">
         
-        <!-- v2.6 版本里程碑 -->
+        <!-- v2.7 版本里程碑 -->
         <div class="bg-white p-5 rounded-3xl border border-amber-300 shadow-sm space-y-4 relative overflow-hidden ring-2 ring-amber-400/20">
           <div class="flex items-center justify-between border-b border-slate-100 pb-3">
             <div class="flex items-center gap-2">
-              <span class="text-xs font-black bg-amber-500 text-slate-950 font-black px-2.5 py-1 rounded-xl shadow-xs">v2.6 最新版</span>
+              <span class="text-xs font-black bg-amber-500 text-slate-950 px-2.5 py-1 rounded-xl shadow-xs">v2.7 最新版</span>
+              <span class="text-sm font-black text-slate-900">個資法去識別化保護 × Apple HIG 人因工藝 × 零手動輸入隱私閉環</span>
+            </div>
+            <span class="text-[11px] text-slate-400 font-mono font-bold">2026-10-17</span>
+          </div>
+
+          <div class="space-y-3.5">
+            <div class="p-3 bg-amber-50/80 rounded-2xl border border-amber-200/80 text-[11px] text-amber-950 font-bold space-y-1">
+              <div>🛡️ <b>系統亮點與工藝規範落實總結</b>：</div>
+              <ul class="list-disc list-inside font-normal text-slate-700 pl-1 space-y-0.5">
+                <li><b>🔒 個資法去識別化保護</b>：落實個人資料保護法規範，家長端姓名全數去識別化遮蔽，守護家庭與學童隱私。</li>
+                <li><b>🍎 Apple Design & Apple HIG 人因工藝標準全面落地</b>：導入 Apple HUD 浮動通知、iOS 原生底部抽屜工作表、44×44 pt 觸控熱區、內嵌式分段控制器與 Liquid Glass 頂部捕光高光。</li>
+                <li><b>📷 100% 零手動輸入 QR Code 隱私閉環</b>：徹底淘汰手動輸入框，杜絕惡意猜測他人代碼之安全漏洞。</li>
+                <li><b>🛠️ 程式碼無衝突與 DOM 容錯性驗證</b>：修正內部 `pScoreTableHead` 標籤 ID，通過零語法錯誤與無衝突標記嚴格檢測。</li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 class="font-bold text-amber-950 text-xs flex items-center gap-1.5 mb-1">
+                <span>🔒</span> 1. 學生姓名個資去識別化演算法（個資法合規保護）
+              </h4>
+              <p class="text-slate-600 text-[11px]">家長端與預覽沙盒全面導入動態去識別化機制：三個字姓名中間替換為圓圈（例：<b>陳小明 ➔ 陳○明</b>）、兩個字姓名替換第二字（例：<b>王明 ➔ 王○</b>）、四個字以上僅保留首尾兩字（例：<b>諸葛孔明 ➔ 諸○○明</b>），徹底防範窺視風險。</p>
+            </div>
+
+            <div>
+              <h4 class="font-bold text-amber-950 text-xs flex items-center gap-1.5 mb-1">
+                <span>🍎</span> 2. Apple Design & HIG 人機互動體驗標準
+              </h4>
+              <ul class="list-disc list-inside space-y-1 text-slate-600 text-[11px] pl-1">
+                <li><b>Apple HUD 浮動膠囊通知</b>：全面取代瀏覽器原生阻塞式 `alert()`，改為非同步溫和浮動通知，操作流程順暢不中斷。</li>
+                <li><b>iOS 原生底部抽屜工作表 (Bottom Sheet)</b>：移動端 Modal 全面升級為底部抽屜形態，具備頂部圓角、拖曳導引把手 (Grabber Handle)，單手拇指操作極為舒適。</li>
+                <li><b>44×44 pt 觸控安全熱區</b>：關閉鈕、選單項目與按鈕全面符合 Apple HIG 最小觸控熱區規範，杜絕手機誤觸。</li>
+                <li><b>內嵌式分段控制器 (Segmented Controls)</b>：科目切換採用 iOS 原生風格凹槽與白色浮動卡片，操作手感細膩直觀。</li>
+                <li><b>Liquid Glass 捕光通透工藝</b>：多層毛玻璃效果輔以頂部 `1px` 捕光高光 (`inset 0 1px 0 0 rgba(255,255,255,0.6)`)，層次通透細緻。</li>
+                <li><b>無障礙降級相容</b>：支援系統級 `prefers-reduced-motion` 與 `prefers-reduced-transparency`，兼顧所有使用者的最佳閱讀體驗。</li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 class="font-bold text-amber-950 text-xs flex items-center gap-1.5 mb-1">
+                <span>📷</span> 3. 100% QR Code 零手動輸入隱私閉環
+              </h4>
+              <p class="text-slate-600 text-[11px]">全面汰除文字輸入框，家長僅需掃描紙本通知單上的專屬 QR Code 或於網頁上傳通知單截圖，即可秒速直達個人專屬手札，建立堅實隱私屏障。</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- v2.6 版本里程碑 -->
+        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4 relative overflow-hidden">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-black bg-slate-100 text-slate-700 px-2.5 py-1 rounded-xl">v2.6</span>
               <span class="text-sm font-black text-slate-900">5 大多元教育統計模組全新上線 ‧ 教師端自主控管</span>
             </div>
             <span class="text-[11px] text-slate-400 font-mono font-bold">2026-10-16</span>
@@ -6075,6 +6126,17 @@
           <p class="text-[11px] text-slate-600 leading-relaxed">
             親愛的家長您好！單一的分數往往容易受試卷難易度影響，傳統排名也容易引發不必要的同儕焦慮。本系統全面導入現代統計視覺化與<b>正向成長心態（Growth Mindset）</b>，幫助您看見孩子在全班中的真實常模落點，以及更重要的——<b>與過去的自己比較、看見每一步前進的軌跡</b>。
           </p>
+        </div>
+
+        <!-- 🛡️ 個資保護與 iOS 原生工藝體驗說明 (v2.7) -->
+        <div class="p-3.5 bg-gradient-to-r from-emerald-50 to-teal-50/60 rounded-2xl border border-emerald-200/70 text-slate-800 space-y-1.5">
+          <div class="font-bold text-emerald-950 flex items-center gap-1.5 text-xs">
+            <span>🛡️</span> 貼心守護：個資法去識別化保護與 Apple 流體體驗
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-slate-600 text-[11px] pl-1">
+            <li><b>🔒 姓名去識別化遮蔽</b>：落實個資法保護，家長端顯示之孩子姓名全面經過安全遮蔽（例如「陳○明」、「王○」），外出或大眾運輸閱讀時不怕被旁人窺視。</li>
+            <li><b>🍎 iOS 原生底部抽屜體驗</b>：說明與相機掃描全面升級為符合 Apple HIG 規範之底部抽屜卡（Bottom Sheet）與非阻塞通知，單手拇指操作極為流暢順手。</li>
+          </ul>
         </div>
 
         <!-- 1. 跨次考試曲線疊加與落點位移 -->
