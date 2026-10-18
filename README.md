@@ -1,6 +1,6 @@
 # 📊 MPScore - 智慧學生成績與學習診斷引導平台
 
-[![Version](https://img.shields.io/badge/MPScore-v2.7%20最新版-amber.svg)](https://github.com/chiahua/MPScore)
+[![Version](https://img.shields.io/badge/MPScore-v2.7.1%20最新版-amber.svg)](https://github.com/chiahua/MPScore)
 [![Privacy](https://img.shields.io/badge/個資法-去識別化保護-emerald.svg)](https://github.com/chiahua/MPScore)
 [![Design](https://img.shields.io/badge/Apple%20HIG-人因工藝落地-blue.svg)](https://github.com/chiahua/MPScore)
 
@@ -105,6 +105,7 @@
 
 | 版本 | 發布日期 | 重大里程碑與核心變更 |
 | :--- | :--- | :--- |
+| **v2.7.1** | **2026-10-18** | **🖨️ A4 每頁 8 張小卡列印跨頁截斷與空白頁完美修復**<br>• 徹底解決列印時因背景元素未隔離導致 Page 1 出現空白頁之問題（導入 `body > :not(#printPreviewModal) { display: none !important; }`）。<br>• 為「每頁 8 張 (2×4)」小卡開發專屬 `isUltraCompact` 微縮排版：高精度 46px QR Code、標題與考試名稱同列緊湊並排、微距科目藥丸格，確保 4 列卡片總高度（約 205mm）遠小於 A4 頁高（296mm）。<br>• 嚴格鎖定列印尺寸為 `210mm × 296mm` 搭配 `overflow: hidden` 與 `min-h-0`，保證 100% 每頁剛好 8 張，絕不跨頁或產生多餘空白頁。 |
 | **v2.7** | **2026-10-17** | **🔒 個資法去識別化保護 × 🍎 Apple HIG 人因工藝全面落地 × 📷 零手動輸入隱私閉環**<br>• 家長端學生姓名動態去識別化遮蔽（三字「陳○明」、兩字「王○」、四字「諸○○明」）。<br>• 全面落地 Apple HIG & Apple Design：HUD 浮動通知、iOS 原生底部抽屜工作表 (Bottom Sheet) + Grabber 把手、44×44 pt 觸控熱區、內嵌式分段控制器、Liquid Glass 捕光高光與無障礙相容。<br>• 100% 零手動輸入 QR Code 隱私閉環，杜絕代碼猜測漏洞。<br>• 全面通過無衝突標記與 JavaScript 零語法錯誤驗證，修復 `pScoreTableHead` DOM ID 關聯。 |
 | **v2.6** | **2026-10-16** | **🐝 5 大多元教育統計模組全新上線 ‧ 教師端自主控管**<br>• 🐝 蜜蜂聚落散佈圖（Beeswarm Plot，保留真實分數顆粒度與個人亮點）。<br>• ⚖️ 標準化 T 分數離差尺（T-Score Deviation Gauge，以 T=50 消除題目難易度偏態）。<br>• 🏋️ 跨次進退步啞鈴圖（Connected Dumbbell Plot，聚焦成長跨度）。<br>• 🧭 學科優勢與成長動能四象限矩陣（Strengths & Momentum 2x2 Matrix）。<br>• 🗺️ 學習歷程成長足跡地圖（Milestone Journey Trail，動態頒發成就勳章）。 |
 | **v2.5** | **2026-10-15** | **🔄 全新統計方法重構 ‧ Apple HIG 人文視覺體驗**<br>• 跨次考試成績分佈曲線同圖比對疊加與落點位移軌跡弧線。<br>• 單科真實成績分佈曲線（核密度 KDE 分析）與正向幾何盒鬚圖（Boxplot）。<br>• 導入暖陽琥珀與晨曦芽綠正向視覺語彙，全面汰除冰冷死板診斷。 |
