@@ -2727,15 +2727,14 @@
       const visibleCount = (pCfg.showAvg ? 1 : 0) + (pCfg.showRank ? 1 : 0) + (pCfg.showClassAvg ? 1 : 0);
       if (examData && visibleCount > 0) {
         const gridColClass = visibleCount === 1 ? 'grid-cols-1' : (visibleCount === 2 ? 'grid-cols-2' : 'grid-cols-3');
-        const statMy = isUltraCompact ? 'my-1' : (isCompact ? 'my-1' : 'my-1.5');
-        const statPad = isUltraCompact ? 'p-1.5' : (isCompact ? 'p-1.5' : 'p-2');
+        const statPad = isUltraCompact ? 'py-1 px-1.5' : (isCompact ? 'py-1 px-1.5' : 'py-1.5 px-2');
         const statLabelFont = isUltraCompact ? 'text-[9.5px]' : (isCompact ? 'text-[10px]' : 'text-xs');
         const statValFont = isUltraCompact ? 'text-xs' : (isCompact ? 'text-xs md:text-sm' : 'text-sm md:text-base');
         statsBarHtml = `
-          <div class="grid ${gridColClass} gap-1 bg-slate-50/90 ${statPad} rounded-xl border border-slate-200 text-center ${statMy} shadow-2xs">
-            ${pCfg.showAvg ? `<div><span class="${statLabelFont} text-slate-500 font-medium block leading-snug">個人總平均</span><span class="font-black text-amber-800 ${statValFont} leading-snug mt-0.5 block">${examData.studentAverage}分</span></div>` : ''}
-            ${pCfg.showRank ? `<div><span class="${statLabelFont} text-slate-500 font-medium block leading-snug">班級名次</span><span class="font-black text-amber-600 ${statValFont} leading-snug mt-0.5 block">第${examData.studentRank}名<span class="text-[8px] font-normal text-slate-400">/${examData.totalStudents}</span></span></div>` : ''}
-            ${pCfg.showClassAvg ? `<div><span class="${statLabelFont} text-slate-500 font-medium block leading-snug">全班平均</span><span class="font-black text-slate-700 ${statValFont} leading-snug mt-0.5 block">${examData.classOverallAverage}分</span></div>` : ''}
+          <div class="grid ${gridColClass} gap-1.5 bg-slate-50/90 ${statPad} rounded-xl border border-slate-200 text-center shadow-2xs items-center">
+            ${pCfg.showAvg ? `<div class="flex flex-col items-center justify-center"><span class="${statLabelFont} text-slate-500 font-medium leading-tight">個人總平均</span><span class="font-black text-amber-800 ${statValFont} leading-tight mt-0.5">${examData.studentAverage}分</span></div>` : ''}
+            ${pCfg.showRank ? `<div class="flex flex-col items-center justify-center"><span class="${statLabelFont} text-slate-500 font-medium leading-tight">班級名次</span><span class="font-black text-amber-600 ${statValFont} leading-tight mt-0.5">第${examData.studentRank}名<span class="text-[8px] font-normal text-slate-400">/${examData.totalStudents}</span></span></div>` : ''}
+            ${pCfg.showClassAvg ? `<div class="flex flex-col items-center justify-center"><span class="${statLabelFont} text-slate-500 font-medium leading-tight">全班平均</span><span class="font-black text-slate-700 ${statValFont} leading-tight mt-0.5">${examData.classOverallAverage}分</span></div>` : ''}
           </div>
         `;
       }
@@ -2747,17 +2746,17 @@
         const fontName = isUltraCompact ? 'text-[10px]' : (isCompact ? 'text-[10.5px]' : 'text-xs');
         const fontScore = isUltraCompact ? 'text-xs' : (isCompact ? 'text-xs md:text-sm' : 'text-sm md:text-base');
         const padClass = isUltraCompact ? 'py-1 px-1' : (isCompact ? 'py-1 px-1' : 'py-1.5 px-1');
-        const containerMy = isUltraCompact ? 'my-1 p-1' : (isCompact ? 'p-1 my-1' : 'p-1.5 my-1.5');
+        const containerPad = isUltraCompact ? 'p-1' : (isCompact ? 'p-1' : 'p-1.5');
         const gapClass = isUltraCompact ? 'gap-1' : 'gap-1.5';
 
         subjectsBarHtml = `
-          <div class="w-full bg-amber-50/80 rounded-xl border border-amber-300 ${containerMy} shadow-2xs">
+          <div class="w-full bg-amber-50/80 rounded-xl border border-amber-300 ${containerPad} shadow-2xs">
             <div class="grid ${gapClass} text-center items-stretch" style="${colStyle}">
               ${examData.subjects.map(s => `
-                <div class="bg-white/95 rounded-lg border border-amber-200/90 ${padClass} flex flex-col items-center justify-center text-center shadow-2xs transition hover:border-amber-300">
-                  <span class="${fontName} font-bold text-slate-700 block leading-snug">${s.name}</span>
-                  <span class="${fontScore} font-black text-amber-800 tracking-tight leading-snug mt-0.5">${s.score}</span>
-                  ${pCfg.showPr && s.pr ? `<span class="text-[8px] font-bold text-amber-700 bg-amber-100/80 px-1 py-0.2 rounded mt-0.5 leading-none">PR${s.pr}</span>` : ''}
+                <div class="bg-white/95 rounded-lg border border-amber-200/90 ${padClass} flex flex-col items-center justify-center text-center shadow-2xs">
+                  <span class="${fontName} font-bold text-slate-700 leading-tight">${s.name}</span>
+                  <span class="${fontScore} font-black text-amber-800 tracking-tight leading-tight mt-0.5">${s.score}</span>
+                  ${pCfg.showPr && s.pr ? `<span class="inline-flex items-center justify-center text-[8px] font-bold text-amber-700 bg-amber-100/80 px-1 py-0.2 rounded mt-0.5 leading-none">PR${s.pr}</span>` : ''}
                 </div>
               `).join('')}
             </div>
@@ -2767,62 +2766,62 @@
 
       const schoolFont = isUltraCompact ? 'text-[10px]' : 'text-xs';
       const titleFont = isUltraCompact ? 'text-xs' : (isCompact ? 'text-xs md:text-sm' : 'text-sm md:text-base');
-      const examBadge = examData ? `<span class="text-[9px] font-bold text-amber-800 bg-amber-100/80 px-1.5 py-0.2 rounded-md shrink-0">【${examData.sheetName || examData.examTitle}】</span>` : '';
+      const examBadge = examData ? `<span class="inline-flex items-center justify-center text-[9px] font-bold text-amber-900 bg-amber-100/90 px-1.5 py-0.5 rounded leading-none shrink-0 align-middle">【${examData.sheetName || examData.examTitle}】</span>` : '';
       const nameFont = isUltraCompact ? 'text-sm' : (isCompact ? 'text-sm md:text-base' : 'text-base');
-      const footClass = isUltraCompact ? 'text-[9px] pt-1 mt-1' : 'text-[9.5px] pt-1 mt-1';
+      const footClass = isUltraCompact ? 'text-[9px] pt-1' : 'text-[9.5px] pt-1';
 
       return `
-        <div class="flex flex-col justify-between h-full">
-          <div>
-            <!-- 標題列 -->
-            <div class="flex items-start justify-between border-b pb-1 mb-1">
-              <div class="min-w-0 flex-1">
-                <div class="${schoolFont} font-bold text-amber-800 tracking-wider leading-snug">${schoolTitle}</div>
-                <div class="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                  <span class="${titleFont} font-black text-slate-800 leading-snug">${noticeTitle}</span>
-                  ${examBadge}
-                </div>
-              </div>
-              <div class="text-right shrink-0 ml-2">
-                <span class="text-[10px] font-bold bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded-md">${st.className} 班</span>
+        <div class="flex flex-col justify-between h-full space-y-1">
+          <!-- 標題列 -->
+          <div class="flex items-start justify-between border-b pb-1">
+            <div class="min-w-0 flex-1">
+              <div class="${schoolFont} font-bold text-amber-800 tracking-wider leading-tight">${schoolTitle}</div>
+              <div class="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                <span class="${titleFont} font-black text-slate-800 leading-tight">${noticeTitle}</span>
+                ${examBadge}
               </div>
             </div>
-
-            <!-- 學生資訊與 QR Code -->
-            <div class="flex items-center justify-between gap-2 my-1">
-              <div class="space-y-0.5 flex-1 min-w-0">
-                <div class="${nameFont} font-black text-slate-900 leading-snug">
-                  ${st.name} <span class="text-[10.5px] font-normal text-slate-500">(${st.seatNumber}號)</span>
-                </div>
-                ${pCfg.showStudentId && (st.studentId || (st.className && st.seatNumber)) ? `
-                  <div class="text-[10px] text-slate-500 font-medium leading-snug">
-                    班級-座號：<span class="font-mono text-slate-700 font-bold">${st.studentId || (st.className + '-' + st.seatNumber)}</span>
-                  </div>
-                ` : ''}
-                
-                ${pCfg.showToken ? `
-                  <div class="text-[9.5px] px-2 py-0.5 text-amber-950 font-bold bg-amber-50 rounded-lg border border-amber-200/90 inline-flex items-center gap-1 shadow-2xs mt-0.5">
-                    <span class="text-amber-700 font-bold">代碼：</span>
-                    <span class="font-mono text-xs font-black tracking-wider text-amber-800">${st.token}</span>
-                  </div>
-                ` : ''}
-              </div>
-
-              <!-- QR Code 容器 -->
-              <div class="flex flex-col items-center shrink-0">
-                <div id="${cardId}" class="p-0.5 bg-white border border-slate-200 rounded shadow-2xs"></div>
-                <span class="text-[8.5px] text-slate-400 mt-0.5 leading-snug">相機掃描直達</span>
-              </div>
+            <div class="text-right shrink-0 ml-2">
+              <span class="inline-flex items-center justify-center text-[10px] font-bold bg-slate-100 text-slate-700 px-2 py-0.5 rounded leading-none">${st.className} 班</span>
             </div>
-
-            <!-- 動態呈現所勾選之紙本統計事項 -->
-            ${statsBarHtml}
-            ${subjectsBarHtml}
           </div>
 
+          <!-- 學生資訊與 QR Code -->
+          <div class="flex items-center justify-between gap-2 py-0.5">
+            <div class="space-y-0.5 flex-1 min-w-0">
+              <div class="${nameFont} font-black text-slate-900 leading-tight">
+                ${st.name} <span class="text-[10.5px] font-normal text-slate-500">(${st.seatNumber}號)</span>
+              </div>
+              ${pCfg.showStudentId && (st.studentId || (st.className && st.seatNumber)) ? `
+                <div class="text-[10px] text-slate-500 font-medium leading-tight">
+                  班級-座號：<span class="font-mono text-slate-700 font-bold">${st.studentId || (st.className + '-' + st.seatNumber)}</span>
+                </div>
+              ` : ''}
+              
+              ${pCfg.showToken ? `
+                <div class="inline-flex items-center justify-center text-[9.5px] px-2 py-0.5 text-amber-950 font-bold bg-amber-50 rounded-lg border border-amber-200/90 leading-none shadow-2xs mt-0.5">
+                  <span class="text-amber-700">代碼：</span>
+                  <span class="font-mono text-xs font-black tracking-wider text-amber-800">${st.token}</span>
+                </div>
+              ` : ''}
+            </div>
+
+            <!-- QR Code 容器 -->
+            <div class="flex flex-col items-center justify-center shrink-0">
+              <div id="${cardId}" class="p-0.5 bg-white border border-slate-200 rounded shadow-2xs"></div>
+              <span class="text-[8.5px] text-slate-400 mt-0.5 leading-tight text-center">相機掃描直達</span>
+            </div>
+          </div>
+
+          <!-- 動態呈現所勾選之紙本統計事項 -->
+          ${statsBarHtml}
+          ${subjectsBarHtml}
+
+          <!-- 頁腳備註說明 -->
           ${pCfg.showFootnote && footnote ? `
-            <div class="${footClass} text-slate-400 border-t leading-snug shrink-0">
-              ℹ️ ${footnote}
+            <div class="${footClass} text-slate-400 border-t flex items-center gap-1 shrink-0">
+              <span class="text-[10px]">ℹ️</span>
+              <span class="leading-normal">${footnote}</span>
             </div>
           ` : ''}
         </div>
