@@ -21,6 +21,7 @@ function onOpen() {
     .addItem('🔄 用最新考試名單，更新「學生名冊」', 'syncStudentsFromExamSheet')
     .addItem('🔑 為全班產生「家長查詢代碼」', 'generateTokensForStudents')
     .addSeparator()
+    .addItem('📋 查看「家長閱覽紀錄」', 'openParentAccessLogSheet')
     .addItem('📐 自動整理欄寬與表格排版', 'autoFormatAndResizeAllSheets')
     .addItem('🚀 立即更新雲端資料（改完分數點此）', 'clearSystemCache')
     .addItem('📊 查看全班成績與各科平均', 'previewClassStatistics')
@@ -232,6 +233,8 @@ function doGet(e) {
     } else if (action === 'appendExamScores') {
       var body = params.payload || (e && e.postData && e.postData.contents ? e.postData.contents : '');
       output = appendExamScores(body);
+    } else if (action === 'getParentAccessLogs') {
+      output = getParentAccessLogs();
     } else {
       output = { success: false, message: '未知的操作請求' };
     }
@@ -296,6 +299,9 @@ function getStudentScoreByToken(token) {
     if (cachedJson) {
       var cachedObj = JSON.parse(cachedJson);
       cachedObj.fromCache = true;
+      if (cachedObj.student) {
+        recordParentAccess(cachedObj.student);
+      }
       return cachedObj;
     }
   } catch (e) {
@@ -343,6 +349,9 @@ function getStudentScoreByToken(token) {
   if (!student) {
     return { success: false, message: '驗證失敗：查無代碼或學生姓名「' + token + '」，請確認是否輸入正確。' };
   }
+
+  // 記錄家長閱覽日誌
+  recordParentAccess(student);
 
   // 2. 遍歷試算表中所有的考試分頁
   var allSheets = ss.getSheets();
@@ -1495,6 +1504,190 @@ function autoFormatAndResizeAllSheets() {
   );
 }
 
+// ========================================================
+// 家長閱覽紀錄日誌與已讀追蹤模組
+// ========================================================
+
+/**
+ * 取得或自動建立【家長閱覽紀錄】工作表
+ */
+function getOrCreateAccessLogSheet(ss) {
+  var sheet = ss.getSheetByName('家長閱覽紀錄');
+  if (!sheet) {
+    sheet = ss.insertSheet('家長閱覽紀錄');
+    var headers = [['閱覽時間', '班級', '座號', '學生姓名', '查詢代碼', '狀態說明']];
+    sheet.getRange(1, 1, 1, 6).setValues(headers)
+      .setBackground('#0d9488') // 質感松綠
+      .setFontColor('#ffffff')
+      .setFontWeight('bold')
+      .setHorizontalAlignment('center');
+    sheet.setColumnWidth(1, 170); // 閱覽時間
+    sheet.setColumnWidth(2, 80);  // 班級
+    sheet.setColumnWidth(3, 70);  // 座號
+    sheet.setColumnWidth(4, 110); // 學生姓名
+    sheet.setColumnWidth(5, 110); // 查詢代碼
+    sheet.setColumnWidth(6, 130); // 狀態說明
+    sheet.setRowHeight(1, 34);
+    sheet.setFrozenRows(1);
+    sheet.getRange(1, 1, 1, 6).setVerticalAlignment('middle');
+  }
+  return sheet;
+}
+
+/**
+ * 記錄家長閱覽成績日誌 (附帶 60 秒冷卻防刷保護)
+ */
+function recordParentAccess(student) {
+  if (!student || !student.token) return;
+  var cache = CacheService.getScriptCache();
+  var debounceKey = 'log_db_' + encodeURIComponent(student.token.toString().toUpperCase());
+  if (cache.get(debounceKey)) {
+    return; // 60 秒內已記錄過，防重複觸發
+  }
+  cache.put(debounceKey, '1', 60);
+
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var logSheet = getOrCreateAccessLogSheet(ss);
+    var nowStr = Utilities.formatDate(new Date(), 'Asia/Taipei', 'yyyy/MM/dd HH:mm:ss');
+    logSheet.appendRow([
+      nowStr,
+      student.className || '',
+      student.seatNumber || '',
+      student.name || '',
+      student.token || '',
+      '線上成績查閱'
+    ]);
+  } catch (err) {
+    // 記錄日誌失敗不應阻斷家長看成績
+  }
+}
+
+/**
+ * 取得家長閱覽日誌與全班已讀/未讀統計分析
+ */
+function getParentAccessLogs() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sSheet = ss.getSheetByName('學生名冊');
+  if (!sSheet) {
+    return { success: false, message: '找不到【學生名冊】分頁' };
+  }
+
+  // 1. 取得學生名單
+  var sData = sSheet.getDataRange().getValues();
+  var studentsMap = {};
+  var studentsList = [];
+
+  for (var i = 1; i < sData.length; i++) {
+    var row = sData[i];
+    var cls = row[0] ? row[0].toString().trim() : '';
+    var seat = normalizeSeatNumber(row[1]);
+    var name = row[2] ? row[2].toString().trim() : '';
+    var token = row[3] ? row[3].toString().trim() : '';
+    var isEnabled = row[4];
+
+    if (seat || name) {
+      var stObj = {
+        className: cls,
+        seatNumber: seat,
+        name: name,
+        token: token,
+        studentId: (cls || '') + '-' + seat,
+        isEnabled: isEnabled !== false,
+        isRead: false,
+        readCount: 0,
+        lastReadTime: ''
+      };
+      studentsList.push(stObj);
+      if (token) {
+        studentsMap[token.toUpperCase()] = stObj;
+      }
+      if (seat) {
+        studentsMap['SEAT_' + seat] = stObj;
+      }
+    }
+  }
+
+  // 2. 取得【家長閱覽紀錄】
+  var logSheet = ss.getSheetByName('家長閱覽紀錄');
+  var recentLogs = [];
+  var totalLogsCount = 0;
+
+  if (logSheet && logSheet.getLastRow() > 1) {
+    var logData = logSheet.getDataRange().getValues();
+    totalLogsCount = logData.length - 1;
+
+    // 從最後一列往回讀 (最新排前面)
+    for (var r = logData.length - 1; r >= 1; r--) {
+      var logRow = logData[r];
+      var timeStr = logRow[0] ? (logRow[0] instanceof Date ? Utilities.formatDate(logRow[0], 'Asia/Taipei', 'yyyy/MM/dd HH:mm:ss') : logRow[0].toString().trim()) : '';
+      var logCls = logRow[1] ? logRow[1].toString().trim() : '';
+      var logSeat = normalizeSeatNumber(logRow[2]);
+      var logName = logRow[3] ? logRow[3].toString().trim() : '';
+      var logToken = logRow[4] ? logRow[4].toString().trim().toUpperCase() : '';
+      var logNote = logRow[5] ? logRow[5].toString().trim() : '線上成績查閱';
+
+      // 歸納進學生統計
+      var matchedStudent = (logToken && studentsMap[logToken]) || (logSeat && studentsMap['SEAT_' + logSeat]);
+      if (matchedStudent) {
+        matchedStudent.isRead = true;
+        matchedStudent.readCount = (matchedStudent.readCount || 0) + 1;
+        if (!matchedStudent.lastReadTime) {
+          matchedStudent.lastReadTime = timeStr; // 第一個碰到的就是最新時間
+        }
+      }
+
+      // 保留最近 50 筆供即時時間軸展示
+      if (recentLogs.length < 50) {
+        recentLogs.push({
+          time: timeStr,
+          className: logCls,
+          seatNumber: logSeat,
+          name: logName,
+          token: logToken,
+          note: logNote
+        });
+      }
+    }
+  }
+
+  // 3. 統計彙整
+  var totalStudents = studentsList.length;
+  var readStudents = 0;
+  for (var k = 0; k < studentsList.length; k++) {
+    if (studentsList[k].isRead) {
+      readStudents++;
+    }
+  }
+  var unreadStudents = Math.max(0, totalStudents - readStudents);
+  var readRate = totalStudents > 0 ? ((readStudents / totalStudents) * 100).toFixed(1) + '%' : '0%';
+
+  return {
+    success: true,
+    summary: {
+      total: totalStudents,
+      readCount: readStudents,
+      unreadCount: unreadStudents,
+      readRate: readRate,
+      totalLogViews: totalLogsCount,
+      latestAccessTime: recentLogs.length > 0 ? recentLogs[0].time : '尚無紀錄'
+    },
+    students: studentsList,
+    recentLogs: recentLogs
+  };
+}
+
+/**
+ * 在 Google 試算表中直接切換開啟【家長閱覽紀錄】
+ */
+function openParentAccessLogSheet() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var logSheet = getOrCreateAccessLogSheet(ss);
+  ss.setActiveSheet(logSheet);
+  var count = Math.max(0, logSheet.getLastRow() - 1);
+  SpreadsheetApp.getUi().alert('📋 家長閱覽日誌', '目前累積共有 ' + count + ' 筆家長閱覽紀錄。\n您可在此分頁直接查閱每筆詳細時間戳記與學生姓名。', SpreadsheetApp.getUi().ButtonSet.OK);
+}
+
 var MPScoreEngine = {
   autoFormatAndResizeAllSheets: autoFormatAndResizeAllSheets,
   setupStandardSheets: setupStandardSheets,
@@ -1502,7 +1695,10 @@ var MPScoreEngine = {
   syncStudentsFromExamSheet: syncStudentsFromExamSheet,
   generateTokensForStudents: generateTokensForStudents,
   previewClassStatistics: previewClassStatistics,
+  openParentAccessLogSheet: openParentAccessLogSheet,
+  getParentAccessLogs: getParentAccessLogs,
   handleDoGet: doGet,
   handleDoPost: doPost
 };
+
 

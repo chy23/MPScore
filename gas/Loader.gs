@@ -41,6 +41,7 @@ function onOpen() {
     .addItem('🔄 用最新考試名單，更新「學生名冊」', 'syncStudentsFromExamSheet')
     .addItem('🔑 為全班產生「家長查詢代碼」', 'generateTokensForStudents')
     .addSeparator()
+    .addItem('📋 查看「家長閱覽紀錄」', 'openParentAccessLogSheet')
     .addItem('📐 自動整理欄寬與表格排版', 'autoFormatAndResizeAllSheets')
     .addItem('📊 查看全班成績與各科平均', 'previewClassStatistics')
     .addSeparator()
@@ -53,6 +54,7 @@ function setupStandardSheets() { getEngine().setupStandardSheets(); }
 function createNewExamSheetFromRoster() { getEngine().createNewExamSheetFromRoster(); }
 function syncStudentsFromExamSheet() { getEngine().syncStudentsFromExamSheet(); }
 function generateTokensForStudents() { getEngine().generateTokensForStudents(); }
+function openParentAccessLogSheet() { getEngine().openParentAccessLogSheet(); }
 function autoFormatAndResizeAllSheets() { getEngine().autoFormatAndResizeAllSheets(); }
 function previewClassStatistics() { getEngine().previewClassStatistics(); }
 
