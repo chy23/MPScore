@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgP" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FCD34D"/>
+      <stop offset="25%" stop-color="#F59E0B"/>
+      <stop offset="75%" stop-color="#EA580C"/>
+      <stop offset="100%" stop-color="#C2410C"/>
+    </linearGradient>
+    <linearGradient id="leafP1" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#059669"/>
+      <stop offset="55%" stop-color="#10B981"/>
+      <stop offset="100%" stop-color="#34D399"/>
+    </linearGradient>
+    <linearGradient id="leafP2" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#047857"/>
+      <stop offset="45%" stop-color="#059669"/>
+      <stop offset="100%" stop-color="#10B981"/>
+    </linearGradient>
+    <linearGradient id="stemP" x1="50%" y1="100%" x2="50%" y2="0%">
+      <stop offset="0%" stop-color="#064E3B"/>
+      <stop offset="70%" stop-color="#059669"/>
+      <stop offset="100%" stop-color="#10B981"/>
+    </linearGradient>
+    <linearGradient id="starP" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FEF08A"/>
+      <stop offset="50%" stop-color="#FDE047"/>
+      <stop offset="100%" stop-color="#F59E0B"/>
+    </linearGradient>
+    <filter id="dropP" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#451A03" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <rect x="0" y="0" width="512" height="512" rx="115" fill="url(#bgP)"/>
+  <rect x="2" y="2" width="508" height="508" rx="113" fill="none" stroke="#FFFFFF" stroke-opacity="0.45" stroke-width="4"/>
+
+  <!-- Centered Sprout Motif -->
+  <g filter="url(#dropP)">
+    <!-- Soil Mound Base -->
+    <path d="M 150 415 C 200 398 312 398 362 415 C 325 432 187 432 150 415 Z" fill="#451A03" fill-opacity="0.25"/>
+
+    <!-- Plump Stem -->
+    <path d="M 256 410 C 253 340 250 270 256 195" 
+          stroke="url(#stemP)" stroke-width="36" stroke-linecap="round" fill="none"/>
+
+    <!-- Left Heart-Shaped Leaf -->
+    <path d="M 254 300 
+             C 150 300 70 205 120 135
+             C 170 70 255 155 254 300 Z" 
+          fill="url(#leafP1)"/>
+    <path d="M 148 148 C 182 135 224 175 242 240" 
+          stroke="#FFFFFF" stroke-width="5.5" stroke-linecap="round" fill="none" stroke-opacity="0.45"/>
+
+    <!-- Right Rising Leaf -->
+    <path d="M 256 250 
+             C 360 250 442 150 392 85
+             C 338 25 255 120 256 250 Z" 
+          fill="url(#leafP2)"/>
+    <path d="M 364 105 C 332 92 284 130 274 195" 
+          stroke="#A7F3D0" stroke-width="5.5" stroke-linecap="round" fill="none" stroke-opacity="0.55"/>
+
+    <!-- Radiant Achievement Star on Top Right -->
+    <g transform="translate(406, 75)">
+      <path d="M 0 -34 C 2 -10 10 -2 34 0 C 10 2 2 10 0 34 C -2 10 -10 2 -34 0 C -10 -2 -2 -10 0 -34 Z" fill="url(#starP)"/>
+      <circle cx="0" cy="0" r="7" fill="#FFFFFF"/>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgH" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FBBF24"/>
+      <stop offset="30%" stop-color="#F59E0B"/>
+      <stop offset="75%" stop-color="#D97706"/>
+      <stop offset="100%" stop-color="#B45309"/>
+    </linearGradient>
+    <linearGradient id="leafH1" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#059669"/>
+      <stop offset="60%" stop-color="#10B981"/>
+      <stop offset="100%" stop-color="#34D399"/>
+    </linearGradient>
+    <linearGradient id="leafH2" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#047857"/>
+      <stop offset="50%" stop-color="#059669"/>
+      <stop offset="100%" stop-color="#10B981"/>
+    </linearGradient>
+    <linearGradient id="starH" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FEF08A"/>
+      <stop offset="50%" stop-color="#FDE047"/>
+      <stop offset="100%" stop-color="#F59E0B"/>
+    </linearGradient>
+    <filter id="mDrop" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#451A03" flood-opacity="0.32"/>
+    </filter>
+  </defs>
+
+  <!-- Full-bleed Squircle (rx=115 for 512x512) -->
+  <rect x="0" y="0" width="512" height="512" rx="115" fill="url(#bgH)"/>
+  <!-- Bevel / Rim highlight -->
+  <rect x="2" y="2" width="508" height="508" rx="113" fill="none" stroke="#FFFFFF" stroke-opacity="0.45" stroke-width="4"/>
+
+  <!-- Main Glyph Group -->
+  <g filter="url(#mDrop)">
+    <!-- Bold Clean M in Pure White -->
+    <path d="M 108 418
+             L 108 190
+             C 108 160 130 140 160 140
+             C 180 140 198 152 210 172
+             L 256 250
+             L 302 172
+             C 314 152 332 140 352 140
+             C 382 140 404 160 404 190
+             L 404 418
+             C 404 435 389 448 371 448
+             C 353 448 340 435 340 418
+             L 340 242
+             L 284 330
+             C 276 344 267 350 256 350
+             C 245 350 236 344 228 330
+             L 172 242
+             L 172 418
+             C 172 435 159 448 141 448
+             C 123 448 108 435 108 418 Z"
+          fill="#FFFFFF"/>
+
+    <!-- Rising Sprout from the Valley of the M -->
+    <!-- Left Leaf -->
+    <path d="M 252 225
+             C 175 225 120 150 165 90
+             C 205 38 260 110 252 225 Z"
+          fill="url(#leafH1)"/>
+    <path d="M 188 112 C 215 102 238 135 245 185" 
+          stroke="#FFFFFF" stroke-width="4.5" stroke-linecap="round" fill="none" stroke-opacity="0.5"/>
+
+    <!-- Right Leaf (Taller) -->
+    <path d="M 256 185
+             C 335 185 390 105 345 55
+             C 300 8 252 75 256 185 Z"
+          fill="url(#leafH2)"/>
+    <path d="M 322 78 C 300 68 272 95 265 145" 
+          stroke="#A7F3D0" stroke-width="4.5" stroke-linecap="round" fill="none" stroke-opacity="0.55"/>
+
+    <!-- Radiant Achievement Star on Top -->
+    <g transform="translate(365, 42)">
+      <path d="M 0 -26 C 2 -8 8 -2 26 0 C 8 2 2 8 0 26 C -2 8 -8 2 -26 0 C -8 -2 -2 -8 0 -26 Z" fill="url(#starH)"/>
+      <circle cx="0" cy="0" r="5" fill="#FFFFFF"/>
+    </g>
+  </g>
+</svg>

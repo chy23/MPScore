@@ -1,0 +1,26 @@
+{
+  "name": "MPScore - 智慧學生成績與學習診斷平台",
+  "short_name": "MPScore",
+  "description": "以正向成長心態與多元統計視覺化為核心的學生成績診斷手札",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#F8F9FA",
+  "theme_color": "#F59E0B",
+  "icons": [
+    {
+      "src": "favicon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "favicon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
