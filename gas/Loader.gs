@@ -1,7 +1,12 @@
 /**
- * MPScore - GitHub 自動熱更新引導核心 (比照 QRcode 專案架構)
+ * MPScore - GitHub 自動熱更新引導核心 (模式 A)
  * 只要在 Apps Script 貼上這段程式碼，未來 GitHub (chy23/MPScore) 有任何演算法或功能更新，
  * 您的 Google 試算表都會全自動即時抓取最新版，免去重複手動貼代碼的麻煩！
+ * 
+ * 🛡️【資安架構指引】：
+ * - 模式 A (本核心)：適合追求全自動同步更新的教師與常規教學環境。
+ * - 模式 B (完整單機版)：若您的校園網路限制連線 GitHub，或學校資安政策要求「零外部動態依賴 (Zero Supply-Chain Risk)」，
+ *   強烈建議直接複製網站【步驟 2】的【模式 B：完整單機版程式碼】直接部署，程式碼完全靜態儲存於您的試算表內，自主掌控度最高！
  * 
  * 部署指引：
  * 1. 貼上後儲存。
@@ -41,6 +46,7 @@ function onOpen() {
     .addItem('🔄 用最新考試名單，更新「學生名冊」', 'syncStudentsFromExamSheet')
     .addItem('🔑 為全班產生「家長查詢代碼」', 'generateTokensForStudents')
     .addSeparator()
+    .addItem('🛡️ 查看 / 設定「教師管理金鑰」', 'showTeacherKeyDialog')
     .addItem('📋 查看「家長閱覽紀錄」', 'openParentAccessLogSheet')
     .addItem('📐 自動整理欄寬與表格排版', 'autoFormatAndResizeAllSheets')
     .addItem('📊 查看全班成績與各科平均', 'previewClassStatistics')
@@ -54,6 +60,7 @@ function setupStandardSheets() { getEngine().setupStandardSheets(); }
 function createNewExamSheetFromRoster() { getEngine().createNewExamSheetFromRoster(); }
 function syncStudentsFromExamSheet() { getEngine().syncStudentsFromExamSheet(); }
 function generateTokensForStudents() { getEngine().generateTokensForStudents(); }
+function showTeacherKeyDialog() { getEngine().showTeacherKeyDialog(); }
 function openParentAccessLogSheet() { getEngine().openParentAccessLogSheet(); }
 function autoFormatAndResizeAllSheets() { getEngine().autoFormatAndResizeAllSheets(); }
 function previewClassStatistics() { getEngine().previewClassStatistics(); }

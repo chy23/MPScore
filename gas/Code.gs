@@ -21,11 +21,58 @@ function onOpen() {
     .addItem('🔄 用最新考試名單，更新「學生名冊」', 'syncStudentsFromExamSheet')
     .addItem('🔑 為全班產生「家長查詢代碼」', 'generateTokensForStudents')
     .addSeparator()
+    .addItem('🛡️ 查看 / 設定「教師管理金鑰」', 'showTeacherKeyDialog')
     .addItem('📋 查看「家長閱覽紀錄」', 'openParentAccessLogSheet')
     .addItem('📐 自動整理欄寬與表格排版', 'autoFormatAndResizeAllSheets')
     .addItem('🚀 立即更新雲端資料（改完分數點此）', 'clearSystemCache')
     .addItem('📊 查看全班成績與各科平均', 'previewClassStatistics')
     .addToUi();
+}
+
+/**
+ * 教師安全金鑰管理 (Teacher Key)
+ * 使用 Google Apps Script 雲端私有屬性儲存 (ScriptProperties)，外部完全無法窺探
+ */
+function getOrCreateTeacherKey() {
+  var props = PropertiesService.getScriptProperties();
+  var key = props.getProperty('TEACHER_KEY');
+  if (!key) {
+    var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789abcdefghijkmnopqrstuvwxyz';
+    key = 'mp_';
+    for (var i = 0; i < 12; i++) {
+      key += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    props.setProperty('TEACHER_KEY', key);
+  }
+  return key;
+}
+
+function verifyTeacherKey(providedKey) {
+  if (!providedKey) return false;
+  var expected = getOrCreateTeacherKey();
+  return providedKey.toString().trim() === expected.toString().trim();
+}
+
+function showTeacherKeyDialog() {
+  var ui = SpreadsheetApp.getUi();
+  var currentKey = getOrCreateTeacherKey();
+  var response = ui.prompt(
+    '🛡️ 教師管理安全金鑰 (Teacher Key)',
+    '此金鑰用於保護「全班成績名冊導出」與「家長閱覽日誌」，防止外人越權存取。\n\n' +
+    '【目前您的金鑰為】：\n' + currentKey + '\n\n' +
+    '👉 請複製此金鑰並貼到 MPScore 教師網頁的「教師管理安全金鑰」欄位。\n' +
+    '（若要自訂修改金鑰，請在下方輸入新金鑰後點擊確定，若不修改請直接點取消）：',
+    ui.ButtonSet.OK_CANCEL
+  );
+  if (response.getSelectedButton() === ui.Button.OK) {
+    var input = response.getResponseText().trim();
+    if (input && input.length >= 6) {
+      PropertiesService.getScriptProperties().setProperty('TEACHER_KEY', input);
+      ui.alert('✅ 金鑰已更新！', '您的新教師金鑰為：\n' + input + '\n\n請記得同步至 MPScore 教師端網頁設定。', ui.ButtonSet.OK);
+    } else if (input) {
+      ui.alert('⚠️ 更新失敗', '自訂金鑰長度需至少 6 個字元以上。', ui.ButtonSet.OK);
+    }
+  }
 }
 
 /**
@@ -217,6 +264,10 @@ function formatExamSheet(sheet, examTitle, rowsData) {
 
 /**
  * Web API 入口點 (doGet / doPost)
+ * 🔒 資安白名單門禁設計 (Whitelist Gatekeeper)
+ * - 公開端點 (Public)：ping (健康檢查)、query (依 6 碼隨機 Token 查個人成績)
+ * - 管理端點 (Protected)：getStudentsForPrint (全班名冊)、getParentAccessLogs (家長日誌)、appendExamScores (寫入成績)
+ *   👉 必須附帶正確的 &key= (Teacher Key)，否則一律回傳 403 阻斷，嚴防全校名冊與個資遭 IDOR 越權打包！
  */
 function doGet(e) {
   var params = e ? e.parameter : {};
@@ -224,11 +275,33 @@ function doGet(e) {
   var output = {};
 
   try {
+    // 1. 公開安全端點（任何人免金鑰可存取：健康檢查與個人專屬代碼查詢）
     if (action === 'ping') {
       output = checkSystemStatus();
-    } else if (action === 'query') {
+      return ContentService.createTextOutput(JSON.stringify(output))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    if (action === 'query') {
       output = getStudentScoreByToken(params.token);
-    } else if (action === 'getStudentsForPrint') {
+      return ContentService.createTextOutput(JSON.stringify(output))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // 2. 高權限教師管理端點：嚴格實施「教師管理安全金鑰」門禁阻絕
+    var teacherKey = params.key || (e && e.headers && (e.headers['x-teacher-key'] || e.headers['X-Teacher-Key'])) || '';
+    if (!verifyTeacherKey(teacherKey)) {
+      output = {
+        success: false,
+        code: 403,
+        message: '⛔ 存取遭拒：此操作涉及全班名冊或管理權限，必須提供正確的「教師管理安全金鑰 (&key=...)」。請至 Google 試算表選單【⚡ MPScore 工具 > 🛡️ 查看 / 設定「教師管理金鑰」】取得金鑰。'
+      };
+      return ContentService.createTextOutput(JSON.stringify(output))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // 3. 通過金鑰驗證後的管理端點處理
+    if (action === 'getStudentsForPrint') {
       output = getStudentListForTeacher();
     } else if (action === 'appendExamScores') {
       var body = params.payload || (e && e.postData && e.postData.contents ? e.postData.contents : '');
@@ -285,10 +358,21 @@ function checkSystemStatus() {
 
 /**
  * 依據專屬 Token 查詢該名學生歷次考試成績與自動運算成果
+ * 🔒 資安防護：
+ * 1. 代碼長度 < 4 一律拒絕，全面封鎖同儕用 01~40 純座號猜測
+ * 2. 僅接受專屬 6 碼代碼精確比對，廢除姓名與座號比對，消除越權偷看隱患
  */
 function getStudentScoreByToken(token) {
   if (!token) return { success: false, message: '請提供專屬查詢代碼' };
   token = token.toString().trim();
+
+  // 安全防護：代碼必須至少 4 碼以上（防暴力猜測純數字座號），僅接受專屬 6 碼代碼查詢
+  if (token.length < 4) {
+    return {
+      success: false,
+      message: '查詢代碼格式無效。為保護學生個資與成績隱私，系統已全面關閉純座號查詢。請使用成績通知單上之專屬 6 碼查詢代碼或掃描專屬 QR Code！'
+    };
+  }
 
   // 0. 極速快取檢查：若 10 分鐘內已有運算快取，0.1 秒秒速回傳，避免家長誤會網站失效
   var tokenUpper = token.toUpperCase();
@@ -314,7 +398,7 @@ function getStudentScoreByToken(token) {
     return { success: false, message: '試算表缺少【學生名冊】分頁' };
   }
 
-  // 1. 在【學生名冊】中尋找此代碼對應的學生
+  // 1. 在【學生名冊】中尋找此代碼對應的學生（嚴格僅比對專屬 6 碼代碼，杜絕座號與姓名碰撞）
   var sData = sSheet.getDataRange().getValues();
   var student = null;
 
@@ -326,10 +410,8 @@ function getStudentScoreByToken(token) {
     var rowToken = row[3] ? row[3].toString().trim() : ''; // D 欄: 專屬代碼
     var isEnabled = row[4]; // E 欄: 啟用狀態
 
-    // 支援代碼 (不分大小寫)、學生姓名或座號精確比對
-    var isMatch = (rowToken && rowToken.toUpperCase() === tokenUpper) || 
-                  (rowName && rowName === token) || 
-                  (token.length <= 2 && rowSeat === normalizeSeatNumber(token));
+    // 嚴格比對專屬 6 碼代碼 (不分大小寫)
+    var isMatch = rowToken && (rowToken.toUpperCase() === tokenUpper);
 
     if (isMatch) {
       if (isEnabled === false) {
@@ -347,7 +429,7 @@ function getStudentScoreByToken(token) {
   }
 
   if (!student) {
-    return { success: false, message: '驗證失敗：查無代碼或學生姓名「' + token + '」，請確認是否輸入正確。' };
+    return { success: false, message: '驗證失敗：查無此專屬代碼「' + token + '」，請確認是否輸入正確或重新掃描通知單上的 QR Code。' };
   }
 
   // 記錄家長閱覽日誌
@@ -1697,6 +1779,9 @@ var MPScoreEngine = {
   previewClassStatistics: previewClassStatistics,
   openParentAccessLogSheet: openParentAccessLogSheet,
   getParentAccessLogs: getParentAccessLogs,
+  showTeacherKeyDialog: showTeacherKeyDialog,
+  verifyTeacherKey: verifyTeacherKey,
+  getOrCreateTeacherKey: getOrCreateTeacherKey,
   handleDoGet: doGet,
   handleDoPost: doPost
 };
