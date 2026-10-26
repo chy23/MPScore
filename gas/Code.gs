@@ -31,25 +31,84 @@ function onOpen() {
 
 /**
  * 教師安全金鑰管理 (Teacher Key)
- * 🔒 支援首次智慧自動配對 (Trust On First Use / Auto-Pairing) 與 ScriptProperties 私有雲端儲存
- * 1. 若試算表尚未綁定金鑰：當教師端網頁送來金鑰時，自動完成首次綁定鎖定！
- * 2. 若試算表已綁定金鑰：嚴格比對金鑰，防止任何外人未授權導出全班名單與閱覽日誌。
- * 3. 容錯向下相容：若試算表從未綁定且請求未帶金鑰，允許平滑過渡，絕不卡死既有未升級教師。
+ * 🔒 支援首次智慧自動配對 (Trust On First Use / Auto-Pairing)、ScriptProperties 私有雲端儲存
+ * 💡 雙向同步至【學生名冊】F 欄：讓老師換電腦時打開試算表就能一眼看見，亦可直接在儲存格修改密碼！
  */
 function getTeacherKey() {
   var props = PropertiesService.getScriptProperties();
-  return props.getProperty('TEACHER_KEY') || '';
+  var storedKey = props.getProperty('TEACHER_KEY') || '';
+
+  // 嘗試與【學生名冊】F2 儲存格雙向校驗
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sSheet = ss.getSheetByName('學生名冊');
+    if (sSheet && sSheet.getLastRow() >= 2) {
+      var cellVal = sSheet.getRange(2, 6).getValue();
+      if (cellVal) {
+        var str = cellVal.toString().trim();
+        if (str && str.length >= 4 && str !== storedKey) {
+          props.setProperty('TEACHER_KEY', str);
+          return str;
+        }
+      }
+    }
+  } catch (e) {}
+
+  return storedKey;
+}
+
+/**
+ * 雙向同步教師金鑰至【學生名冊】工作表 F1:F2 儲存格
+ * 方便教師換電腦時隨時抬頭查閱，或直接在試算表中自訂修改！
+ */
+function syncTeacherKeyWithRoster(ss, keyToSet) {
+  try {
+    if (!ss) ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sSheet = ss.getSheetByName('學生名冊');
+    if (!sSheet) return;
+
+    var props = PropertiesService.getScriptProperties();
+    var storedKey = keyToSet || props.getProperty('TEACHER_KEY') || '';
+
+    // 檢查 F2 儲存格是否有老師手動輸入的新密碼
+    var f2Val = sSheet.getRange(2, 6).getValue();
+    if (f2Val) {
+      f2Val = f2Val.toString().trim();
+      if (f2Val.length >= 4 && f2Val !== storedKey) {
+        props.setProperty('TEACHER_KEY', f2Val);
+        storedKey = f2Val;
+      }
+    }
+
+    if (storedKey) {
+      sSheet.getRange(1, 6).setValue('🔑 教師金鑰 (換電腦看此)')
+        .setFontWeight('bold')
+        .setBackground('#fef3c7')
+        .setFontColor('#78350f')
+        .setHorizontalAlignment('center');
+      sSheet.getRange(2, 6).setValue(storedKey)
+        .setFontWeight('bold')
+        .setFontFamily('Courier New')
+        .setBackground('#fffbeb')
+        .setFontColor('#92400e')
+        .setHorizontalAlignment('center');
+      sSheet.setColumnWidth(6, 175);
+    }
+  } catch (e) {
+    // 容錯不阻斷
+  }
 }
 
 function verifyOrCreateTeacherKey(providedKey) {
+  var currentKey = getTeacherKey();
   var props = PropertiesService.getScriptProperties();
-  var currentKey = props.getProperty('TEACHER_KEY');
 
   // 1. 若試算表尚未綁定金鑰
   if (!currentKey) {
     if (providedKey && providedKey.toString().trim().length >= 4) {
       var cleanKey = providedKey.toString().trim();
       props.setProperty('TEACHER_KEY', cleanKey);
+      syncTeacherKeyWithRoster(null, cleanKey);
       return { success: true, isNewPairing: true };
     }
     // 尚未綁定且未提供金鑰：允許過渡通行
@@ -59,6 +118,9 @@ function verifyOrCreateTeacherKey(providedKey) {
   // 2. 若試算表已綁定金鑰：嚴格比對
   if (!providedKey) return { success: false, reason: 'MISSING_KEY' };
   var isMatch = (providedKey.toString().trim() === currentKey.trim());
+  if (isMatch) {
+    syncTeacherKeyWithRoster(null, currentKey);
+  }
   return { success: isMatch, reason: isMatch ? 'OK' : 'MISMATCH' };
 }
 
@@ -73,13 +135,14 @@ function showTeacherKeyDialog() {
       currentKey += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     PropertiesService.getScriptProperties().setProperty('TEACHER_KEY', currentKey);
+    syncTeacherKeyWithRoster(null, currentKey);
   }
 
   var response = ui.prompt(
     '🛡️ 教師管理安全金鑰 (Teacher Key)',
     '此金鑰用於保護「全班成績名冊導出」與「家長閱覽日誌」，防止外人越權存取。\n\n' +
     '【目前您的金鑰為】：\n' + currentKey + '\n\n' +
-    '👉 提示：MPScore 教師端網頁已具備「自動生成與自動配對」功能，您通常無需手動複製。\n' +
+    '👉 提示：金鑰已同步記錄於【學生名冊】分頁右上角 F1:F2 儲存格，換電腦可隨時查閱或直接在儲存格修改。\n' +
     '（若要自訂修改金鑰，請在下方輸入新金鑰後點擊確定，若不修改請直接點取消）：',
     ui.ButtonSet.OK_CANCEL
   );
@@ -87,7 +150,8 @@ function showTeacherKeyDialog() {
     var input = response.getResponseText().trim();
     if (input && input.length >= 6) {
       PropertiesService.getScriptProperties().setProperty('TEACHER_KEY', input);
-      ui.alert('✅ 金鑰已更新！', '您的新教師金鑰為：\n' + input + '\n\n請記得同步至 MPScore 教師端網頁設定。', ui.ButtonSet.OK);
+      syncTeacherKeyWithRoster(null, input);
+      ui.alert('✅ 金鑰已更新！', '您的新教師金鑰為：\n' + input + '\n\n已同步至【學生名冊】F 欄，請記得同步至 MPScore 教師端網頁設定。', ui.ButtonSet.OK);
     } else if (input) {
       ui.alert('⚠️ 更新失敗', '自訂金鑰長度需至少 6 個字元以上。', ui.ButtonSet.OK);
     }
@@ -360,8 +424,10 @@ function checkSystemStatus(teacherKey) {
   if (!currentStoredKey && teacherKey && teacherKey.length >= 4) {
     PropertiesService.getScriptProperties().setProperty('TEACHER_KEY', teacherKey.trim());
     currentStoredKey = teacherKey.trim();
+    syncTeacherKeyWithRoster(ss, currentStoredKey);
     keyStatus = 'AUTO_PAIRED';
   } else if (currentStoredKey) {
+    syncTeacherKeyWithRoster(ss, currentStoredKey);
     keyStatus = (teacherKey && teacherKey.trim() === currentStoredKey) ? 'VERIFIED' : 'PROTECTED';
   }
 
