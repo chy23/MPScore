@@ -31,36 +31,55 @@ function onOpen() {
 
 /**
  * 教師安全金鑰管理 (Teacher Key)
- * 使用 Google Apps Script 雲端私有屬性儲存 (ScriptProperties)，外部完全無法窺探
+ * 🔒 支援首次智慧自動配對 (Trust On First Use / Auto-Pairing) 與 ScriptProperties 私有雲端儲存
+ * 1. 若試算表尚未綁定金鑰：當教師端網頁送來金鑰時，自動完成首次綁定鎖定！
+ * 2. 若試算表已綁定金鑰：嚴格比對金鑰，防止任何外人未授權導出全班名單與閱覽日誌。
+ * 3. 容錯向下相容：若試算表從未綁定且請求未帶金鑰，允許平滑過渡，絕不卡死既有未升級教師。
  */
-function getOrCreateTeacherKey() {
+function getTeacherKey() {
   var props = PropertiesService.getScriptProperties();
-  var key = props.getProperty('TEACHER_KEY');
-  if (!key) {
-    var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789abcdefghijkmnopqrstuvwxyz';
-    key = 'mp_';
-    for (var i = 0; i < 12; i++) {
-      key += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    props.setProperty('TEACHER_KEY', key);
-  }
-  return key;
+  return props.getProperty('TEACHER_KEY') || '';
 }
 
-function verifyTeacherKey(providedKey) {
-  if (!providedKey) return false;
-  var expected = getOrCreateTeacherKey();
-  return providedKey.toString().trim() === expected.toString().trim();
+function verifyOrCreateTeacherKey(providedKey) {
+  var props = PropertiesService.getScriptProperties();
+  var currentKey = props.getProperty('TEACHER_KEY');
+
+  // 1. 若試算表尚未綁定金鑰
+  if (!currentKey) {
+    if (providedKey && providedKey.toString().trim().length >= 4) {
+      var cleanKey = providedKey.toString().trim();
+      props.setProperty('TEACHER_KEY', cleanKey);
+      return { success: true, isNewPairing: true };
+    }
+    // 尚未綁定且未提供金鑰：允許過渡通行
+    return { success: true, isUnprotected: true };
+  }
+
+  // 2. 若試算表已綁定金鑰：嚴格比對
+  if (!providedKey) return { success: false, reason: 'MISSING_KEY' };
+  var isMatch = (providedKey.toString().trim() === currentKey.trim());
+  return { success: isMatch, reason: isMatch ? 'OK' : 'MISMATCH' };
 }
 
 function showTeacherKeyDialog() {
   var ui = SpreadsheetApp.getUi();
-  var currentKey = getOrCreateTeacherKey();
+  var currentKey = getTeacherKey();
+  if (!currentKey) {
+    // 若尚未設定，自動生成一組預設金鑰
+    var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789abcdefghijkmnopqrstuvwxyz';
+    currentKey = 'mp_';
+    for (var i = 0; i < 10; i++) {
+      currentKey += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    PropertiesService.getScriptProperties().setProperty('TEACHER_KEY', currentKey);
+  }
+
   var response = ui.prompt(
     '🛡️ 教師管理安全金鑰 (Teacher Key)',
     '此金鑰用於保護「全班成績名冊導出」與「家長閱覽日誌」，防止外人越權存取。\n\n' +
     '【目前您的金鑰為】：\n' + currentKey + '\n\n' +
-    '👉 請複製此金鑰並貼到 MPScore 教師網頁的「教師管理安全金鑰」欄位。\n' +
+    '👉 提示：MPScore 教師端網頁已具備「自動生成與自動配對」功能，您通常無需手動複製。\n' +
     '（若要自訂修改金鑰，請在下方輸入新金鑰後點擊確定，若不修改請直接點取消）：',
     ui.ButtonSet.OK_CANCEL
   );
@@ -272,12 +291,13 @@ function formatExamSheet(sheet, examTitle, rowsData) {
 function doGet(e) {
   var params = e ? e.parameter : {};
   var action = params.action || (params.token ? 'query' : 'ping');
+  var teacherKey = params.key || (e && e.headers && (e.headers['x-teacher-key'] || e.headers['X-Teacher-Key'])) || '';
   var output = {};
 
   try {
     // 1. 公開安全端點（任何人免金鑰可存取：健康檢查與個人專屬代碼查詢）
     if (action === 'ping') {
-      output = checkSystemStatus();
+      output = checkSystemStatus(teacherKey);
       return ContentService.createTextOutput(JSON.stringify(output))
         .setMimeType(ContentService.MimeType.JSON);
     }
@@ -288,13 +308,13 @@ function doGet(e) {
         .setMimeType(ContentService.MimeType.JSON);
     }
 
-    // 2. 高權限教師管理端點：嚴格實施「教師管理安全金鑰」門禁阻絕
-    var teacherKey = params.key || (e && e.headers && (e.headers['x-teacher-key'] || e.headers['X-Teacher-Key'])) || '';
-    if (!verifyTeacherKey(teacherKey)) {
+    // 2. 高權限教師管理端點：自動配對或嚴格比對教師安全金鑰
+    var verifyResult = verifyOrCreateTeacherKey(teacherKey);
+    if (!verifyResult.success) {
       output = {
         success: false,
         code: 403,
-        message: '⛔ 存取遭拒：此操作涉及全班名冊或管理權限，必須提供正確的「教師管理安全金鑰 (&key=...)」。請至 Google 試算表選單【⚡ MPScore 工具 > 🛡️ 查看 / 設定「教師管理金鑰」】取得金鑰。'
+        message: '⛔ 存取遭拒：此試算表已綁定「教師管理安全金鑰」，您輸入的金鑰不符。請檢查 MPScore 教師端網頁【步驟 3】的金鑰設定。'
       };
       return ContentService.createTextOutput(JSON.stringify(output))
         .setMimeType(ContentService.MimeType.JSON);
@@ -325,13 +345,24 @@ function doPost(e) {
 
 /**
  * 系統連線檢測 (ping)
- * 偵測試算表內【學生名冊】與所有考試分頁
+ * 偵測試算表內【學生名冊】與所有考試分頁，並支援前端金鑰智慧自動配對 (Auto-Pairing)
  */
-function checkSystemStatus() {
+function checkSystemStatus(teacherKey) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sSheet = ss.getSheetByName('學生名冊');
   if (!sSheet) {
     return { success: false, message: '試算表內找不到名為【學生名冊】的分頁，請先點選【MPScore 工具 > 🛠️ 建立初始表格（空白試算表第一次使用）】' };
+  }
+
+  // 嘗試自動配對金鑰（若試算表尚未綁定，且前端有傳來有效金鑰）
+  var keyStatus = 'NONE';
+  var currentStoredKey = getTeacherKey();
+  if (!currentStoredKey && teacherKey && teacherKey.length >= 4) {
+    PropertiesService.getScriptProperties().setProperty('TEACHER_KEY', teacherKey.trim());
+    currentStoredKey = teacherKey.trim();
+    keyStatus = 'AUTO_PAIRED';
+  } else if (currentStoredKey) {
+    keyStatus = (teacherKey && teacherKey.trim() === currentStoredKey) ? 'VERIFIED' : 'PROTECTED';
   }
 
   var allSheets = ss.getSheets();
@@ -352,7 +383,8 @@ function checkSystemStatus() {
     studentCount: studentCount,
     examCount: examTabs.length,
     examTabs: examTabs,
-    autoCalculationEnabled: true
+    autoCalculationEnabled: true,
+    teacherKeyStatus: keyStatus
   };
 }
 
@@ -1780,8 +1812,8 @@ var MPScoreEngine = {
   openParentAccessLogSheet: openParentAccessLogSheet,
   getParentAccessLogs: getParentAccessLogs,
   showTeacherKeyDialog: showTeacherKeyDialog,
-  verifyTeacherKey: verifyTeacherKey,
-  getOrCreateTeacherKey: getOrCreateTeacherKey,
+  verifyOrCreateTeacherKey: verifyOrCreateTeacherKey,
+  getTeacherKey: getTeacherKey,
   handleDoGet: doGet,
   handleDoPost: doPost
 };
