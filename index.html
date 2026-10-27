@@ -1731,13 +1731,23 @@
               <tr>
                 <th class="py-2.5 px-3">科目</th>
                 <th class="py-2.5 px-3 text-center">得分</th>
-                <th class="py-2.5 px-3 text-center">班均</th>
+                <th class="py-2.5 px-3 text-center">
+                  <div>班均</div>
+                  <div class="text-[9px] text-slate-400 font-normal">（難易度）</div>
+                </th>
                 <th class="py-2.5 px-3 text-center">PR 值</th>
                 <th class="py-2.5 px-3 text-center">差額</th>
               </tr>
             </thead>
             <tbody id="pScoreTable" class="divide-y divide-slate-100"></tbody>
           </table>
+          <div id="sbScoreTableFootnote" class="px-3 py-2 bg-slate-50/70 border-t border-slate-100 text-[10px] text-slate-500 flex items-center justify-between">
+            <span class="font-medium text-amber-900 flex items-center gap-1">
+              <span class="text-amber-600 font-bold">＊</span>
+              <span>難易度以班級成績估計</span>
+            </span>
+            <span class="text-[9px] text-slate-400">常模加權校正</span>
+          </div>
         </div>
 
         <!-- 🌱 學習成長小錦囊 (適性精進指引) -->
@@ -5029,7 +5039,12 @@
           <tr>
             <th class="py-2.5 px-3 text-left">科目</th>
             ${cfg.showSubjects ? '<th class="py-2.5 px-3 text-center">個人得分</th>' : ''}
-            ${cfg.showClassAvg ? '<th class="py-2.5 px-3 text-center">班級平均</th>' : ''}
+            ${cfg.showClassAvg ? `
+              <th class="py-2.5 px-3 text-center">
+                <div>班級平均</div>
+                ${cfg.showDifficulty !== false ? '<div class="text-[10px] font-normal text-slate-400 mt-0.5">（難易度）</div>' : ''}
+              </th>
+            ` : ''}
             ${cfg.showPr ? '<th class="py-2.5 px-3 text-center">PR 常模</th>' : ''}
             ${cfg.showClassAvg ? '<th class="py-2.5 px-3 text-center">與班均差距</th>' : ''}
           </tr>
@@ -5116,6 +5131,16 @@
             ${cfg.showClassAvg ? `<td class="py-2.5 px-3 text-center">${avgDiffTag}</td>` : ''}
           </tr>
         `;
+      }
+
+      // 成績明細表最下方注記開關
+      const tableFootnote = document.getElementById('sbScoreTableFootnote');
+      if (tableFootnote) {
+        if (cfg.showClassAvg && cfg.showDifficulty !== false) {
+          tableFootnote.classList.remove('hidden');
+        } else {
+          tableFootnote.classList.add('hidden');
+        }
       }
 
       // 5. 渲染 📦 建議箱型圖 與 🔔 常態 PR 落點曲線圖與 5 大全新統計模組
@@ -5605,7 +5630,10 @@
         const diffClassAvg = Math.round((cAvg - compCAvg) * 10) / 10;
 
         if (badgeEl) {
-          badgeEl.innerText = `${activeSub.name}：${score}分 (本次) vs ${compScore}分 (對比)`;
+          const diffBadgeHtml = (cfg.showDifficulty !== false && activeSub.difficultyBadge)
+            ? ` <span class="ml-1 px-1.5 py-0.5 rounded-full bg-white text-slate-800 border border-amber-200 font-bold shadow-2xs text-[9px]" title="*難易度以班級成績估計">${activeSub.difficultyBadge}</span>`
+            : '';
+          badgeEl.innerHTML = `<span>${activeSub.name}：${score}分 (本次) vs ${compScore}分 (對比)</span>${diffBadgeHtml}`;
         }
 
         const maxDensity = Math.max(curKde.maxDensity, compKde.maxDensity) || 1;
@@ -5722,7 +5750,10 @@
               <!-- 本次班均標記線 -->
               <line x1="${curAvgX}" y1="${curAvgY}" x2="${curAvgX}" y2="165" stroke="#b45309" stroke-width="1.8" stroke-dasharray="3,3" />
               <circle cx="${curAvgX}" cy="${curAvgY}" r="4.5" fill="#ffffff" stroke="#b45309" stroke-width="2" />
-              <text x="${curAvgX}" y="${Math.min(155, curAvgY + 13)}" font-size="8.5" fill="#b45309" font-weight="bold" text-anchor="middle">本次均 ${cAvg}</text>
+              <text x="${curAvgX}" y="${Math.min(143, curAvgY + 12)}" font-size="8.5" fill="#b45309" font-weight="bold" text-anchor="middle">本次均 ${cAvg}</text>
+              ${(cfg.showDifficulty !== false && activeSub.difficultyBadge) ? `
+                <text x="${curAvgX}" y="${Math.min(155, curAvgY + 22)}" font-size="8" fill="#b45309" font-weight="bold" text-anchor="middle">${activeSub.difficultyBadge}</text>
+              ` : ''}
 
               <!-- 跨次位移軌跡弧線 -->
               ${trajectorySvg}
@@ -5775,6 +5806,13 @@
             <span class="text-[10px] font-bold ${diffPr >= 0 ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-amber-800 bg-amber-50 border-amber-200'} border px-2.5 py-1 rounded-full shadow-2xs">
               📊 常模位移 PR ${diffPr >= 0 ? '+' + diffPr : diffPr}
             </span>
+            ${(cfg.showDifficulty !== false && activeSub.difficultyBadge) ? `
+              <span class="text-[10px] font-bold bg-white text-slate-800 border border-slate-200 px-2.5 py-1 rounded-full shadow-2xs inline-flex items-center gap-1" title="*難易度以班級成績估計">
+                <span>🎯 試卷難易度：${activeSub.difficultyBadge}</span>
+                ${(compSub && compSub.difficultyBadge) ? `<span class="text-slate-400 font-normal">(對比 ${compSub.difficultyBadge})</span>` : ''}
+                <span class="text-[9px] text-slate-400 font-normal">(*班級估計)</span>
+              </span>
+            ` : ''}
           </div>
 
           <!-- 跨次分佈動態成長解讀卡 -->
@@ -5797,7 +5835,10 @@
 
       // 5. 單次考試常態渲染 (不疊加 或 對比考試無該科)
       if (badgeEl) {
-        badgeEl.innerText = `${activeSub.name}：${score}分 (PR ${pr})`;
+        const diffBadgeHtml = (cfg.showDifficulty !== false && activeSub.difficultyBadge)
+          ? ` <span class="ml-1 px-1.5 py-0.5 rounded-full bg-white text-slate-800 border border-amber-200 font-bold shadow-2xs text-[9px]" title="*難易度以班級成績估計">${activeSub.difficultyBadge}</span>`
+          : '';
+        badgeEl.innerHTML = `<span>${activeSub.name}：${score}分 (PR ${pr})</span>${diffBadgeHtml}`;
       }
 
       const getX = s => 35 + (Math.max(0, Math.min(100, s)) / 100) * 530;
@@ -5864,10 +5905,13 @@
             <text x="${getX(80)}" y="176" font-size="9" fill="#94a3b8" text-anchor="middle" font-weight="bold">80 分</text>
             <text x="${getX(100)}" y="176" font-size="9" fill="#059669" text-anchor="middle" font-black">100 分</text>
 
-            <!-- 班級平均垂直標示線與標記 -->
+            <!-- 班級平均垂直標示線與標記 (含試卷難易度) -->
             <line x1="${avgX}" y1="${avgY}" x2="${avgX}" y2="160" stroke="#64748b" stroke-width="1.8" stroke-dasharray="3,3" />
             <circle cx="${avgX}" cy="${avgY}" r="4.5" fill="#ffffff" stroke="#64748b" stroke-width="2" />
-            <text x="${avgX}" y="${Math.min(150, avgY + 14)}" font-size="9" fill="#475569" font-weight="bold" text-anchor="middle">班均 ${cAvg}</text>
+            <text x="${avgX}" y="${Math.min(143, avgY + 12)}" font-size="9" fill="#475569" font-weight="bold" text-anchor="middle">班均 ${cAvg}</text>
+            ${(cfg.showDifficulty !== false && activeSub.difficultyBadge) ? `
+              <text x="${avgX}" y="${Math.min(154, avgY + 22)}" font-size="8" fill="#b45309" font-weight="bold" text-anchor="middle">${activeSub.difficultyBadge}</text>
+            ` : ''}
 
             <!-- 學生個人得分落點垂直引線與定位圖釘 -->
             <line x1="${stX}" y1="${stY}" x2="${stX}" y2="160" stroke="#d97706" stroke-width="2.5" />
@@ -5890,6 +5934,12 @@
           <span class="text-[10px] font-bold text-slate-700 bg-white border border-slate-200 px-2.5 py-1 rounded-full shadow-2xs">
             👥 班級平均 ${cAvg} 分
           </span>
+          ${(cfg.showDifficulty !== false && activeSub.difficultyBadge) ? `
+            <span class="text-[10px] font-bold bg-amber-50 text-amber-950 border border-amber-200 px-2.5 py-1 rounded-full shadow-2xs flex items-center gap-1" title="*難易度以班級成績估計">
+              <span>🎯 試卷難易度：${activeSub.difficultyBadge}</span>
+              <span class="text-[9px] text-amber-700/80 font-normal">(*班級估計)</span>
+            </span>
+          ` : ''}
           <span class="text-[10px] font-bold text-slate-700 bg-white border border-slate-200 px-2.5 py-1 rounded-full shadow-2xs">
             📊 中位數 ${med} 分
           </span>
@@ -5905,12 +5955,20 @@
         <div class="p-3 bg-gradient-to-r from-amber-50/80 via-white to-amber-50/70 rounded-2xl border border-amber-200/60 text-[11px] text-slate-700 leading-relaxed space-y-1">
           <div class="font-bold text-slate-800 flex items-center justify-between">
             <span class="flex items-center gap-1.5"><span class="text-sm">🌱</span> 【${activeSub.name}】當次班級成績分佈解讀</span>
-            <span class="text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200/60">
-              全班最高 ${activeSub.max || 100} 分 ‧ 最低 ${activeSub.min || 0} 分
-            </span>
+            <div class="flex items-center gap-1">
+              ${(cfg.showDifficulty !== false && activeSub.difficultyBadge) ? `
+                <span class="text-[10px] font-bold bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full border border-amber-300" title="*難易度以班級成績估計">
+                  ${activeSub.difficultyBadge} (*以班級估計)
+                </span>
+              ` : ''}
+              <span class="text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200/60">
+                最高 ${activeSub.max || 100} 分 ‧ 最低 ${activeSub.min || 0} 分
+              </span>
+            </div>
           </div>
           <div class="text-slate-600">
             曲線呈現當次全班同學在<b>【${activeSub.name}】</b>的真實分數分佈走勢（多數同學落在約 <b>${curKde.modeScore} 分</b> 區間）。
+            ${(cfg.showDifficulty !== false && activeSub.difficultyBadge) ? `全班平均得分率推估此份試卷難易度為<b>「${activeSub.difficulty}」</b>（*難易度以班級成績估計）。` : ''}
             孩子本次得分 <b>${score} 分</b>，在全班同儕中相對超越約 <b>${pr}%</b> 的同學，處於<b>「${activeSub.zoneStatus || (activeSub.zone + '區間')}」</b>。
           </div>
           ${activeSub.advice ? `<div class="text-[10px] text-amber-950 bg-amber-50/90 p-2 rounded-xl border border-amber-200 mt-1 font-medium">💡 適性引導：${activeSub.advice}</div>` : ''}
