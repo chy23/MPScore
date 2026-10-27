@@ -1767,6 +1767,87 @@
           <div id="pDiagnosisList" class="space-y-2.5 text-xs"></div>
         </div>
 
+        <!-- 📐 全面教育測驗統計方法與計算原理說明專區 (沙盒手機預覽，預設收折) -->
+        <div id="sbStatsMethodologySection" class="bg-white/90 backdrop-blur-md rounded-3xl shadow-sm border border-slate-200/80 p-4 transition-all">
+          <div id="sbMethodologyHeader" onclick="toggleSbStatsMethodologyDetails()" class="flex items-center justify-between cursor-pointer select-none group" role="button" aria-expanded="false" title="點擊切換展開/收折說明">
+            <div class="flex items-center gap-2">
+              <span class="w-7 h-7 rounded-lg bg-amber-500 text-slate-950 font-black text-xs flex items-center justify-center shadow-xs shrink-0 group-hover:scale-105 transition-transform">📐</span>
+              <div>
+                <div class="font-black text-xs text-slate-900 flex items-center gap-1.5 flex-wrap group-hover:text-amber-800 transition-colors">
+                  <span>本站選用之統計方法與計算方式說明</span>
+                  <span class="text-[9px] bg-amber-100 text-amber-900 font-bold px-1.5 py-0.5 rounded-full border border-amber-300">教育常模</span>
+                </div>
+                <div class="text-[10px] text-slate-400 mt-0.5">以科學統計破除分數迷思 ‧ 依常模評定試卷難度</div>
+              </div>
+            </div>
+            <button type="button" onclick="event.stopPropagation(); toggleSbStatsMethodologyDetails();" id="sbBtnToggleMethodology" class="text-[11px] font-bold text-amber-900 bg-amber-50 group-hover:bg-amber-100 px-2.5 py-1 rounded-xl border border-amber-200 transition-all active:scale-95 flex items-center gap-1 cursor-pointer shrink-0 shadow-2xs ml-1">
+              <span id="sbTxtToggleMethodology">展開</span>
+              <span id="sbIconToggleMethodology" class="transition-transform duration-300 inline-block text-[9px]">▼</span>
+            </button>
+          </div>
+
+          <!-- 統計方法詳細內容 (預設收折 hidden) -->
+          <div id="sbMethodologyDetailsContent" class="hidden space-y-3 text-[11px] leading-relaxed text-slate-700 pt-3 border-t border-slate-100 mt-2.5 animate-in fade-in duration-200">
+            <!-- 維度一 -->
+            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200/70 space-y-1.5">
+              <div class="font-bold text-slate-900 flex items-center gap-1 text-[11px]">
+                <span class="text-amber-600">📊</span>
+                <span>維度一：基礎中心趨勢與離散量數</span>
+              </div>
+              <div class="space-y-1 text-[10px] text-slate-600">
+                <div><b>1. 算術平均數 (X̄)</b>：∑Xi / N，反映班級整體總體得分水平。</div>
+                <div><b>2. 與班級平均差 (Δ)</b>：得分 - 班級平均，正值代表超越班級水平。</div>
+                <div><b>3. 標準化 T 分數</b>：T = 50 + 10 × [(X - X̄) / S]，排除各科難易浮動。</div>
+              </div>
+            </div>
+
+            <!-- 維度二 -->
+            <div class="p-2.5 bg-amber-50/70 rounded-xl border border-amber-200/80 space-y-1.5">
+              <div class="font-bold text-amber-950 flex items-center gap-1 text-[11px]">
+                <span>🎯</span>
+                <span>維度二：試卷難易度與常模評定</span>
+              </div>
+              <div class="space-y-1 text-[10px] text-slate-700">
+                <div>
+                  <b>4. 考卷難易度 (方法三：加權抗極端值偏態校正)</b>：<br>
+                  P* = 0.6 × 平均得分率 + 0.4 × 中位數得分率。劃分 🟢偏易(≥0.80)、🎯適中(0.65~0.80)、🔥偏難(0.50~0.65)、⚡極具挑戰(&lt;0.50)。
+                  <span class="text-amber-800 font-bold block mt-0.5">*難易度以班級成績估計</span>
+                </div>
+                <div><b>5. 百分等級 (PR)</b>：PR = (B + 0.5E) / N × 100，超越同儕相對比率。</div>
+              </div>
+            </div>
+
+            <!-- 維度三 & 四 -->
+            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200/70 space-y-1.5">
+              <div class="font-bold text-slate-900 flex items-center gap-1 text-[11px]">
+                <span class="text-amber-600">📦</span>
+                <span>維度三與四：分佈離散與五育雷達</span>
+              </div>
+              <div class="space-y-1 text-[10px] text-slate-600">
+                <div><b>6. 盒鬚圖五數摘要</b>：全班最低、Q1後標、中位數、Q3前標、最高分。</div>
+                <div><b>7. GradeInterpr 正向區間</b>：卓越突破、穩健前行、潛力蓄力、待扶扶持。</div>
+                <div><b>8. 核密度估計 (KDE)</b>：高斯核平滑曲線，真實呈現全班分數堆疊分佈。</div>
+                <div><b>9. 蜜蜂聚落散佈圖</b>：微觀匿名散佈點，直觀檢視個人在同儕群聚中的定位。</div>
+                <div><b>10. 多學科常模雷達圖</b>：五育均衡檢視，自動診斷各科優勢與待補強項目。</div>
+              </div>
+            </div>
+
+            <!-- 維度五 & 六 -->
+            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200/70 space-y-1.5">
+              <div class="font-bold text-slate-900 flex items-center gap-1 text-[11px]">
+                <span class="text-amber-600">🌱</span>
+                <span>維度五與六：成長動能與足跡勳章</span>
+              </div>
+              <div class="space-y-1 text-[10px] text-slate-600">
+                <div><b>11. 跨次進步動能 (ΔPR)</b>：本次PR - 前次PR，排除考卷難度浮動客觀量化進步。</div>
+                <div><b>12. 成長啞鈴圖</b>：前次(灰)與本次(彩)連線箭頭，直觀展現各科突破跨度。</div>
+                <div><b>13. SWOT 四象限矩陣</b>：實力(PR) × 動能(ΔPR)，因材施教適性引導。</div>
+                <div><b>14. 歷程足跡地圖與成就徽章</b>：🎖️破風躍進、🛡️定海神針、🌟全能卓越等正向獎章。</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
@@ -1919,8 +2000,8 @@
                   傳統單一分數無法如實反映試卷深淺，試卷偏難時考 70 分已超越 80% 同學，若依絕對分數評量極易引發孩子挫折與家長焦慮。本系統導入教育測驗常模評定算法：以全班平均得分率 $P_{\text{mean}} = \bar{X}/100$ 與中位數得分率 $P_{\text{med}} = \text{Median}/100$ 共同估算。當全班平均與中位數相差超過 3 分時（例如缺考 0 分或少數極端低分拉低平均），自動啟動抗極端值校正公式：$P^* = 0.6 \times P_{\text{mean}} + 0.4 \times P_{\text{med}}$，劃分 <b>🟢 偏易 (P* ≥ 0.80)</b>、<b>🎯 難易適中 (0.65 ≤ P* &lt; 0.80)</b>、<b>🔥 偏難 (0.50 ≤ P* &lt; 0.65)</b>、<b>⚡ 極具挑戰 (P* &lt; 0.50)</b> 四大客觀等級，並強制附註「*難易度以班級成績估計」，引導家長理性看待成績。
                 </li>
                 <li>
-                  <b class="text-slate-900 font-bold">📐 MPScore 學習評量統計方法與計算原理說明專區（常設於家長端網頁最底部）</b>：<br>
-                  家長端在頁面最下方（Footer 上方）常設折疊式統計方法專區，完整收錄系統運用的 <b>6 大維度、共 14 項教育測驗統計方法</b>之數學公式、統計學意義與親師伴讀教育應用：
+                  <b class="text-slate-900 font-bold">📐 本站選用之統計方法與計算方式說明專區（常設於家長端網頁最底部，進站預設收折）</b>：<br>
+                  家長端在頁面最下方（Footer 上方）常設收折式統計方法專區（進網站預設為收起狀態，點選即可一鍵展開/收折），完整收錄系統運用的 <b>6 大維度、共 14 項教育測驗統計方法</b>之數學公式、統計學意義與親師伴讀教育應用：
                   <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 my-1.5 text-[10px] text-slate-600">
                     <div class="bg-white/80 p-2 rounded-lg border border-amber-200">1. 算術平均數 (X̄ = ∑Xi/N)</div>
                     <div class="bg-white/80 p-2 rounded-lg border border-amber-200">2. 與班級平均差 (Δ = X - X̄)</div>
@@ -5257,6 +5338,27 @@
           plugins: { legend: { position: 'bottom', labels: { boxWidth: 8, font: { size: 9 } } } }
         }
       });
+    }
+
+    // 手機沙盒預覽：控制底部「本站選用之統計方法與計算方式說明」專區的展開/收折 (預設收折)
+    function toggleSbStatsMethodologyDetails() {
+      const content = document.getElementById('sbMethodologyDetailsContent');
+      const txt = document.getElementById('sbTxtToggleMethodology');
+      const icon = document.getElementById('sbIconToggleMethodology');
+      const header = document.getElementById('sbMethodologyHeader');
+      if (!content) return;
+      const isHidden = content.classList.contains('hidden');
+      if (isHidden) {
+        content.classList.remove('hidden');
+        if (txt) txt.innerText = '收折';
+        if (icon) icon.style.transform = 'rotate(180deg)';
+        if (header) header.setAttribute('aria-expanded', 'true');
+      } else {
+        content.classList.add('hidden');
+        if (txt) txt.innerText = '展開';
+        if (icon) icon.style.transform = 'rotate(0deg)';
+        if (header) header.setAttribute('aria-expanded', 'false');
+      }
     }
 
     let parentBoxplotSubIdx = 0;

@@ -508,25 +508,27 @@
       </div>
 
       <!-- ==================== 📐 全面教育測驗統計方法與計算原理說明專區 ==================== -->
-      <section id="pStatsMethodologySection" class="bg-white rounded-3xl border border-slate-200/80 p-5 md:p-6 shadow-xs space-y-4">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+      <section id="pStatsMethodologySection" class="bg-white rounded-3xl border border-slate-200/80 p-4 sm:p-5 md:p-6 shadow-xs transition-all">
+        <!-- 頂部收折點擊條 (支援整列點擊展開/收折) -->
+        <div id="methodologyHeader" onclick="toggleStatsMethodologyDetails()" class="flex items-center justify-between cursor-pointer select-none group" role="button" aria-expanded="false" title="點擊切換展開/收折說明">
           <div class="flex items-center gap-2.5">
-            <span class="w-8 h-8 rounded-xl bg-amber-500 text-slate-950 font-black text-sm flex items-center justify-center shadow-xs">📐</span>
+            <span class="w-8 h-8 rounded-xl bg-amber-500 text-slate-950 font-black text-sm flex items-center justify-center shadow-xs shrink-0 group-hover:scale-105 transition-transform">📐</span>
             <div>
-              <h3 class="text-sm md:text-base font-black text-slate-900 tracking-tight flex items-center gap-2">
-                <span>MPScore 學習評量統計方法與計算原理說明</span>
+              <h3 class="text-sm md:text-base font-black text-slate-900 tracking-tight flex items-center gap-2 flex-wrap group-hover:text-amber-800 transition-colors">
+                <span>本站選用之統計方法與計算方式說明</span>
                 <span class="text-[10px] bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded-full border border-amber-300">教育測驗常模標準</span>
               </h3>
               <p class="text-[11px] text-slate-500 mt-0.5">以科學統計破除單一原始分數迷思，看見孩子的真實常模定位與實質成長軌跡</p>
             </div>
           </div>
-          <button type="button" onclick="toggleStatsMethodologyDetails()" id="btnToggleMethodology" class="text-xs font-bold text-amber-900 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-xl border border-amber-200 transition active:scale-95 flex items-center gap-1 cursor-pointer shrink-0">
-            <span id="txtToggleMethodology">收摺說明</span>
-            <span id="iconToggleMethodology" class="transition-transform duration-200">▲</span>
+          <button type="button" onclick="event.stopPropagation(); toggleStatsMethodologyDetails();" id="btnToggleMethodology" class="text-xs font-bold text-amber-900 bg-amber-50 hover:bg-amber-100 group-hover:bg-amber-100 px-3 py-1.5 rounded-xl border border-amber-200 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer shrink-0 shadow-2xs ml-2">
+            <span id="txtToggleMethodology">展開完整說明</span>
+            <span id="iconToggleMethodology" class="transition-transform duration-300 inline-block text-[10px]">▼</span>
           </button>
         </div>
 
-        <div id="methodologyDetailsContent" class="space-y-4 text-xs leading-relaxed text-slate-700">
+        <!-- 統計方法詳細內容 (預設收折 hidden) -->
+        <div id="methodologyDetailsContent" class="hidden space-y-4 text-xs leading-relaxed text-slate-700 pt-4 border-t border-slate-100 mt-3 animate-in fade-in duration-200">
           
           <!-- 維度一：中心趨勢與離散量數 -->
           <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/70 space-y-2">
@@ -878,9 +880,13 @@
       </div>
 
       <!-- Modal 底部按鈕 -->
-      <div class="p-4 bg-white border-t border-slate-100 flex justify-end shrink-0">
-        <button onclick="closeParentStatsHelpModal()" class="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black px-5 py-2.5 rounded-2xl text-xs transition active:scale-95 shadow-sm cursor-pointer">
-          我了解了，返回成績手札
+      <div class="p-4 bg-white border-t border-slate-100 flex items-center justify-between gap-2 shrink-0">
+        <button onclick="scrollToStatsMethodology()" class="text-xs font-bold text-amber-900 bg-amber-50 hover:bg-amber-100 px-3.5 py-2 rounded-xl border border-amber-200 transition active:scale-95 flex items-center gap-1.5 cursor-pointer shadow-2xs">
+          <span>📐</span>
+          <span>完整統計公式說明 ↓</span>
+        </button>
+        <button onclick="closeParentStatsHelpModal()" class="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black px-4 py-2 rounded-xl text-xs transition active:scale-95 shadow-sm cursor-pointer">
+          我了解了，返回
         </button>
       </div>
 
@@ -2272,21 +2278,44 @@
       if (m) m.classList.add('hidden');
     }
 
-    // 控制網頁底部統計方法專區的展開/收摺
+    // 控制網頁底部「本站選用之統計方法與計算方式說明」專區的展開/收折
     function toggleStatsMethodologyDetails() {
       const content = document.getElementById('methodologyDetailsContent');
       const txt = document.getElementById('txtToggleMethodology');
       const icon = document.getElementById('iconToggleMethodology');
+      const header = document.getElementById('methodologyHeader');
       if (!content) return;
-      if (content.classList.contains('hidden')) {
+      const isHidden = content.classList.contains('hidden');
+      if (isHidden) {
         content.classList.remove('hidden');
-        if (txt) txt.innerText = '收摺說明';
-        if (icon) icon.style.transform = 'rotate(0deg)';
+        if (txt) txt.innerText = '收折說明';
+        if (icon) icon.style.transform = 'rotate(180deg)';
+        if (header) header.setAttribute('aria-expanded', 'true');
       } else {
         content.classList.add('hidden');
         if (txt) txt.innerText = '展開完整說明';
-        if (icon) icon.style.transform = 'rotate(180deg)';
+        if (icon) icon.style.transform = 'rotate(0deg)';
+        if (header) header.setAttribute('aria-expanded', 'false');
       }
+    }
+
+    // 由彈窗導覽直接平滑捲動至統計方法專區並自動展開
+    function scrollToStatsMethodology() {
+      closeParentStatsHelpModal();
+      const content = document.getElementById('methodologyDetailsContent');
+      const txt = document.getElementById('txtToggleMethodology');
+      const icon = document.getElementById('iconToggleMethodology');
+      const header = document.getElementById('methodologyHeader');
+      if (content && content.classList.contains('hidden')) {
+        content.classList.remove('hidden');
+        if (txt) txt.innerText = '收折說明';
+        if (icon) icon.style.transform = 'rotate(180deg)';
+        if (header) header.setAttribute('aria-expanded', 'true');
+      }
+      setTimeout(() => {
+        const sec = document.getElementById('pStatsMethodologySection');
+        if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 120);
     }
 
     function onParentPrCurveOverlayChange(val) {
