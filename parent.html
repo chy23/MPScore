@@ -497,6 +497,173 @@
         <div id="pDiagnosisList" class="grid grid-cols-1 md:grid-cols-2 gap-3.5 text-xs"></div>
       </div>
 
+      <!-- ==================== 📐 全面教育測驗統計方法與計算原理說明專區 ==================== -->
+      <section id="pStatsMethodologySection" class="bg-white rounded-3xl border border-slate-200/80 p-5 md:p-6 shadow-xs space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div class="flex items-center gap-2.5">
+            <span class="w-8 h-8 rounded-xl bg-amber-500 text-slate-950 font-black text-sm flex items-center justify-center shadow-xs">📐</span>
+            <div>
+              <h3 class="text-sm md:text-base font-black text-slate-900 tracking-tight flex items-center gap-2">
+                <span>MPScore 學習評量統計方法與計算原理說明</span>
+                <span class="text-[10px] bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded-full border border-amber-300">教育測驗常模標準</span>
+              </h3>
+              <p class="text-[11px] text-slate-500 mt-0.5">以科學統計破除單一原始分數迷思，看見孩子的真實常模定位與實質成長軌跡</p>
+            </div>
+          </div>
+          <button type="button" onclick="toggleStatsMethodologyDetails()" id="btnToggleMethodology" class="text-xs font-bold text-amber-900 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-xl border border-amber-200 transition active:scale-95 flex items-center gap-1 cursor-pointer shrink-0">
+            <span id="txtToggleMethodology">收摺說明</span>
+            <span id="iconToggleMethodology" class="transition-transform duration-200">▲</span>
+          </button>
+        </div>
+
+        <div id="methodologyDetailsContent" class="space-y-4 text-xs leading-relaxed text-slate-700">
+          
+          <!-- 維度一：中心趨勢與離散量數 -->
+          <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/70 space-y-2">
+            <div class="font-black text-slate-900 flex items-center gap-1.5 text-xs">
+              <span class="text-amber-600">📊</span>
+              <span>維度一：基礎中心趨勢與離散量數（Central Tendency & Dispersion）</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 pt-1 text-[11px]">
+              <div class="bg-white p-3 rounded-xl border border-slate-200 space-y-1">
+                <b class="text-slate-900 block">1. 算術平均數 (Arithmetic Mean, X̄)</b>
+                <div class="text-slate-500 font-mono text-[10px]">X̄ = (∑ Xi) / N</div>
+                <p class="text-slate-600 leading-relaxed">反映班級整體的總體得分水平。計算科目平均與全班總平均，但易受極端值（如缺考0分）干擾。</p>
+              </div>
+              <div class="bg-white p-3 rounded-xl border border-slate-200 space-y-1">
+                <b class="text-slate-900 block">2. 與班級平均差 (Score Deviation, Δ)</b>
+                <div class="text-slate-500 font-mono text-[10px]">Δ = 個人分數 - 班級平均</div>
+                <p class="text-slate-600 leading-relaxed">正值（如 +8.5）代表超越班級總體平均，負值代表低於平均，直觀呈現個人的相對強弱位階。</p>
+              </div>
+              <div class="bg-white p-3 rounded-xl border border-slate-200 space-y-1">
+                <b class="text-slate-900 block">3. 標準差與標準化 T 分數 (T-Score)</b>
+                <div class="text-slate-500 font-mono text-[10px]">T = 50 + 10 × [(X - X̄) / S]</div>
+                <p class="text-slate-600 leading-relaxed">以全班平均為中心（T=50），消除各科試卷難易度與給分嚴苛度的差異，客觀比較不同學科優勢。</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 維度二：試卷難易度評量 (重點：方法三抗極端值校正) -->
+          <div class="p-3.5 bg-gradient-to-r from-amber-50 to-orange-50/60 rounded-2xl border border-amber-200 text-slate-800 space-y-2">
+            <div class="font-black text-amber-950 flex items-center justify-between text-xs">
+              <div class="flex items-center gap-1.5">
+                <span>🎯</span>
+                <span>維度二：考卷難易度指數（Difficulty Index, P*）</span>
+              </div>
+              <span class="text-[10px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full border border-amber-300">*難易度以班級成績估計</span>
+            </div>
+            <div class="bg-white p-3.5 rounded-xl border border-amber-200/80 space-y-2 text-[11px]">
+              <div class="space-y-1">
+                <b class="text-amber-950">4. 測驗統計學「方法三：加權抗極端值偏態校正算法」</b>
+                <div class="text-slate-500 font-mono text-[10px] bg-slate-50 p-2 rounded-lg border border-slate-200">
+                  平均得分率 P_mean = 班均 / 100 ； 中位數得分率 P_med = 中位數 / 100<br>
+                  當 |班均 - 中位數| ≤ 3 分時：綜合難度 P* = P_mean<br>
+                  當 |班均 - 中位數| > 3 分時（遇缺考或偏態）：綜合難度 P* = 0.6 × P_mean + 0.4 × P_med
+                </div>
+                <p class="text-slate-600 leading-relaxed pt-1">
+                  傳統平均數常因少數學生缺考（0分）而拉低，導致考卷被誤判為偏難。本系統自動結合「中位數（PR50）」進行加權校正，使難易度評等客觀公正。
+                </p>
+              </div>
+              
+              <!-- 難度等級對照表 -->
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-center font-bold">
+                <div class="p-2 bg-emerald-50 rounded-lg border border-emerald-200 text-emerald-900">
+                  <div class="text-xs">🟢 偏易 (Easy)</div>
+                  <div class="text-[10px] text-emerald-700 font-normal mt-0.5">校正分 ≥ 80 分<br>基本觀念與熟練度佳</div>
+                </div>
+                <div class="p-2 bg-blue-50 rounded-lg border border-blue-200 text-blue-900">
+                  <div class="text-xs">🎯 難易適中</div>
+                  <div class="text-[10px] text-blue-700 font-normal mt-0.5">校正分 65 ~ 79.9 分<br>標準題型，鑑別度最佳</div>
+                </div>
+                <div class="p-2 bg-amber-50 rounded-lg border border-amber-200 text-amber-950">
+                  <div class="text-xs">🔥 偏難 (Difficult)</div>
+                  <div class="text-[10px] text-amber-800 font-normal mt-0.5">校正分 50 ~ 64.9 分<br>跨單元整合與計算偏多</div>
+                </div>
+                <div class="p-2 bg-rose-50 rounded-lg border border-rose-200 text-rose-900">
+                  <div class="text-xs">⚡ 極具挑戰</div>
+                  <div class="text-[10px] text-rose-700 font-normal mt-0.5">校正分 < 50 分<br>題量較大或深度題偏多</div>
+                </div>
+              </div>
+              <div class="text-[10px] text-amber-800/80 italic text-right">*難易度以班級成績估計，係以受測班級常模為推估基礎。</div>
+            </div>
+          </div>
+
+          <!-- 維度三：常模參照落點 -->
+          <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/70 space-y-2">
+            <div class="font-black text-slate-900 flex items-center gap-1.5 text-xs">
+              <span class="text-emerald-600">🏆</span>
+              <span>維度三：常模參照落點（Norm-Referenced Quantiles）</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 pt-1 text-[11px]">
+              <div class="bg-white p-3 rounded-xl border border-slate-200 space-y-1">
+                <b class="text-slate-900 block">5. 百分等級 (Percentile Rank, PR 值)</b>
+                <div class="text-slate-500 font-mono text-[10px]">PR = round([(低於該分人數 + 0.5×同分) / N] × 100)</div>
+                <p class="text-slate-600 leading-relaxed">國際教育常模標準算法。代表超越全班多少百分比的同儕（例如 PR 75 代表成績超越約 75% 的同學）。</p>
+              </div>
+              <div class="bg-white p-3 rounded-xl border border-slate-200 space-y-1">
+                <b class="text-slate-900 block">6. 箱型圖五數摘要 (Five-Number Summary)</b>
+                <div class="text-slate-500 font-mono text-[10px]">Min ‧ Q1(PR25) ‧ Median(PR50) ‧ Q3(PR75) ‧ Max</div>
+                <p class="text-slate-600 leading-relaxed">內插法計算四分位數，四分位距 IQR = Q3 - Q1 能抗極端值，真實呈現全班中間 50% 核心群的分散跨度。</p>
+              </div>
+              <div class="bg-white p-3 rounded-xl border border-slate-200 space-y-1">
+                <b class="text-slate-900 block">7. GradeInterpr 四大正向成長區間</b>
+                <div class="text-slate-500 font-mono text-[10px]">精熟(≥Q3) ‧ 穩健(≥Med) ‧ 努力(≥Q1) ‧ 開發(&lt;Q1)</div>
+                <p class="text-slate-600 leading-relaxed">楊家驊老師學習診斷模型，捨棄挫折標籤，給予正向成長定位與各學科精進伴讀處方。</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 維度四：微觀真實分佈密度 -->
+          <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/70 space-y-2">
+            <div class="font-black text-slate-900 flex items-center gap-1.5 text-xs">
+              <span class="text-blue-600">🔔</span>
+              <span>維度四：微觀真實分佈密度（Micro-Distribution）</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 pt-1 text-[11px]">
+              <div class="bg-white p-3 rounded-xl border border-slate-200 space-y-1">
+                <b class="text-slate-900 block">8. 核密度估計曲線 (KDE, Kernel Density Estimation)</b>
+                <p class="text-slate-600 leading-relaxed">高斯核平滑擬合真實作答分數，曲線波峰高低反映真實聚落密集處，不硬套對稱鐘形曲線。</p>
+              </div>
+              <div class="bg-white p-3 rounded-xl border border-slate-200 space-y-1">
+                <b class="text-slate-900 block">9. 蜜蜂聚落散佈圖 (Beeswarm Plot)</b>
+                <p class="text-slate-600 leading-relaxed">微觀呈現全班每一位匿名考生的微觀分數點，光暈標註孩子個人落點，直觀辨識領跑群或追趕群。</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 維度五 & 六：多維均衡度與縱向成長動能 -->
+          <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/70 space-y-2">
+            <div class="font-black text-slate-900 flex items-center gap-1.5 text-xs">
+              <span class="text-purple-600">🚀</span>
+              <span>維度五與六：多維均衡度與縱向學習成長動能（Longitudinal Growth Dynamics）</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5 pt-1 text-[11px]">
+              <div class="bg-white p-3 rounded-xl border border-slate-200 space-y-1">
+                <b class="text-slate-900 block">10. 學科平衡雷達圖</b>
+                <p class="text-slate-600 leading-relaxed">各領域放射展開，多邊形形狀能一眼看出均衡度，快速辨識偏科或全能特質。</p>
+              </div>
+              <div class="bg-white p-3 rounded-xl border border-slate-200 space-y-1">
+                <b class="text-slate-900 block">11. 跨次進步動能差 (ΔPR)</b>
+                <p class="text-slate-600 leading-relaxed">ΔPR = 本次PR - 前次PR。排除考卷難度浮動，客觀量化實質努力的成長跨度。</p>
+              </div>
+              <div class="bg-white p-3 rounded-xl border border-slate-200 space-y-1">
+                <b class="text-slate-900 block">12. 跨次進退步啞鈴圖</b>
+                <p class="text-slate-600 leading-relaxed">連接前次(灰點)與本次(彩點)，箭頭方向與跨距直觀展現各學科的突破幅度。</p>
+              </div>
+              <div class="bg-white p-3 rounded-xl border border-slate-200 space-y-1">
+                <b class="text-slate-900 block">13. SWOT 四象限動能矩陣</b>
+                <p class="text-slate-600 leading-relaxed">X軸實力(PR) × Y軸動能(ΔPR)，劃分優勢發光、黑馬蓄力、細心守成、親師伴讀四象限。</p>
+              </div>
+            </div>
+            <div class="bg-white p-3 rounded-xl border border-slate-200 space-y-1 text-[11px] mt-2">
+              <b class="text-slate-900 block">14. 學習歷程成長足跡地圖與成就勳章</b>
+              <p class="text-slate-600 leading-relaxed">串聯學期歷次評量軌跡，依進步跨度與穩定度自動頒發榮譽徽章（如：🎖️破風躍進獎、🛡️定海神針獎、🌟全能卓越獎），正向肯定孩子的持續付出。</p>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
     </div>
 
   </main>
@@ -675,6 +842,20 @@
           </div>
           <p class="text-slate-600 text-[11px]">
             將學期中每場評量串連成成長冒險地圖，系統根據歷程自動頒發榮譽勳章（如：🎖️ 破風躍進獎、🛡️ 定海神針獎、🌟 全能卓越獎），見證孩子點滴累積的努力！
+          </p>
+        </div>
+
+        <!-- 10. 🎯 考卷難易度指數 (抗極端值偏態校正) -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-200/70 space-y-2 shadow-2xs">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 text-amber-950 font-bold text-xs">
+              <span class="p-1 rounded-lg bg-amber-100 text-amber-800">🎯</span>
+              <span>10. 考卷難易度指數（方法三抗極端值校正）</span>
+            </div>
+            <span class="text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">*難易度以班級成績估計</span>
+          </div>
+          <p class="text-slate-600 text-[11px] leading-relaxed">
+            單一分數無法代表孩子的真實實力。本系統結合<b>全班平均得分率</b>與<b>中位數</b>進行加權偏態校正，劃分 🟢偏易、🎯適中、🔥偏難、⚡極具挑戰 四大客觀等級。考卷偏難時考 70 分已屬高標，幫助家長跳脫原始分數框架，理性客觀引導孩子！
           </p>
         </div>
 
@@ -897,7 +1078,8 @@
           showTScore: vStr.length > 14 ? vStr[14] === '1' : false,
           showDumbbell: vStr.length > 15 ? vStr[15] === '1' : false,
           showStrengthsMatrix: vStr.length > 16 ? vStr[16] === '1' : false,
-          showMilestoneJourney: vStr.length > 17 ? vStr[17] === '1' : false
+          showMilestoneJourney: vStr.length > 17 ? vStr[17] === '1' : false,
+          showDifficulty: vStr.length > 18 ? vStr[18] === '1' : true
         };
       }
 
@@ -906,7 +1088,7 @@
         if (saved) return JSON.parse(saved);
       } catch(e) {}
 
-      // 預設勾選：啞鈴圖、四象限動能、學習歷程足跡；預設不勾選：蜜蜂圖、T分數尺、排名、箱型圖、學習錦囊
+      // 預設勾選：啞鈴圖、四象限動能、學習歷程足跡、試卷難易度；預設不勾選：蜜蜂圖、T分數尺、排名、箱型圖、學習錦囊
       return {
         showAvg: true,
         showRank: false,
@@ -925,7 +1107,8 @@
         showTScore: false,
         showDumbbell: true,
         showStrengthsMatrix: true,
-        showMilestoneJourney: true
+        showMilestoneJourney: true,
+        showDifficulty: true
       };
     }
 
@@ -1753,7 +1936,16 @@
               <span>${sub.name}</span>
             </td>
             ${cfg.showSubjects ? `<td class="py-2.5 px-3 text-center font-black ${theme.textAccent} text-sm">${sub.score}</td>` : ''}
-            ${cfg.showClassAvg ? `<td class="py-2.5 px-3 text-center text-slate-500">${sub.classAverage}</td>` : ''}
+            ${cfg.showClassAvg ? `
+              <td class="py-2.5 px-3 text-center text-slate-600">
+                <div>${sub.classAverage}</div>
+                ${(cfg.showDifficulty !== false && sub.difficultyBadge) ? `
+                  <div class="mt-0.5">
+                    <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200 inline-block" title="*難易度以班級成績估計">${sub.difficultyBadge}</span>
+                  </div>
+                ` : ''}
+              </td>
+            ` : ''}
             ${cfg.showPr ? `<td class="py-2.5 px-3 text-center">${prBadge}</td>` : ''}
             ${cfg.showClassAvg ? `<td class="py-2.5 px-3 text-center">${diffBadge}</td>` : ''}
           </tr>
@@ -1881,10 +2073,17 @@
                     <span class="${theme.textDark} font-black">【${sub.name}】</span>
                     ${cfg.showSubjects ? `得分 <span class="${theme.textAccent} font-black">${sub.score}</span> 分` : ''}
                     ${cfg.showClassAvg ? `<span class="text-slate-400 font-normal text-[11px]">(班均 ${sub.classAverage})</span>` : ''}
+                    ${(cfg.showDifficulty !== false && sub.difficultyBadge) ? `
+                      <span class="inline-flex items-center gap-1 bg-slate-100 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-slate-200" title="*難易度以班級成績估計">
+                        <span>${sub.difficultyBadge}</span>
+                        <span class="text-[9px] text-slate-400 font-normal hidden sm:inline">*以班級估計</span>
+                      </span>
+                    ` : ''}
                   </div>
                   <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border ${zoneBadgeClass}">${sub.zoneStatus || sub.zone}</span>
                 </div>
                 <div class="text-slate-600 leading-relaxed text-[11px] bg-slate-50/70 p-2 rounded-lg border border-slate-100">${sub.advice}</div>
+                ${(cfg.showDifficulty !== false && sub.difficultyBadge) ? `<div class="text-[9px] text-slate-400 text-right pr-1">*難易度以班級成績估計</div>` : ''}
               </div>
             `;
           });
@@ -2046,6 +2245,23 @@
     function closeParentStatsHelpModal() {
       const m = document.getElementById('parentStatsHelpModal');
       if (m) m.classList.add('hidden');
+    }
+
+    // 控制網頁底部統計方法專區的展開/收摺
+    function toggleStatsMethodologyDetails() {
+      const content = document.getElementById('methodologyDetailsContent');
+      const txt = document.getElementById('txtToggleMethodology');
+      const icon = document.getElementById('iconToggleMethodology');
+      if (!content) return;
+      if (content.classList.contains('hidden')) {
+        content.classList.remove('hidden');
+        if (txt) txt.innerText = '收摺說明';
+        if (icon) icon.style.transform = 'rotate(0deg)';
+      } else {
+        content.classList.add('hidden');
+        if (txt) txt.innerText = '展開完整說明';
+        if (icon) icon.style.transform = 'rotate(180deg)';
+      }
     }
 
     function onParentPrCurveOverlayChange(val) {

@@ -563,7 +563,10 @@ function getStudentScoreByToken(token) {
           pr: subItem.pr,
           zone: subItem.zone,
           zoneStatus: subItem.zoneStatus,
-          diagnosis: subItem.advice
+          diagnosis: subItem.advice,
+          difficulty: subItem.difficulty,
+          difficultyBadge: subItem.difficultyBadge,
+          difficultyNote: subItem.difficultyNote
         });
       }
     }
@@ -875,6 +878,9 @@ function analyzeExamSheet(sheet, student) {
     // 產生專家建議
     var adviceText = getExpertSubjectAdvice(subName, zoneType, mySubScore);
 
+    // 計算試卷難易度 (方法三：加權抗極端值校正，*難易度以班級成績估計)
+    var diffInfo = calculateSubjectDifficulty(subClassAvg, medianVal);
+
     subjectsResult.push({
       name: subName,
       score: mySubScore,
@@ -888,7 +894,13 @@ function analyzeExamSheet(sheet, student) {
       max: maxVal,
       zone: zone,
       zoneStatus: zoneStatus,
-      advice: adviceText
+      advice: adviceText,
+      difficulty: diffInfo.level,
+      difficultyBadge: diffInfo.badge,
+      difficultyColor: diffInfo.color,
+      difficultyIndex: diffInfo.index,
+      difficultyScore: diffInfo.score,
+      difficultyNote: diffInfo.note
     });
   }
 
@@ -906,6 +918,58 @@ function analyzeExamSheet(sheet, student) {
       classOverallAverage: classOverallAvg,
       subjects: subjectsResult
     }
+  };
+}
+
+/**
+ * 依據教育測驗統計學（方法三：加權抗極端值校正）計算試卷難易度
+ * @param {number} classAvg - 全班該科算術平均
+ * @param {number} median - 全班該科中位數 (PR 50)
+ * @returns {Object} 難易度分析結果
+ */
+function calculateSubjectDifficulty(classAvg, median) {
+  var cAvg = Number(classAvg) || 0;
+  var med = Number(median) || cAvg;
+
+  var pMean = cAvg / 100;
+  var pMed = med / 100;
+  var pStar = pMean;
+
+  // 偏態檢驗：當平均數與中位數差異大於 3 分時，引入中位數進行抗極端值校正
+  if (Math.abs(cAvg - med) > 3) {
+    pStar = 0.6 * pMean + 0.4 * pMed;
+  }
+
+  var scoreStar = Math.round(pStar * 1000) / 10;
+  var level = '難易適中';
+  var badge = '🎯 適中';
+  var color = 'blue';
+
+  if (pStar >= 0.80) {
+    level = '偏易';
+    badge = '🟢 偏易';
+    color = 'emerald';
+  } else if (pStar >= 0.65) {
+    level = '難易適中';
+    badge = '🎯 適中';
+    color = 'blue';
+  } else if (pStar >= 0.50) {
+    level = '偏難';
+    badge = '🔥 偏難';
+    color = 'amber';
+  } else {
+    level = '極具挑戰';
+    badge = '⚡ 極具挑戰';
+    color = 'rose';
+  }
+
+  return {
+    level: level,
+    badge: badge,
+    color: color,
+    index: Math.round(pStar * 100) / 100,
+    score: scoreStar,
+    note: '*難易度以班級成績估計'
   };
 }
 
@@ -1109,6 +1173,7 @@ function getExamAllStudentsStats(sheet) {
       }
       var pr = Math.round(((below + 0.5 * equal) / total) * 100);
       var bStats = subBoxStats[sName] || { q1: 60, median: 75, q3: 88, min: 40, max: 100 };
+      var diffInfo = calculateSubjectDifficulty(subAvgs[sName], bStats.median);
       subjectsResult.push({
         name: sName,
         score: myScore,
@@ -1118,7 +1183,13 @@ function getExamAllStudentsStats(sheet) {
         median: bStats.median,
         q3: bStats.q3,
         min: bStats.min,
-        max: bStats.max
+        max: bStats.max,
+        difficulty: diffInfo.level,
+        difficultyBadge: diffInfo.badge,
+        difficultyColor: diffInfo.color,
+        difficultyIndex: diffInfo.index,
+        difficultyScore: diffInfo.score,
+        difficultyNote: diffInfo.note
       });
     }
 
