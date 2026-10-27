@@ -1748,7 +1748,20 @@
         return;
       }
 
-      let exams = rawExams.slice();
+      // 嚴格排除非考試分頁 (如【家長閱覽紀錄】、【學生名冊】等日誌分頁，確保折線圖與選單純淨)
+      let exams = (rawExams || []).filter(e => {
+        const title = (e.sheetName || e.examTitle || '').trim();
+        if (!title || title === '家長閱覽紀錄' || title.includes('閱覽紀錄') || title.includes('名冊') || title.includes('日誌') || title.startsWith('_')) {
+          return false;
+        }
+        return true;
+      });
+
+      if (exams.length === 0) {
+        showAppleToast('尚未偵測到有效的考試成績分頁。', 'warning');
+        return;
+      }
+
       const urlParams = new URLSearchParams(window.location.search);
       const examParam = urlParams.get('e') || urlParams.get('exam');
 
@@ -3435,9 +3448,20 @@
       const ctx = document.getElementById('pTrendChart').getContext('2d');
       if (pTrendInst) pTrendInst.destroy();
 
-      const labels = exams.map(e => e.sheetName || e.examTitle);
-      const avgs = exams.map(e => e.studentAverage);
-      const classAvgs = exams.map(e => e.classOverallAverage || null);
+      // 嚴格過濾非考試分頁，只保留包含有效分數的考試
+      const validExams = (exams || []).filter(e => {
+        const title = (e.sheetName || e.examTitle || '').trim();
+        if (!title || title === '家長閱覽紀錄' || title.includes('閱覽紀錄') || title.includes('名冊') || title.includes('日誌') || title.startsWith('_')) {
+          return false;
+        }
+        return typeof e.studentAverage === 'number' && !isNaN(e.studentAverage) && e.studentAverage > 0;
+      });
+
+      if (validExams.length === 0) return;
+
+      const labels = validExams.map(e => e.sheetName || e.examTitle);
+      const avgs = validExams.map(e => e.studentAverage);
+      const classAvgs = validExams.map(e => (typeof e.classOverallAverage === 'number' && e.classOverallAverage > 0) ? e.classOverallAverage : null);
       const cfg = getVisibilityConfig();
 
       const datasets = [{
@@ -3446,7 +3470,8 @@
         borderColor: '#d97706',
         backgroundColor: 'rgba(245, 158, 11, 0.15)',
         fill: true,
-        tension: 0.3,
+        tension: 0.2,
+        spanGaps: false,
         pointRadius: 5,
         pointHoverRadius: 7,
         pointBackgroundColor: '#d97706',
@@ -3461,7 +3486,8 @@
           borderDash: [4, 4],
           backgroundColor: 'transparent',
           fill: false,
-          tension: 0.3,
+          tension: 0.2,
+          spanGaps: false,
           pointRadius: 4,
           pointHoverRadius: 6,
           pointBackgroundColor: '#94a3b8',

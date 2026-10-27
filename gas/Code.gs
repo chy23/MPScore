@@ -58,6 +58,19 @@ function getTeacherKey() {
 }
 
 /**
+ * 嚴格判斷工作表分頁是否為「考試分頁」
+ * 自動排除【學生名冊】、【家長閱覽紀錄】、系統暫存分頁(_)以及任何包含「名冊/紀錄/日誌/log」的分頁
+ */
+function isExamSheetName(name) {
+  if (!name) return false;
+  var s = name.toString().trim();
+  if (s.startsWith('_')) return false;
+  if (s === '學生名冊' || s === '家長閱覽紀錄' || s === '閱覽紀錄' || s === '家長閱覽日誌') return false;
+  if (s.indexOf('名冊') !== -1 || s.indexOf('閱覽紀錄') !== -1 || s.indexOf('日誌') !== -1 || s.indexOf('log') !== -1 || s.indexOf('Log') !== -1) return false;
+  return true;
+}
+
+/**
  * 雙向同步教師金鑰至【學生名冊】工作表 F1:F2 儲存格
  * 方便教師換電腦時隨時抬頭查閱，或直接在試算表中自訂修改！
  */
@@ -359,9 +372,16 @@ function doGet(e) {
   var output = {};
 
   try {
-    // 1. 公開安全端點（任何人免金鑰可存取：健康檢查與個人專屬代碼查詢）
+    // 1. 公開安全端點（任何人免金鑰可存取：健康檢查、金鑰綁定與個人專屬代碼查詢）
     if (action === 'ping') {
       output = checkSystemStatus(teacherKey);
+      return ContentService.createTextOutput(JSON.stringify(output))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    if (action === 'bindTeacherKey' || action === 'setTeacherKey') {
+      var newKey = (params.newKey || params.key || '').toString().trim();
+      output = bindTeacherKeyFromApi(newKey);
       return ContentService.createTextOutput(JSON.stringify(output))
         .setMimeType(ContentService.MimeType.JSON);
     }
@@ -408,6 +428,26 @@ function doPost(e) {
 }
 
 /**
+ * 遠端主動綁定/設定教師安全金鑰至 Google 試算表
+ * 方便老師在教師後端網頁直接指定密碼並立即綁定，同步寫入【學生名冊】F2 儲存格
+ */
+function bindTeacherKeyFromApi(newKey) {
+  if (!newKey || newKey.toString().trim().length < 4) {
+    return { success: false, message: '教師金鑰長度需至少 4 碼以上。' };
+  }
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var props = PropertiesService.getScriptProperties();
+  var cleanKey = newKey.toString().trim();
+  props.setProperty('TEACHER_KEY', cleanKey);
+  syncTeacherKeyWithRoster(ss, cleanKey);
+  return {
+    success: true,
+    message: '🎉 金鑰已成功綁定至 Google 試算表！(已同步寫入【學生名冊】F 欄)',
+    teacherKey: cleanKey
+  };
+}
+
+/**
  * 系統連線檢測 (ping)
  * 偵測試算表內【學生名冊】與所有考試分頁，並支援前端金鑰智慧自動配對 (Auto-Pairing)
  */
@@ -435,7 +475,7 @@ function checkSystemStatus(teacherKey) {
   var examTabs = [];
   for (var i = 0; i < allSheets.length; i++) {
     var name = allSheets[i].getName();
-    if (name !== '學生名冊' && !name.startsWith('_')) {
+    if (isExamSheetName(name)) {
       examTabs.push(name);
     }
   }
@@ -541,7 +581,7 @@ function getStudentScoreByToken(token) {
   for (var s = 0; s < allSheets.length; s++) {
     var curSheet = allSheets[s];
     var sheetName = curSheet.getName();
-    if (sheetName === '學生名冊' || sheetName.startsWith('_')) {
+    if (!isExamSheetName(sheetName)) {
       continue;
     }
 
@@ -1033,7 +1073,7 @@ function getStudentListForTeacher() {
   for (var s = 0; s < allSheets.length; s++) {
     var curSheet = allSheets[s];
     var sName = curSheet.getName();
-    if (sName === '學生名冊' || sName.startsWith('_')) continue;
+    if (!isExamSheetName(sName)) continue;
 
     var examStats = getExamAllStudentsStats(curSheet);
     if (examStats) {
@@ -1243,7 +1283,7 @@ function syncStudentsFromExamSheet() {
   var sheets = ss.getSheets();
   var examSheet = null;
   for (var i = 0; i < sheets.length; i++) {
-    if (sheets[i].getName() !== '學生名冊' && !sheets[i].getName().startsWith('_')) {
+    if (isExamSheetName(sheets[i].getName())) {
       examSheet = sheets[i];
       break;
     }
@@ -1448,7 +1488,7 @@ function previewClassStatistics() {
   for (var i = 0; i < sheets.length; i++) {
     var sh = sheets[i];
     var sName = sh.getName();
-    if (sName === '學生名冊' || sName.startsWith('_')) continue;
+    if (!isExamSheetName(sName)) continue;
 
     var mockStudent = { seatNumber: '01', name: '' };
     var result = analyzeExamSheet(sh, mockStudent);
@@ -1700,7 +1740,7 @@ function autoFormatAndResizeAllSheets() {
       }
       sheet.setFrozenRows(1);
       updatedCount++;
-    } else {
+    } else if (isExamSheetName(sName)) {
       var data = sheet.getDataRange().getValues();
       if (data.length < 2) continue;
 
@@ -1950,7 +1990,9 @@ var MPScoreEngine = {
   getParentAccessLogs: getParentAccessLogs,
   showTeacherKeyDialog: showTeacherKeyDialog,
   verifyOrCreateTeacherKey: verifyOrCreateTeacherKey,
+  bindTeacherKeyFromApi: bindTeacherKeyFromApi,
   getTeacherKey: getTeacherKey,
+  isExamSheetName: isExamSheetName,
   handleDoGet: doGet,
   handleDoPost: doPost
 };
