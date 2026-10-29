@@ -2,6 +2,22 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
+  <script>
+    // 🛡️ 家長專屬導向攔截 (Parent Redirect Gatekeeper)
+    // 若使用者是透過帶有學生查詢代碼 (t, token, id) 的成績連結開啟本頁（例如家長點選推播、書籤或掃碼），
+    // 零延遲（0ms）立即轉址至家長專屬查詢端 (parent.html)，徹底杜絕家長誤入教師管理後台！
+    (function() {
+      try {
+        var params = new URLSearchParams(window.location.search);
+        var token = params.get('t') || params.get('token') || params.get('id');
+        if (token && params.get('sim') !== 'true' && params.get('preview') !== 'true' && params.get('simulate') !== 'true') {
+          var cur = window.location.href.split('?')[0].split('#')[0];
+          var base = cur.endsWith('.html') ? cur.substring(0, cur.lastIndexOf('/') + 1) : (cur.endsWith('/') ? cur : cur + '/');
+          window.location.replace(base + 'parent.html' + window.location.search + window.location.hash);
+        }
+      } catch(e) {}
+    })();
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>MPScore - 智慧學生成績與學習診斷平台</title>
   
@@ -7844,6 +7860,16 @@
     let singlePushTargetStudent = null;
     let cachedLineExamsList = [];
 
+    function getParentPortalBaseUrl() {
+      let u = window.location.href.split('?')[0].split('#')[0];
+      if (u.endsWith('.html')) {
+        u = u.substring(0, u.lastIndexOf('/') + 1);
+      } else if (!u.endsWith('/')) {
+        u += '/';
+      }
+      return u + 'parent.html';
+    }
+
     function escapeHtml(str) {
       if (str === null || str === undefined) return '';
       return String(str)
@@ -8282,8 +8308,11 @@
           bodyLines.push('💬 老師的話：' + teacherNote);
         }
 
-        const baseUrl = window.location.href.split('?')[0].replace('index.html', 'parent.html');
-        const studentUrl = baseUrl + '?t=' + encodeURIComponent(st.token || '') + '&e=' + encodeURIComponent(examName);
+        const parentBaseUrl = getParentPortalBaseUrl();
+        let studentUrl = parentBaseUrl + '?t=' + encodeURIComponent(st.token || '') + '&e=' + encodeURIComponent(examName);
+        if (activeApiUrl && (!window.MPSCORE_CONFIG || !window.MPSCORE_CONFIG.apiUrl)) {
+          studentUrl += '&api=' + encodeURIComponent(activeApiUrl);
+        }
 
         targets.push({
           seatNo: seat,
@@ -8387,8 +8416,11 @@
       }
       if (customNote) bodyLines.push('💬 叮嚀：' + customNote);
 
-      const baseUrl = window.location.href.split('?')[0].replace('index.html', 'parent.html');
-      const studentUrl = baseUrl + '?t=' + encodeURIComponent(st.token || '') + '&e=' + encodeURIComponent(examName);
+      const parentBaseUrl = getParentPortalBaseUrl();
+      let studentUrl = parentBaseUrl + '?t=' + encodeURIComponent(st.token || '') + '&e=' + encodeURIComponent(examName);
+      if (activeApiUrl && (!window.MPSCORE_CONFIG || !window.MPSCORE_CONFIG.apiUrl)) {
+        studentUrl += '&api=' + encodeURIComponent(activeApiUrl);
+      }
 
       try {
         const hub = getLineHubClient();
