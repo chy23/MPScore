@@ -21,6 +21,9 @@ function onOpen() {
     .addItem('🔄 用最新考試名單，更新「學生名冊」', 'syncStudentsFromExamSheet')
     .addItem('🔑 為全班產生「家長查詢代碼」', 'generateTokensForStudents')
     .addSeparator()
+    .addItem('📲 透過 School LINE Hub 發送成績推播', 'openLinePushDialog')
+    .addItem('🔍 檢查 School LINE Hub 家長綁定概況', 'checkLineHubStatus')
+    .addSeparator()
     .addItem('🛡️ 查看 / 設定「教師管理金鑰」', 'showTeacherKeyDialog')
     .addItem('📋 查看「家長閱覽紀錄」', 'openParentAccessLogSheet')
     .addItem('📐 自動整理欄寬與表格排版', 'autoFormatAndResizeAllSheets')
@@ -59,14 +62,16 @@ function getTeacherKey() {
 
 /**
  * 嚴格判斷工作表分頁是否為「考試分頁」
- * 自動排除【學生名冊】、【家長閱覽紀錄】、系統暫存分頁(_)以及任何包含「名冊/紀錄/日誌/log」的分頁
+ * 自動排除【學生名冊】、【家長閱覽紀錄】、系統暫存分頁(_)以及任何包含「名冊/紀錄/記錄/閱覽/瀏覽/日誌/log」的系統分頁
  */
 function isExamSheetName(name) {
   if (!name) return false;
   var s = name.toString().trim();
   if (s.startsWith('_')) return false;
-  if (s === '學生名冊' || s === '家長閱覽紀錄' || s === '閱覽紀錄' || s === '家長閱覽日誌') return false;
-  if (s.indexOf('名冊') !== -1 || s.indexOf('閱覽紀錄') !== -1 || s.indexOf('日誌') !== -1 || s.indexOf('log') !== -1 || s.indexOf('Log') !== -1) return false;
+  var low = s.toLowerCase();
+  if (low.indexOf('名冊') !== -1 || low.indexOf('閱覽') !== -1 || low.indexOf('瀏覽') !== -1 || low.indexOf('紀錄') !== -1 || low.indexOf('記錄') !== -1 || low.indexOf('日誌') !== -1 || low.indexOf('log') !== -1) {
+    return false;
+  }
   return true;
 }
 
@@ -413,6 +418,13 @@ function doGet(e) {
       output = appendExamScores(body);
     } else if (action === 'getParentAccessLogs') {
       output = getParentAccessLogs();
+    } else if (action === 'getLineBindings') {
+      output = getLineBindingsFromHub();
+    } else if (action === 'sendLinePush') {
+      var pushPayload = params.payload || (e && e.postData && e.postData.contents ? e.postData.contents : '');
+      output = sendLinePushViaHub(pushPayload);
+    } else if (action === 'syncStudentsToLineHub') {
+      output = syncStudentsToLineHubFromGas();
     } else {
       output = { success: false, message: '未知的操作請求' };
     }
@@ -1992,6 +2004,128 @@ function openParentAccessLogSheet() {
   SpreadsheetApp.getUi().alert('📋 家長閱覽日誌', '目前累積共有 ' + count + ' 筆家長閱覽紀錄。\n您可在此分頁直接查閱每筆詳細時間戳記與學生姓名。', SpreadsheetApp.getUi().ButtonSet.OK);
 }
 
+/**
+ * =========================================================================
+ * 📲 School LINE Hub 校園推播中樞直連模組
+ * 免自建 Webhook、免申請 LINE Token，直接串接全校家長已綁定之推播中樞
+ * =========================================================================
+ */
+var DEFAULT_LINE_HUB_CONFIG = {
+  hubUrl: 'https://script.google.com/macros/s/AKfycbxkfMFYbi2H5c7vszql5Eb62krdZ_Kl_p8U3e4dLsLPyXCDmQF4ALcXI9bfrfI3IdQDVw/exec',
+  appId: 'MPScore',
+  appSecret: 'grtY_ji_26'
+};
+
+function getLineHubConfig() {
+  var props = PropertiesService.getScriptProperties();
+  return {
+    hubUrl: props.getProperty('LINE_HUB_URL') || DEFAULT_LINE_HUB_CONFIG.hubUrl,
+    appId: props.getProperty('LINE_HUB_APP_ID') || DEFAULT_LINE_HUB_CONFIG.appId,
+    appSecret: props.getProperty('LINE_HUB_APP_SECRET') || DEFAULT_LINE_HUB_CONFIG.appSecret
+  };
+}
+
+function callLineHubApi(action, extraPayload) {
+  var cfg = getLineHubConfig();
+  var payload = {
+    action: action,
+    appId: cfg.appId,
+    appSecret: cfg.appSecret
+  };
+  if (extraPayload) {
+    for (var k in extraPayload) {
+      if (extraPayload.hasOwnProperty(k)) {
+        payload[k] = extraPayload[k];
+      }
+    }
+  }
+
+  try {
+    var resp = UrlFetchApp.fetch(cfg.hubUrl, {
+      method: 'post',
+      contentType: 'application/json',
+      payload: JSON.stringify(payload),
+      muteHttpExceptions: true
+    });
+    var body = resp.getContentText();
+    return JSON.parse(body);
+  } catch (err) {
+    return { status: 'error', message: err.toString() };
+  }
+}
+
+function getLineBindingsFromHub() {
+  return callLineHubApi('get_all_bindings_summary');
+}
+
+function sendLinePushViaHub(pushPayload) {
+  if (typeof pushPayload === 'string') {
+    try {
+      pushPayload = JSON.parse(pushPayload);
+    } catch (e) {}
+  }
+  return callLineHubApi('send_push', pushPayload);
+}
+
+function syncStudentsToLineHubFromGas() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sSheet = ss.getSheetByName('學生名冊');
+  if (!sSheet) return { status: 'error', message: '找不到【學生名冊】分頁' };
+
+  var data = sSheet.getDataRange().getValues();
+  var studentsList = [];
+  for (var i = 1; i < data.length; i++) {
+    var row = data[i];
+    var seat = normalizeSeatNumber(row[1]);
+    var name = row[2] ? row[2].toString().trim() : '';
+    var token = row[3] ? row[3].toString().trim() : '';
+    if (seat || name) {
+      studentsList.push({
+        seatNo: seat,
+        studentName: name,
+        token: token || ('STU' + seat)
+      });
+    }
+  }
+
+  return callLineHubApi('register_students', { students: studentsList });
+}
+
+function checkLineHubStatus() {
+  var res = callLineHubApi('verify_client');
+  var ui = SpreadsheetApp.getUi();
+  if (res && res.status === 'success') {
+    var bindRes = getLineBindingsFromHub();
+    var boundCount = (bindRes && bindRes.totalBoundStudents) || res.activeBindingsCount || 0;
+    ui.alert(
+      '✅ School LINE Hub 連線成功！',
+      '• 專案名稱：' + (res.projectName || '段考複合式個人成績 (MPScore)') + '\n' +
+      '• 授權代碼：' + res.appId + '\n' +
+      '• 中樞已綁定家長數：' + boundCount + ' 位\n' +
+      '• 本月推播配額：' + (res.usedCount || 0) + ' / ' + (res.monthlyQuota || '無上限') + ' 則\n\n' +
+      '家長已於校園中樞完成綁定，您可隨時在網頁端發送 LINE 個人成績通知！',
+      ui.ButtonSet.OK
+    );
+  } else {
+    ui.alert('⚠️ 連線異常', (res && res.message) || '無法連線至 School LINE Hub 中樞，請檢查網路連線或金鑰設定。', ui.ButtonSet.OK);
+  }
+}
+
+function openLinePushDialog() {
+  var ui = SpreadsheetApp.getUi();
+  ui.alert(
+    '📲 LINE 家長推播通知',
+    'MPScore 已完整整合 School LINE Hub 校園推播中樞！\n\n' +
+    '💡 建議方式：請打開 MPScore 教師端網頁管理後台，切換至【📲 LINE 家長推播】分頁。\n' +
+    '在那裡您可以：\n' +
+    '1. 預覽 LINE 氣泡卡片在手機上的真實樣式\n' +
+    '2. 選擇本次推播的考試名稱（如 114-1期末考）\n' +
+    '3. 勾選是否附帶名次、平均、難易度與專屬手札連結\n' +
+    '4. 一鍵發送給全班或單獨推播特定家長！',
+    ui.ButtonSet.OK
+  );
+}
+
 var MPScoreEngine = {
   autoFormatAndResizeAllSheets: autoFormatAndResizeAllSheets,
   setupStandardSheets: setupStandardSheets,
@@ -2006,6 +2140,11 @@ var MPScoreEngine = {
   bindTeacherKeyFromApi: bindTeacherKeyFromApi,
   getTeacherKey: getTeacherKey,
   isExamSheetName: isExamSheetName,
+  getLineBindingsFromHub: getLineBindingsFromHub,
+  sendLinePushViaHub: sendLinePushViaHub,
+  syncStudentsToLineHubFromGas: syncStudentsToLineHubFromGas,
+  checkLineHubStatus: checkLineHubStatus,
+  openLinePushDialog: openLinePushDialog,
   handleDoGet: doGet,
   handleDoPost: doPost
 };

@@ -1771,7 +1771,9 @@
       // 嚴格排除非考試分頁 (如【家長閱覽紀錄】、【學生名冊】等日誌分頁，確保折線圖與選單純淨)
       let exams = (rawExams || []).filter(e => {
         const title = (e.sheetName || e.examTitle || '').trim();
-        if (!title || title === '家長閱覽紀錄' || title.includes('閱覽紀錄') || title.includes('名冊') || title.includes('日誌') || title.startsWith('_')) {
+        if (!title || title.startsWith('_')) return false;
+        const low = title.toLowerCase();
+        if (low.includes('名冊') || low.includes('閱覽') || low.includes('瀏覽') || low.includes('紀錄') || low.includes('記錄') || low.includes('日誌') || low.includes('log')) {
           return false;
         }
         return true;
@@ -3471,7 +3473,9 @@
       // 嚴格過濾非考試分頁，只保留包含有效分數的考試
       const validExams = (exams || []).filter(e => {
         const title = (e.sheetName || e.examTitle || '').trim();
-        if (!title || title === '家長閱覽紀錄' || title.includes('閱覽紀錄') || title.includes('名冊') || title.includes('日誌') || title.startsWith('_')) {
+        if (!title || title.startsWith('_')) return false;
+        const low = title.toLowerCase();
+        if (low.includes('名冊') || low.includes('閱覽') || low.includes('瀏覽') || low.includes('紀錄') || low.includes('記錄') || low.includes('日誌') || low.includes('log')) {
           return false;
         }
         return typeof e.studentAverage === 'number' && !isNaN(e.studentAverage) && e.studentAverage > 0;
