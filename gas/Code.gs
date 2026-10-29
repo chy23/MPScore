@@ -387,7 +387,8 @@ function doGet(e) {
     }
     
     if (action === 'query') {
-      output = getStudentScoreByToken(params.token);
+      var isSimulation = params.isSimulation === 'true' || params.simulate === 'true' || params.mock === 'true' || params.preview === 'true';
+      output = getStudentScoreByToken(params.token, isSimulation);
       return ContentService.createTextOutput(JSON.stringify(output))
         .setMimeType(ContentService.MimeType.JSON);
     }
@@ -500,7 +501,8 @@ function checkSystemStatus(teacherKey) {
  * 1. 代碼長度 < 4 一律拒絕，全面封鎖同儕用 01~40 純座號猜測
  * 2. 僅接受專屬 6 碼代碼精確比對，廢除姓名與座號比對，消除越權偷看隱患
  */
-function getStudentScoreByToken(token) {
+function getStudentScoreByToken(token, isSimulation) {
+  isSimulation = !!isSimulation;
   if (!token) return { success: false, message: '請提供專屬查詢代碼' };
   token = token.toString().trim();
 
@@ -521,8 +523,9 @@ function getStudentScoreByToken(token) {
     if (cachedJson) {
       var cachedObj = JSON.parse(cachedJson);
       cachedObj.fromCache = true;
-      if (cachedObj.student) {
-        recordParentAccess(cachedObj.student);
+      cachedObj.isSimulation = isSimulation;
+      if (cachedObj.student && !isSimulation) {
+        recordParentAccess(cachedObj.student, false);
       }
       return cachedObj;
     }
@@ -570,8 +573,10 @@ function getStudentScoreByToken(token) {
     return { success: false, message: '驗證失敗：查無此專屬代碼「' + token + '」，請確認是否輸入正確或重新掃描通知單上的 QR Code。' };
   }
 
-  // 記錄家長閱覽日誌
-  recordParentAccess(student);
+  // 記錄家長閱覽日誌（若為教師模擬模式，嚴格略過寫入日誌，保證日誌零污染）
+  if (!isSimulation) {
+    recordParentAccess(student, false);
+  }
 
   // 2. 遍歷試算表中所有的考試分頁
   var allSheets = ss.getSheets();
@@ -616,7 +621,8 @@ function getStudentScoreByToken(token) {
     success: true,
     student: student,
     exams: exams,
-    records: flatRecords
+    records: flatRecords,
+    isSimulation: isSimulation
   };
 
   // 3. 寫入快取 (快取 600 秒 = 10 分鐘，單一項目上限 100KB)
@@ -1827,8 +1833,10 @@ function getOrCreateAccessLogSheet(ss) {
 
 /**
  * 記錄家長閱覽成績日誌 (附帶 60 秒冷卻防刷保護)
+ * 🛡️ 雙重防護機制：若為教師端即時模擬 (isSimulation === true)，直接返回，絕不寫入試算表！
  */
-function recordParentAccess(student) {
+function recordParentAccess(student, isSimulation) {
+  if (isSimulation) return;
   if (!student || !student.token) return;
   var cache = CacheService.getScriptCache();
   var debounceKey = 'log_db_' + encodeURIComponent(student.token.toString().toUpperCase());
@@ -1917,6 +1925,11 @@ function getParentAccessLogs() {
       var logName = logRow[3] ? logRow[3].toString().trim() : '';
       var logToken = logRow[4] ? logRow[4].toString().trim().toUpperCase() : '';
       var logNote = logRow[5] ? logRow[5].toString().trim() : '線上成績查閱';
+
+      // 嚴格排除任何可能手動或測試時產生的模擬紀錄
+      if (logNote.indexOf('模擬') !== -1 || logNote.indexOf('測試') !== -1 || logNote.indexOf('mock') !== -1 || logNote.indexOf('sim') !== -1) {
+        continue;
+      }
 
       // 歸納進學生統計
       var matchedStudent = (logToken && studentsMap[logToken]) || (logSeat && studentsMap['SEAT_' + logSeat]);

@@ -90,6 +90,17 @@
 </head>
 <body class="text-slate-800 min-h-screen selection:bg-amber-500 selection:text-slate-950">
 
+  <!-- 🛡️ 教師手機即時模擬模式指示列 (只有在帶有 simulate=true 時顯示，不計入日誌) -->
+  <div id="parentSimulationBanner" class="hidden bg-emerald-600 text-white text-xs font-bold px-4 py-2 text-center sticky top-0 z-50 shadow-sm">
+    <div class="max-w-6xl mx-auto flex items-center justify-between gap-2">
+      <div class="flex items-center gap-1.5">
+        <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+        <span>🛡️ 教師端手機即時模擬模式（Safe Simulation Mode）</span>
+      </div>
+      <span class="text-[10px] bg-white/20 px-2 py-0.5 rounded-full font-medium">此模擬閱覽絕不寫入家長閱覽日誌</span>
+    </div>
+  </div>
+
   <!-- ==================== 溫暖純淨家長查詢專屬前台 ==================== -->
   <header class="apple-glass sticky top-0 z-40 text-slate-800 transition-all border-b border-slate-200/70">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
@@ -1403,6 +1414,12 @@
       const urlParams = new URLSearchParams(window.location.search);
       const token = urlParams.get('t') || urlParams.get('token') || urlParams.get('id');
       const apiParam = urlParams.get('a') || urlParams.get('api');
+      const isSimulation = urlParams.get('simulate') === 'true' || urlParams.get('preview') === 'true' || urlParams.get('isSimulation') === 'true' || urlParams.get('mock') === 'true';
+
+      if (isSimulation) {
+        const simBanner = document.getElementById('parentSimulationBanner');
+        if (simBanner) simBanner.classList.remove('hidden');
+      }
 
       if (apiParam) {
         let fullApi = apiParam;
@@ -1461,7 +1478,10 @@
       // 1. 若有串接 Google 試算表 API，向雲端發出查詢
       if (activeApiUrl) {
         try {
-          const qUrl = activeApiUrl + (activeApiUrl.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(input);
+          const urlParams = new URLSearchParams(window.location.search);
+          const isSim = urlParams.get('simulate') === 'true' || urlParams.get('preview') === 'true' || urlParams.get('isSimulation') === 'true' || urlParams.get('mock') === 'true';
+          const simParam = isSim ? '&isSimulation=true' : '';
+          const qUrl = activeApiUrl + (activeApiUrl.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(input) + simParam;
           
           // 設定 10 秒超時控制
           const controller = new AbortController();
