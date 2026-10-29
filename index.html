@@ -1517,7 +1517,311 @@
       </div>
     </section>
 
-  </main>
+  
+    <!-- ========================================== -->
+    <!-- 分頁: LINE 家長推播中心 (School LINE Hub)   -->
+    <!-- ========================================== -->
+    <section id="tabContent-linePushCenter" class="tab-content hidden space-y-6">
+      <!-- 標題與操作列 -->
+      <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-sm">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-xl">📲</span>
+              <h2 class="text-lg font-black text-slate-900 tracking-tight">LINE 家長推播中心</h2>
+              <span id="lineHubStatusBadge" class="text-[11px] bg-slate-100 text-slate-600 font-bold px-2.5 py-0.5 rounded-full border border-slate-200 flex items-center gap-1">
+                <span class="inline-block w-2 h-2 rounded-full bg-slate-400"></span>
+                <span>中樞連線檢測中...</span>
+              </span>
+            </div>
+            <p class="text-xs text-slate-500 mt-1">串接校園推播中樞 School LINE Hub ‧ 家長免重複綁定 ‧ 一鍵推播個人段考成績手札</p>
+          </div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <button onclick="fetchLineBindingsSummary(true)" id="btnRefreshLineBindings" class="text-xs font-bold bg-amber-50 hover:bg-amber-100 text-amber-900 px-3.5 py-2 rounded-xl border border-amber-200 transition flex items-center gap-1.5 shadow-2xs active:scale-95 cursor-pointer">
+              <span id="refreshLineIcon">🔄</span>
+              <span>重新整理綁定概況</span>
+            </button>
+            <button onclick="syncStudentsToLineHubFromWeb()" id="btnSyncLineRoster" class="text-xs font-bold bg-white hover:bg-slate-50 text-slate-700 px-3.5 py-2 rounded-xl border border-slate-200 transition flex items-center gap-1.5 shadow-2xs active:scale-95 cursor-pointer" title="將目前試算表學生名冊同步登記至推播中樞">
+              <span>👥</span>
+              <span>同步名冊至中樞</span>
+            </button>
+            <button onclick="toggleLineHubConfigModal()" class="text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-xl transition flex items-center gap-1 active:scale-95 cursor-pointer" title="查看或修改推播中樞連線參數">
+              <span>⚙️</span>
+              <span>中樞設定</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 4 大核心 KPI 指標卡片 -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3.5 mt-5">
+          <div class="bg-slate-50/80 rounded-xl border border-slate-200 p-3.5 text-center">
+            <div class="text-[11px] font-medium text-slate-500">全班總人數</div>
+            <div id="linePushStatTotal" class="text-2xl font-black text-slate-800 mt-1">—</div>
+            <div class="text-[10px] text-slate-400 mt-0.5">名冊建檔人數</div>
+          </div>
+          <div class="bg-emerald-50/70 rounded-xl border border-emerald-200 p-3.5 text-center">
+            <div class="text-[11px] font-bold text-emerald-700">LINE 已綁定家庭</div>
+            <div id="linePushStatBound" class="text-2xl font-black text-emerald-700 mt-1">—</div>
+            <div id="linePushStatBoundRate" class="text-[10px] text-emerald-600 font-medium mt-0.5">覆蓋率 —%</div>
+          </div>
+          <div class="bg-amber-50/70 rounded-xl border border-amber-200 p-3.5 text-center">
+            <div class="text-[11px] font-bold text-amber-800">尚未綁定家庭</div>
+            <div id="linePushStatUnbound" class="text-2xl font-black text-amber-800 mt-1">—</div>
+            <div class="text-[10px] text-amber-700/80 font-medium mt-0.5">可列印通知單提醒</div>
+          </div>
+          <div class="bg-sky-50/70 rounded-xl border border-sky-200 p-3.5 text-center">
+            <div class="text-[11px] font-bold text-sky-800">本月推播額度</div>
+            <div id="linePushStatQuota" class="text-2xl font-black text-sky-800 mt-1">— / 1000</div>
+            <div id="linePushStatAppName" class="text-[10px] text-sky-700/80 font-medium mt-0.5">專案代碼：MPScore</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 核心推播面板 (左欄：發送設定與內容編輯，右欄：LINE 聊天室即時卡片擬真預覽) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- 左欄：推播發送設定 (7 欄寬) -->
+        <div class="lg:col-span-7 space-y-5">
+          <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-sm space-y-4">
+            <div class="border-b border-slate-100 pb-3">
+              <h3 class="font-black text-slate-800 text-sm flex items-center gap-2">
+                <span>📝</span>
+                <span>推播訊息內容編寫</span>
+              </h3>
+              <p class="text-xs text-slate-400 mt-0.5">系統將為每位學生自動合成個人化成績摘要與專屬連結</p>
+            </div>
+
+            <!-- 選擇考試分頁 -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
+                <span>🎯 選擇本次推播之考試：</span>
+                <span class="text-[11px] font-normal text-slate-400">自動抓取試算表分頁</span>
+              </label>
+              <select id="linePushExamSelect" onchange="onLinePushExamChange()" class="w-full text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer">
+                <!-- 動態注入考試選項 -->
+              </select>
+            </div>
+
+            <!-- 推播訊息標題 -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                <span>📌 推播卡片標題：</span>
+              </label>
+              <input type="text" id="linePushTitleInput" value="【段考成績發布通知】" oninput="updateLinePushPreview()"
+                class="w-full text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500" placeholder="例如：【114學年度期末考成績通知】">
+            </div>
+
+            <!-- 動態成績欄位勾選 -->
+            <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80 space-y-2.5">
+              <div class="text-xs font-bold text-slate-700 flex items-center justify-between">
+                <span>📊 包含於推播摘要之成績項目：</span>
+                <span class="text-[11px] font-normal text-slate-400">依需要勾選</span>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                <label class="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-slate-200 cursor-pointer hover:border-amber-400 transition">
+                  <input type="checkbox" id="linePushOptAvg" checked onchange="updateLinePushPreview()" class="rounded text-amber-600 focus:ring-amber-500">
+                  <span class="font-bold text-slate-700">個人平均成績</span>
+                </label>
+                <label class="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-slate-200 cursor-pointer hover:border-amber-400 transition">
+                  <input type="checkbox" id="linePushOptClassAvg" checked onchange="updateLinePushPreview()" class="rounded text-amber-600 focus:ring-amber-500">
+                  <span class="font-bold text-slate-700">班級總平均</span>
+                </label>
+                <label class="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-slate-200 cursor-pointer hover:border-amber-400 transition">
+                  <input type="checkbox" id="linePushOptRank" onchange="updateLinePushPreview()" class="rounded text-amber-600 focus:ring-amber-500">
+                  <span class="font-bold text-slate-700">班級排名 (依隱私選填)</span>
+                </label>
+                <label class="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-slate-200 cursor-pointer hover:border-amber-400 transition">
+                  <input type="checkbox" id="linePushOptLink" checked onchange="updateLinePushPreview()" class="rounded text-amber-600 focus:ring-amber-500">
+                  <span class="font-bold text-slate-700">專屬免代碼直達連結</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- 教師自訂叮嚀留言 -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
+                <span>💬 教師溫馨叮嚀（選填）：</span>
+                <span class="text-[11px] font-normal text-slate-400">附加於訊息末端</span>
+              </label>
+              <textarea id="linePushNoteInput" oninput="updateLinePushPreview()" rows="2"
+                class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"
+                placeholder="例如：請家長撥冗查閱孩子的學習成長軌跡，若對考卷有任何問題歡迎與老師聯繫討論！"></textarea>
+            </div>
+
+            <!-- 推播發送對象篩選模式 -->
+            <div class="p-3.5 bg-amber-50/50 rounded-xl border border-amber-200/80 space-y-2">
+              <div class="text-xs font-bold text-amber-950 flex items-center gap-1.5">
+                <span>🎯 發送對象篩選：</span>
+              </div>
+              <div class="space-y-1.5 text-xs">
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" name="linePushAudience" value="all_bound" checked onchange="onLineAudienceModeChange()" class="text-amber-600 focus:ring-amber-500">
+                  <span class="font-bold text-slate-800">全班所有已綁定家庭 (共 <span id="lineAudienceAllCount" class="text-amber-800 font-black">0</span> 位)</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" name="linePushAudience" value="unread_only" onchange="onLineAudienceModeChange()" class="text-amber-600 focus:ring-amber-500">
+                  <span class="font-bold text-slate-800">僅發送給「尚未閱覽」且已綁定家庭 (共 <span id="lineAudienceUnreadCount" class="text-rose-700 font-black">0</span> 位)</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- 執行推播按鈕 -->
+            <div class="pt-2">
+              <button onclick="openBatchLinePushModal()" id="btnStartBatchLinePush"
+                class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-700 hover:to-teal-800 text-white font-black text-sm shadow-md shadow-emerald-600/25 transition active:scale-98 cursor-pointer flex items-center justify-center gap-2">
+                <span class="text-lg">🚀</span>
+                <span id="btnBatchPushText">執行全班批次推播通知</span>
+              </button>
+              <p class="text-center text-[11px] text-slate-400 mt-2">
+                🔒 安全防護：發送前系統將彈出確認預覽，點擊後即可批次派送，絕無任何外洩風險。
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右欄：LINE 聊天室即時卡片擬真預覽 (5 欄寬) -->
+        <div class="lg:col-span-5 space-y-3">
+          <div class="text-xs font-bold text-slate-600 flex items-center justify-between px-1">
+            <span class="flex items-center gap-1.5">
+              <span>📱</span>
+              <span>家長手機端 LINE 聊天室真實預覽</span>
+            </span>
+            <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">WYSIWYG 即時合成</span>
+          </div>
+
+          <!-- LINE 聊天室模擬外框 (iPhone 擬真圓角與經典 LINE 聊天背景色 #8c9bad) -->
+          <div class="w-full max-w-[360px] mx-auto rounded-3xl overflow-hidden border-4 border-slate-800 shadow-xl bg-[#8c9bad] font-sans">
+            <!-- LINE 頂部導覽列 -->
+            <div class="bg-[#2c3644] text-white px-4 py-3 flex items-center justify-between text-xs">
+              <div class="flex items-center gap-2">
+                <span class="text-sm">‹</span>
+                <div class="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-[11px] font-black text-white">
+                  校
+                </div>
+                <div>
+                  <div class="font-bold text-[12px] leading-tight">School LINE Hub</div>
+                  <div class="text-[9px] text-emerald-400">官方校園通知中樞</div>
+                </div>
+              </div>
+              <span class="text-xs text-slate-400">•••</span>
+            </div>
+
+            <!-- 聊天室內容區 -->
+            <div class="p-3.5 space-y-3 min-h-[380px] flex flex-col justify-end">
+              <!-- 時間分隔線 -->
+              <div class="text-center">
+                <span class="text-[10px] bg-black/20 text-white/90 px-2 py-0.5 rounded-full font-mono">今天 下午 08:30</span>
+              </div>
+
+              <!-- LINE 聊天氣泡 (白底圓角卡片) -->
+              <div class="flex items-start gap-2 max-w-[95%]">
+                <div class="w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs font-black shrink-0 mt-1 shadow-sm">
+                  段
+                </div>
+                <div class="bg-white rounded-2xl rounded-tl-xs p-3.5 shadow-md space-y-2.5 text-slate-800 border border-slate-100 w-full">
+                  <!-- 卡片 Header -->
+                  <div class="border-b border-slate-100 pb-2">
+                    <div id="previewCardTitle" class="font-black text-xs text-emerald-700 flex items-center gap-1">
+                      <span>📊</span>
+                      <span id="previewTitleText">【段考成績發布通知】</span>
+                    </div>
+                    <div class="text-[11px] font-bold text-slate-700 mt-1" id="previewStudentSalutation">
+                      王○明 家長您好：
+                    </div>
+                  </div>
+
+                  <!-- 摘要內容 -->
+                  <div class="text-xs space-y-1.5 bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-[11.5px]">
+                    <div class="font-bold text-slate-800 flex items-center gap-1" id="previewExamTitle">
+                      <span>🏷️</span>
+                      <span id="previewExamNameText">114學年度第2學期期末考</span>
+                    </div>
+                    <div id="previewAvgLine" class="text-slate-600 flex justify-between">
+                      <span>• 個人平均成績：</span>
+                      <span class="font-bold text-amber-600">85.4 分</span>
+                    </div>
+                    <div id="previewClassAvgLine" class="text-slate-600 flex justify-between">
+                      <span>• 班級總平均：</span>
+                      <span class="font-bold text-slate-700">76.2 分</span>
+                    </div>
+                    <div id="previewRankLine" class="hidden text-slate-600 flex justify-between">
+                      <span>• 班級排名：</span>
+                      <span class="font-bold text-indigo-600">第 3 名</span>
+                    </div>
+                  </div>
+
+                  <!-- 老師叮嚀 -->
+                  <div id="previewTeacherNoteBox" class="text-[11px] text-slate-500 italic bg-amber-50/60 p-2 rounded-lg border border-amber-100">
+                    <span class="font-bold text-amber-800 not-italic">💬 老師的話：</span>
+                    <span id="previewTeacherNoteText">請家長撥冗查閱孩子的學習成長軌跡，若對考卷有任何問題歡迎與老師聯繫！</span>
+                  </div>
+
+                  <!-- 點擊直達按鈕 -->
+                  <div id="previewLinkBtnBox" class="pt-1">
+                    <div class="w-full py-2 rounded-xl bg-emerald-600 text-white font-bold text-center text-xs shadow-sm flex items-center justify-center gap-1.5 cursor-pointer">
+                      <span>📱</span>
+                      <span>點此開啟專屬成績與學習手札 ↗</span>
+                    </div>
+                    <div class="text-[9px] text-slate-400 text-center mt-1">免輸入代碼 ‧ 點擊即可直接安全閱覽</div>
+                  </div>
+
+                  <!-- 頁尾授權標註 -->
+                  <div class="text-[9px] text-slate-300 text-right pt-0.5 border-t border-slate-50">
+                    由 School LINE Hub 自動推播
+                  </div>
+                </div>
+              </div>
+
+              <!-- 傳送成功時間標記 -->
+              <div class="text-right pr-2">
+                <span class="text-[9px] text-white/80 font-mono">已送達 08:31</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 下方卡片：全班學生 LINE 綁定概況與單獨推播列表 -->
+      <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-sm space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+          <div>
+            <h3 class="font-black text-slate-800 text-sm flex items-center gap-2">
+              <span>👥</span>
+              <span>學生名冊 LINE 綁定狀態與單獨推播</span>
+            </h3>
+            <p class="text-xs text-slate-400 mt-0.5">點擊個別學生右側按鈕即可單獨發送客製化推播</p>
+          </div>
+          <!-- 篩選膠囊 -->
+          <div class="flex items-center gap-1.5 text-xs">
+            <button onclick="setLineTableFilter('all')" id="btnFilterLineAll" class="px-2.5 py-1 rounded-lg bg-slate-900 text-white font-bold transition">全部 (<span id="lineFilterCntAll">0</span>)</button>
+            <button onclick="setLineTableFilter('bound')" id="btnFilterLineBound" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 font-bold hover:bg-slate-200 transition">🟢 已綁定 (<span id="lineFilterCntBound">0</span>)</button>
+            <button onclick="setLineTableFilter('unbound')" id="btnFilterLineUnbound" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 font-bold hover:bg-slate-200 transition">⚪ 未綁定 (<span id="lineFilterCntUnbound">0</span>)</button>
+          </div>
+        </div>
+
+        <!-- 學生表格 -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead>
+              <tr class="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
+                <th class="py-2.5 px-3">座號</th>
+                <th class="py-2.5 px-3">姓名</th>
+                <th class="py-2.5 px-3">家長查詢代碼</th>
+                <th class="py-2.5 px-3">家長閱覽狀態</th>
+                <th class="py-2.5 px-3">LINE 綁定概況</th>
+                <th class="py-2.5 px-3 text-right">操作</th>
+              </tr>
+            </thead>
+            <tbody id="lineStudentsTableBody" class="divide-y divide-slate-100">
+              <!-- 動態渲染學生列表 -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+</main>
 
   <!-- ==================== 純淨家長查詢前台 (Parent Portal) ==================== -->
   <div id="parentPortal" class="hidden min-h-screen bg-slate-50 pb-16">
@@ -3034,6 +3338,10 @@
           checkAndShowNoApiBanner();
         }
       }
+
+      if (tabId === 'linePushCenter') {
+        initLinePushCenter();
+      }
     }
 
     // ==========================================
@@ -4028,6 +4336,18 @@
           openMobileSimulationForStudent(st.token || st.name);
         };
         card.appendChild(simBtn);
+
+        // LINE 綁定狀態標籤 (附帶 .no-print，列印時隱藏)
+        const seatNoClean = normalizeSeatNumber(st.seatNumber);
+        const hubBinding = lineHubBindingsMap[seatNoClean] || lineHubBindingsMap[String(parseInt(seatNoClean, 10))];
+        const isLineBound = hubBinding ? hubBinding.isBound : false;
+        const lineBadge = document.createElement('div');
+        lineBadge.className = 'no-print absolute top-3 right-24 text-[10px] font-bold px-2 py-0.5 rounded-lg flex items-center gap-1 shadow-2xs ' +
+          (isLineBound ? 'bg-emerald-50 text-emerald-800 border border-emerald-300' : 'bg-slate-50 text-slate-500 border border-slate-200');
+        lineBadge.innerHTML = isLineBound 
+          ? '<span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500"></span><span>LINE已綁</span>'
+          : '<span class="inline-block w-1.5 h-1.5 rounded-full bg-slate-400"></span><span>未綁定</span>';
+        card.appendChild(lineBadge);
 
         grid.appendChild(card);
 
@@ -7471,7 +7791,551 @@
         }
       }
     }
-  </script>
+  
+    // ==========================================
+    // 📲 School LINE Hub 家長推播中心 邏輯實作
+    // ==========================================
+    const DEFAULT_LINE_HUB_URL = "https://script.google.com/macros/s/AKfycbxkfMFYbi2H5c7vszql5Eb62krdZ_Kl_p8U3e4dLsLPyXCDmQF4ALcXI9bfrfI3IdQDVw/exec";
+    const DEFAULT_LINE_HUB_APP_ID = "MPScore";
+    const DEFAULT_LINE_HUB_SECRET = "grtY_ji_26";
+
+    let lineHubClientInstance = null;
+    let lineHubBindingsMap = {};
+    let lineTableCurrentFilter = 'all';
+    let singlePushTargetStudent = null;
+    let cachedLineExamsList = [];
+
+    function getLineHubConfig() {
+      return {
+        hubUrl: localStorage.getItem('mpscore_line_hub_url') || DEFAULT_LINE_HUB_URL,
+        appId: localStorage.getItem('mpscore_line_hub_app_id') || DEFAULT_LINE_HUB_APP_ID,
+        appSecret: localStorage.getItem('mpscore_line_hub_secret') || DEFAULT_LINE_HUB_SECRET
+      };
+    }
+
+    function getLineHubClient() {
+      if (!lineHubClientInstance) {
+        const cfg = getLineHubConfig();
+        if (typeof LineHubClient !== 'undefined') {
+          lineHubClientInstance = new LineHubClient(cfg);
+        } else {
+          console.warn('LineHubClient SDK 尚未載入');
+        }
+      }
+      return lineHubClientInstance;
+    }
+
+    async function initLinePushCenter() {
+      populateLinePushExams();
+      updateLinePushPreview();
+      await fetchLineBindingsSummary(false);
+    }
+
+    function populateLinePushExams() {
+      const sel = document.getElementById('linePushExamSelect');
+      if (!sel) return;
+
+      const pool = (cachedStudents && cachedStudents.length > 0) ? cachedStudents : DEMO_STUDENTS;
+      const sampleSt = pool[0];
+      const demoExams = buildDemoExamsForStudent(sampleSt);
+
+      let examList = [];
+      if (Array.isArray(window.currentStudentExams) && window.currentStudentExams.length > 0) {
+        examList = window.currentStudentExams;
+      } else if (Array.isArray(cachedExams) && cachedExams.length > 0) {
+        examList = cachedExams;
+      } else {
+        examList = demoExams;
+      }
+
+      cachedLineExamsList = examList.filter(e => {
+        const title = (e.sheetName || e.examTitle || '').trim();
+        if (!title || title.startsWith('_')) return false;
+        const low = title.toLowerCase();
+        if (low.includes('名冊') || low.includes('閱覽') || low.includes('瀏覽') || low.includes('紀錄') || low.includes('記錄') || low.includes('日誌') || low.includes('log')) return false;
+        return true;
+      });
+
+      sel.innerHTML = '';
+      cachedLineExamsList.forEach((ex, idx) => {
+        const opt = document.createElement('option');
+        opt.value = idx;
+        opt.textContent = ex.sheetName || ex.examTitle;
+        if (idx === cachedLineExamsList.length - 1) opt.selected = true;
+        sel.appendChild(opt);
+      });
+    }
+
+    function onLinePushExamChange() {
+      updateLinePushPreview();
+    }
+
+    function onLineAudienceModeChange() {
+      updateLineAudienceCounts();
+    }
+
+    function updateLineAudienceCounts() {
+      const pool = (cachedStudents && cachedStudents.length > 0) ? cachedStudents : DEMO_STUDENTS;
+      let allBound = 0;
+      let unreadBound = 0;
+
+      pool.forEach(st => {
+        const seat = normalizeSeatNumber(st.seatNumber);
+        const binding = lineHubBindingsMap[seat] || lineHubBindingsMap[String(parseInt(seat, 10))];
+        const isBound = binding ? binding.isBound : false;
+        if (isBound) {
+          allBound++;
+          if (!st.isRead) {
+            unreadBound++;
+          }
+        }
+      });
+
+      const elAll = document.getElementById('lineAudienceAllCount');
+      if (elAll) elAll.textContent = allBound;
+      const elUnread = document.getElementById('lineAudienceUnreadCount');
+      if (elUnread) elUnread.textContent = unreadBound;
+    }
+
+    function updateLinePushPreview() {
+      const sel = document.getElementById('linePushExamSelect');
+      const curIdx = sel ? parseInt(sel.value, 10) : 0;
+      const curExam = cachedLineExamsList[curIdx] || cachedLineExamsList[cachedLineExamsList.length - 1];
+
+      const examName = curExam ? (curExam.sheetName || curExam.examTitle) : '114學年度第2學期期末考';
+      const titleInput = document.getElementById('linePushTitleInput');
+      const noteInput = document.getElementById('linePushNoteInput');
+
+      const cardTitleText = document.getElementById('previewTitleText');
+      if (cardTitleText && titleInput) cardTitleText.textContent = titleInput.value.trim() || '【段考成績發布通知】';
+
+      const examTitleText = document.getElementById('previewExamNameText');
+      if (examTitleText) examTitleText.textContent = examName;
+
+      // 成績開關
+      const optAvg = document.getElementById('linePushOptAvg');
+      const optClassAvg = document.getElementById('linePushOptClassAvg');
+      const optRank = document.getElementById('linePushOptRank');
+      const optLink = document.getElementById('linePushOptLink');
+
+      const avgLine = document.getElementById('previewAvgLine');
+      const classAvgLine = document.getElementById('previewClassAvgLine');
+      const rankLine = document.getElementById('previewRankLine');
+      const linkBtn = document.getElementById('previewLinkBtnBox');
+
+      if (avgLine) avgLine.classList.toggle('hidden', !(optAvg && optAvg.checked));
+      if (classAvgLine) classAvgLine.classList.toggle('hidden', !(optClassAvg && optClassAvg.checked));
+      if (rankLine) rankLine.classList.toggle('hidden', !(optRank && optRank.checked));
+      if (linkBtn) linkBtn.classList.toggle('hidden', !(optLink && optLink.checked));
+
+      // 叮嚀
+      const noteBox = document.getElementById('previewTeacherNoteBox');
+      const noteText = document.getElementById('previewTeacherNoteText');
+      const noteVal = noteInput ? noteInput.value.trim() : '';
+      if (noteBox) {
+        if (noteVal) {
+          noteBox.classList.remove('hidden');
+          if (noteText) noteText.textContent = noteVal;
+        } else {
+          noteBox.classList.add('hidden');
+        }
+      }
+    }
+
+    async function fetchLineBindingsSummary(showAlert) {
+      const hub = getLineHubClient();
+      const statusBadge = document.getElementById('lineHubStatusBadge');
+      const icon = document.getElementById('refreshLineIcon');
+      if (icon) icon.classList.add('animate-spin');
+
+      if (statusBadge) {
+        statusBadge.innerHTML = '<span class="inline-block w-2 h-2 rounded-full bg-amber-400 animate-ping"></span><span>連線中樞查詢中...</span>';
+      }
+
+      try {
+        let summaryResult = null;
+        if (hub) {
+          summaryResult = await hub.getAllBindingsSummary();
+        }
+
+        if (summaryResult && summaryResult.status === 'success') {
+          lineHubBindingsMap = summaryResult.bindings || {};
+          const totalBound = summaryResult.totalBoundStudents || 0;
+          const pool = (cachedStudents && cachedStudents.length > 0) ? cachedStudents : DEMO_STUDENTS;
+          const totalStudents = pool.length;
+          const unbound = Math.max(0, totalStudents - totalBound);
+          const rate = totalStudents > 0 ? ((totalBound / totalStudents) * 100).toFixed(1) : 0;
+
+          document.getElementById('linePushStatTotal').textContent = totalStudents;
+          document.getElementById('linePushStatBound').textContent = totalBound;
+          document.getElementById('linePushStatBoundRate').textContent = '覆蓋率 ' + rate + '%';
+          document.getElementById('linePushStatUnbound').textContent = unbound;
+
+          if (summaryResult.quotaInfo) {
+            document.getElementById('linePushStatQuota').textContent = (summaryResult.quotaInfo.usedCount || 0) + ' / ' + (summaryResult.quotaInfo.monthlyQuota || 1000);
+          }
+
+          if (statusBadge) {
+            statusBadge.className = 'text-[11px] bg-emerald-50 text-emerald-800 font-bold px-2.5 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1';
+            statusBadge.innerHTML = '<span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span><span>🟢 中樞連線正常（已綁 ' + totalBound + ' 人）</span>';
+          }
+
+          updateLineAudienceCounts();
+          renderLineStudentsTable();
+          if (showAlert) showAppleToast('✅ 成功同步最新 School LINE Hub 綁定狀態！已綁定 ' + totalBound + ' 位家庭', 'success');
+        } else {
+          if (statusBadge) {
+            statusBadge.className = 'text-[11px] bg-amber-50 text-amber-800 font-bold px-2.5 py-0.5 rounded-full border border-amber-200 flex items-center gap-1';
+            statusBadge.innerHTML = '<span class="inline-block w-2 h-2 rounded-full bg-amber-500"></span><span>中樞未連線或暫不可用</span>';
+          }
+          renderLineStudentsTable();
+          if (showAlert) showAppleToast('⚠️ 無法取得推播中樞資料，請檢查網路連線或中樞設定。', 'warning');
+        }
+      } catch (err) {
+        console.error('查詢 LINE Hub 綁定概況失敗:', err);
+        if (statusBadge) {
+          statusBadge.className = 'text-[11px] bg-rose-50 text-rose-800 font-bold px-2.5 py-0.5 rounded-full border border-rose-200 flex items-center gap-1';
+          statusBadge.innerHTML = '<span class="inline-block w-2 h-2 rounded-full bg-rose-500"></span><span>連線失敗</span>';
+        }
+        renderLineStudentsTable();
+      } finally {
+        if (icon) icon.classList.remove('animate-spin');
+      }
+    }
+
+    function setLineTableFilter(filter) {
+      lineTableCurrentFilter = filter;
+      const bAll = document.getElementById('btnFilterLineAll');
+      const bBound = document.getElementById('btnFilterLineBound');
+      const bUnbound = document.getElementById('btnFilterLineUnbound');
+
+      if (bAll) bAll.className = filter === 'all' ? 'px-2.5 py-1 rounded-lg bg-slate-900 text-white font-bold transition' : 'px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 font-bold hover:bg-slate-200 transition';
+      if (bBound) bBound.className = filter === 'bound' ? 'px-2.5 py-1 rounded-lg bg-emerald-700 text-white font-bold transition' : 'px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 font-bold hover:bg-slate-200 transition';
+      if (bUnbound) bUnbound.className = filter === 'unbound' ? 'px-2.5 py-1 rounded-lg bg-slate-800 text-white font-bold transition' : 'px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 font-bold hover:bg-slate-200 transition';
+
+      renderLineStudentsTable();
+    }
+
+    function renderLineStudentsTable() {
+      const tbody = document.getElementById('lineStudentsTableBody');
+      if (!tbody) return;
+
+      const pool = (cachedStudents && cachedStudents.length > 0) ? cachedStudents : DEMO_STUDENTS;
+      let totalCount = pool.length;
+      let boundCount = 0;
+      let unboundCount = 0;
+
+      const studentRows = pool.map(st => {
+        const seat = normalizeSeatNumber(st.seatNumber);
+        const binding = lineHubBindingsMap[seat] || lineHubBindingsMap[String(parseInt(seat, 10))];
+        const isBound = binding ? binding.isBound : false;
+        if (isBound) boundCount++; else unboundCount++;
+        return { student: st, seat, isBound, binding };
+      });
+
+      document.getElementById('lineFilterCntAll').textContent = totalCount;
+      document.getElementById('lineFilterCntBound').textContent = boundCount;
+      document.getElementById('lineFilterCntUnbound').textContent = unboundCount;
+
+      const filtered = studentRows.filter(r => {
+        if (lineTableCurrentFilter === 'bound') return r.isBound;
+        if (lineTableCurrentFilter === 'unbound') return !r.isBound;
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-slate-400">查無符合條件的學生資料</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(item => {
+        const st = item.student;
+        const seat = item.seat;
+        const isBound = item.isBound;
+
+        const readBadge = st.isRead 
+          ? '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">✅ 已閱覽</span>'
+          : '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800">⏳ 未閱覽</span>';
+
+        const lineBadge = isBound
+          ? '<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">🟢 LINE已綁定</span>'
+          : '<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-500 border border-slate-200">⚪ 未綁定</span>';
+
+        const actionBtn = isBound
+          ? '<button onclick="openSingleStudentPushModal(\'' + seat + '\')" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-2xs transition active:scale-95 cursor-pointer flex items-center gap-1 ml-auto"><span>📨</span><span>單獨推播</span></button>'
+          : '<button disabled class="px-2.5 py-1.5 rounded-lg bg-slate-100 text-slate-400 font-bold text-xs cursor-not-allowed ml-auto">未綁定</button>';
+
+        return '<tr class="hover:bg-slate-50/80 transition">' +
+          '<td class="py-2.5 px-3 font-mono font-bold text-slate-700">' + seat + '</td>' +
+          '<td class="py-2.5 px-3 font-bold text-slate-900">' + escapeHtml(st.name) + '</td>' +
+          '<td class="py-2.5 px-3 font-mono font-bold text-amber-800">' + escapeHtml(st.token || '--') + '</td>' +
+          '<td class="py-2.5 px-3">' + readBadge + '</td>' +
+          '<td class="py-2.5 px-3">' + lineBadge + '</td>' +
+          '<td class="py-2.5 px-3 text-right">' + actionBtn + '</td>' +
+          '</tr>';
+      }).join('');
+    }
+
+    function openBatchLinePushModal() {
+      const sel = document.getElementById('linePushExamSelect');
+      const curIdx = sel ? parseInt(sel.value, 10) : 0;
+      const curExam = cachedLineExamsList[curIdx] || cachedLineExamsList[cachedLineExamsList.length - 1];
+      const examName = curExam ? (curExam.sheetName || curExam.examTitle) : '段考成績';
+
+      const modeRadio = document.querySelector('input[name="linePushAudience"]:checked');
+      const mode = modeRadio ? modeRadio.value : 'all_bound';
+
+      const pool = (cachedStudents && cachedStudents.length > 0) ? cachedStudents : DEMO_STUDENTS;
+      const targets = pool.filter(st => {
+        const seat = normalizeSeatNumber(st.seatNumber);
+        const binding = lineHubBindingsMap[seat] || lineHubBindingsMap[String(parseInt(seat, 10))];
+        if (!binding || !binding.isBound) return false;
+        if (mode === 'unread_only' && st.isRead) return false;
+        return true;
+      });
+
+      if (targets.length === 0) {
+        showAppleToast('⚠️ 目前選定之篩選條件下，無任何已綁定之學生家庭！', 'warning');
+        return;
+      }
+
+      document.getElementById('confirmBatchTargetCount').textContent = targets.length + ' 位學生家庭';
+      document.getElementById('confirmBatchExamName').textContent = examName;
+      document.getElementById('confirmBatchModeDesc').textContent = mode === 'unread_only' ? '僅尚未閱覽之已綁定家庭' : '全體已綁定家庭';
+
+      const titleInput = document.getElementById('linePushTitleInput');
+      document.getElementById('confirmBatchTitle').textContent = titleInput ? titleInput.value.trim() : '【段考成績發布通知】';
+
+      const modal = document.getElementById('batchLinePushConfirmModal');
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeBatchLinePushModal() {
+      const modal = document.getElementById('batchLinePushConfirmModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    async function executeBatchLinePush() {
+      const btn = document.getElementById('btnConfirmExecuteBatchPush');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="animate-spin">🔄</span><span>正在派送推播...</span>';
+      }
+
+      const sel = document.getElementById('linePushExamSelect');
+      const curIdx = sel ? parseInt(sel.value, 10) : 0;
+      const curExam = cachedLineExamsList[curIdx] || cachedLineExamsList[cachedLineExamsList.length - 1];
+      const examName = curExam ? (curExam.sheetName || curExam.examTitle) : '段考成績';
+
+      const modeRadio = document.querySelector('input[name="linePushAudience"]:checked');
+      const mode = modeRadio ? modeRadio.value : 'all_bound';
+
+      const titleInput = document.getElementById('linePushTitleInput');
+      const noteInput = document.getElementById('linePushNoteInput');
+      const title = titleInput ? titleInput.value.trim() : '【段考成績發布通知】';
+      const teacherNote = noteInput ? noteInput.value.trim() : '';
+
+      const optAvg = document.getElementById('linePushOptAvg') ? document.getElementById('linePushOptAvg').checked : true;
+      const optClassAvg = document.getElementById('linePushOptClassAvg') ? document.getElementById('linePushOptClassAvg').checked : true;
+      const optRank = document.getElementById('linePushOptRank') ? document.getElementById('linePushOptRank').checked : false;
+
+      const pool = (cachedStudents && cachedStudents.length > 0) ? cachedStudents : DEMO_STUDENTS;
+      const targets = [];
+
+      pool.forEach(st => {
+        const seat = normalizeSeatNumber(st.seatNumber);
+        const binding = lineHubBindingsMap[seat] || lineHubBindingsMap[String(parseInt(seat, 10))];
+        if (!binding || !binding.isBound) return;
+        if (mode === 'unread_only' && st.isRead) return;
+
+        // 計算個人成績內文
+        let bodyLines = [st.name + ' 家長您好：', '本次 ' + examName + ' 個人成績手札已彙整完成！'];
+        if (optAvg && curExam && typeof curExam.studentAverage === 'number') {
+          bodyLines.push('• 個人平均：' + curExam.studentAverage.toFixed(1) + ' 分');
+        }
+        if (optClassAvg && curExam && typeof curExam.classOverallAverage === 'number') {
+          bodyLines.push('• 班級總均：' + curExam.classOverallAverage.toFixed(1) + ' 分');
+        }
+        if (optRank && curExam && curExam.studentRank) {
+          bodyLines.push('• 班級排名：第 ' + curExam.studentRank + ' 名');
+        }
+        if (teacherNote) {
+          bodyLines.push('💬 老師的話：' + teacherNote);
+        }
+
+        const baseUrl = window.location.href.split('?')[0].replace('index.html', 'parent.html');
+        const studentUrl = baseUrl + '?t=' + encodeURIComponent(st.token || '') + '&e=' + encodeURIComponent(examName);
+
+        targets.push({
+          seatNo: seat,
+          studentName: st.name,
+          token: st.token,
+          title: title,
+          body: bodyLines.join('\n'),
+          url: studentUrl
+        });
+      });
+
+      try {
+        const hub = getLineHubClient();
+        let result = null;
+        if (hub) {
+          result = await hub.sendBatchPush(targets, { title: title });
+        }
+
+        closeBatchLinePushModal();
+
+        const sent = result ? (result.sentCount || targets.length) : targets.length;
+        const failed = result ? (result.failedCount || 0) : 0;
+        const skipped = pool.length - targets.length;
+
+        document.getElementById('resultCountSent').textContent = sent;
+        document.getElementById('resultCountSkipped').textContent = skipped;
+        document.getElementById('resultCountFailed').textContent = failed;
+
+        const resModal = document.getElementById('linePushResultModal');
+        if (resModal) resModal.classList.remove('hidden');
+
+        await fetchLineBindingsSummary(false);
+      } catch (err) {
+        alert('推播發送失敗：' + err.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<span>🚀</span><span>確認並立即發送</span>';
+        }
+      }
+    }
+
+    function closeLinePushResultModal() {
+      const modal = document.getElementById('linePushResultModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function openSingleStudentPushModal(seatNo) {
+      const pool = (cachedStudents && cachedStudents.length > 0) ? cachedStudents : DEMO_STUDENTS;
+      const target = pool.find(s => normalizeSeatNumber(s.seatNumber) === normalizeSeatNumber(seatNo));
+      if (!target) return;
+
+      singlePushTargetStudent = target;
+      document.getElementById('singlePushStudentSeat').textContent = normalizeSeatNumber(target.seatNumber) + ' 號';
+      document.getElementById('singlePushStudentName').textContent = target.name;
+
+      const modal = document.getElementById('singleStudentLinePushModal');
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeSingleStudentLinePushModal() {
+      const modal = document.getElementById('singleStudentLinePushModal');
+      if (modal) modal.classList.add('hidden');
+      singlePushTargetStudent = null;
+    }
+
+    async function executeSingleStudentLinePush() {
+      if (!singlePushTargetStudent) return;
+      const st = singlePushTargetStudent;
+      const btn = document.getElementById('btnExecuteSinglePush');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="animate-spin">🔄</span><span>傳送中...</span>';
+      }
+
+      const sel = document.getElementById('linePushExamSelect');
+      const curIdx = sel ? parseInt(sel.value, 10) : 0;
+      const curExam = cachedLineExamsList[curIdx] || cachedLineExamsList[cachedLineExamsList.length - 1];
+      const examName = curExam ? (curExam.sheetName || curExam.examTitle) : '段考成績';
+
+      const customNote = document.getElementById('singlePushCustomNote').value.trim();
+      const title = document.getElementById('linePushTitleInput').value.trim() || '【段考成績發布通知】';
+
+      let bodyLines = [st.name + ' 家長您好：', '本次 ' + examName + ' 個人成績手札已彙整完成！'];
+      if (customNote) bodyLines.push('💬 叮嚀：' + customNote);
+
+      const baseUrl = window.location.href.split('?')[0].replace('index.html', 'parent.html');
+      const studentUrl = baseUrl + '?t=' + encodeURIComponent(st.token || '') + '&e=' + encodeURIComponent(examName);
+
+      try {
+        const hub = getLineHubClient();
+        let res = null;
+        if (hub) {
+          res = await hub.sendPushNotification({
+            seatNo: normalizeSeatNumber(st.seatNumber),
+            studentName: st.name,
+            token: st.token,
+            title: title,
+            body: bodyLines.join('\n'),
+            url: studentUrl
+          });
+        }
+
+        closeSingleStudentLinePushModal();
+        showAppleToast('✨ 已成功發送 LINE 推播給 ' + st.name + ' 家長！', 'success');
+      } catch (e) {
+        alert('發送失敗：' + e.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<span>📨</span><span>發送個別通知</span>';
+        }
+      }
+    }
+
+    async function syncStudentsToLineHubFromWeb() {
+      const pool = (cachedStudents && cachedStudents.length > 0) ? cachedStudents : DEMO_STUDENTS;
+      const list = pool.map(s => ({
+        seatNo: normalizeSeatNumber(s.seatNumber),
+        studentName: s.name,
+        token: s.token
+      }));
+
+      const hub = getLineHubClient();
+      try {
+        if (hub) {
+          const res = await hub.registerStudents(list);
+          showAppleToast('✅ 成功同步 ' + list.length + ' 位學生名冊至 School LINE Hub！', 'success');
+          await fetchLineBindingsSummary(false);
+        }
+      } catch (e) {
+        alert('名冊同步失敗：' + e.message);
+      }
+    }
+
+    function toggleLineHubConfigModal() {
+      const modal = document.getElementById('lineHubConfigModal');
+      if (!modal) return;
+      const isHidden = modal.classList.contains('hidden');
+      if (isHidden) {
+        const cfg = getLineHubConfig();
+        document.getElementById('cfgHubUrlInput').value = cfg.hubUrl;
+        document.getElementById('cfgHubAppIdInput').value = cfg.appId;
+        document.getElementById('cfgHubAppSecretInput').value = cfg.appSecret;
+        modal.classList.remove('hidden');
+      } else {
+        modal.classList.add('hidden');
+      }
+    }
+
+    function saveLineHubConfig() {
+      const url = document.getElementById('cfgHubUrlInput').value.trim();
+      const appId = document.getElementById('cfgHubAppIdInput').value.trim();
+      const secret = document.getElementById('cfgHubAppSecretInput').value.trim();
+
+      if (!url || !appId || !secret) {
+        alert('請完整填寫中樞網址、App ID 與 App Secret！');
+        return;
+      }
+
+      localStorage.setItem('mpscore_line_hub_url', url);
+      localStorage.setItem('mpscore_line_hub_app_id', appId);
+      localStorage.setItem('mpscore_line_hub_secret', secret);
+      lineHubClientInstance = null; // 重建實例
+
+      toggleLineHubConfigModal();
+      showAppleToast('✨ School LINE Hub 連線參數儲存成功！', 'success');
+      fetchLineBindingsSummary(true);
+    }
+
+</script>
   <!-- ==================== 家長端：新統計方法與圖表說明彈窗 (Apple HIG Bottom Sheet) ==================== -->
   <div id="parentStatsHelpModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 transition-all">
     <div class="bg-white rounded-t-[32px] sm:rounded-3xl max-w-lg w-full max-h-[92vh] sm:max-h-[90vh] flex flex-col shadow-2xl overflow-hidden border border-slate-100 animate-in fade-in zoom-in duration-200">
@@ -7736,5 +8600,157 @@
 
     </div>
   </div>
+
+  <!-- ==================== LINE 推播批次發送確認彈窗 ==================== -->
+  <div id="batchLinePushConfirmModal" onclick="if(event.target === this) closeBatchLinePushModal()" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm hidden overflow-y-auto flex items-center justify-center p-3 md:p-6">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4 border border-slate-100">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">🚀</span>
+          <h3 class="font-black text-slate-900 text-base">確認全班批次推播發送</h3>
+        </div>
+        <button onclick="closeBatchLinePushModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 font-bold flex items-center justify-center">✕</button>
+      </div>
+
+      <div class="space-y-3 text-xs text-slate-600">
+        <div class="p-3.5 bg-emerald-50 rounded-2xl border border-emerald-200 space-y-1.5">
+          <div class="font-bold text-emerald-900 flex justify-between">
+            <span>🎯 本次派送對象：</span>
+            <span id="confirmBatchTargetCount" class="font-black text-sm text-emerald-700">0 位學生家庭</span>
+          </div>
+          <div class="text-[11px] text-emerald-700">
+            • 考試項目：<b id="confirmBatchExamName">--</b><br>
+            • 發送模式：<span id="confirmBatchModeDesc">全體已綁定家庭</span>
+          </div>
+        </div>
+
+        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+          <div class="font-bold text-slate-700">📨 訊息標題：</div>
+          <div id="confirmBatchTitle" class="text-slate-800 font-bold">--</div>
+        </div>
+
+        <p class="text-[11px] text-slate-400">
+          💡 點擊「立即發送」後，系統將透過校園中樞 API 依序分派推播至家長 LINE 官方帳號。
+        </p>
+      </div>
+
+      <div class="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
+        <button onclick="closeBatchLinePushModal()" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">取消</button>
+        <button onclick="executeBatchLinePush()" id="btnConfirmExecuteBatchPush" class="px-5 py-2.5 rounded-xl text-xs font-black bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-md shadow-emerald-600/20 transition flex items-center gap-1.5 active:scale-95">
+          <span>🚀</span>
+          <span>確認並立即發送</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 單一學生 LINE 推播彈窗 ==================== -->
+  <div id="singleStudentLinePushModal" onclick="if(event.target === this) closeSingleStudentLinePushModal()" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm hidden overflow-y-auto flex items-center justify-center p-3 md:p-6">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-slate-100">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">📨</span>
+          <h3 class="font-black text-slate-900 text-base">單獨發送 LINE 成績通知</h3>
+        </div>
+        <button onclick="closeSingleStudentLinePushModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 font-bold flex items-center justify-center">✕</button>
+      </div>
+
+      <div class="space-y-3 text-xs text-slate-600">
+        <div class="p-3 bg-amber-50 rounded-2xl border border-amber-200 flex items-center justify-between">
+          <div>
+            <span id="singlePushStudentSeat" class="font-mono font-bold text-amber-900">01 號</span>
+            <span id="singlePushStudentName" class="font-black text-slate-900 ml-1.5 text-sm">學生姓名</span>
+          </div>
+          <span id="singlePushBindingBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">🟢 LINE已綁定</span>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">個別專屬提醒（可自訂）：</label>
+          <textarea id="singlePushCustomNote" rows="3" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500" placeholder="例如：本次數學幾何題型進步很多，請家長給予鼓勵！"></textarea>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
+        <button onclick="closeSingleStudentLinePushModal()" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">取消</button>
+        <button onclick="executeSingleStudentLinePush()" id="btnExecuteSinglePush" class="px-5 py-2.5 rounded-xl text-xs font-black bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/20 transition flex items-center gap-1.5 active:scale-95">
+          <span>📨</span>
+          <span>發送個別通知</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== LINE 推播結果回報彈窗 ==================== -->
+  <div id="linePushResultModal" onclick="if(event.target === this) closeLinePushResultModal()" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm hidden overflow-y-auto flex items-center justify-center p-3 md:p-6">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl space-y-4 border border-slate-100 text-center">
+      <div class="w-14 h-14 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center text-2xl mx-auto shadow-inner">
+        ✨
+      </div>
+      <div>
+        <h3 class="font-black text-slate-900 text-base" id="linePushResultTitle">推播發送完成！</h3>
+        <p class="text-xs text-slate-500 mt-1" id="linePushResultSubtitle">校園推播中樞已完成通知分派作業</p>
+      </div>
+
+      <div class="grid grid-cols-3 gap-2 bg-slate-50 p-3 rounded-2xl border border-slate-200/80 text-xs">
+        <div class="text-center">
+          <div class="text-[10px] text-slate-400">成功送出</div>
+          <div id="resultCountSent" class="font-black text-lg text-emerald-600">0</div>
+        </div>
+        <div class="text-center">
+          <div class="text-[10px] text-slate-400">略過未綁</div>
+          <div id="resultCountSkipped" class="font-black text-lg text-amber-600">0</div>
+        </div>
+        <div class="text-center">
+          <div class="text-[10px] text-slate-400">失敗</div>
+          <div id="resultCountFailed" class="font-black text-lg text-rose-600">0</div>
+        </div>
+      </div>
+
+      <div class="pt-2">
+        <button onclick="closeLinePushResultModal()" class="w-full py-2.5 rounded-xl text-xs font-black bg-slate-900 hover:bg-slate-800 text-white shadow-sm transition active:scale-95">
+          確定並關閉
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 推播中樞連線設定彈窗 ==================== -->
+  <div id="lineHubConfigModal" onclick="if(event.target === this) toggleLineHubConfigModal()" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm hidden overflow-y-auto flex items-center justify-center p-3 md:p-6">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-slate-100">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">⚙️</span>
+          <h3 class="font-black text-slate-900 text-base">School LINE Hub 中樞連線設定</h3>
+        </div>
+        <button onclick="toggleLineHubConfigModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 font-bold flex items-center justify-center">✕</button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">推播中樞 Web API 網址：</label>
+          <input type="text" id="cfgHubUrlInput" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-amber-500">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">專案 App ID：</label>
+            <input type="text" id="cfgHubAppIdInput" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-amber-500">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">專案 App Secret：</label>
+            <input type="password" id="cfgHubAppSecretInput" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-amber-500">
+          </div>
+        </div>
+        <p class="text-[11px] text-slate-400">
+          💡 本系統預設直接接入學校統一之 School LINE Hub (MPScore)，家長已預先完成綁定，通常無需修改。
+        </p>
+      </div>
+
+      <div class="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
+        <button onclick="toggleLineHubConfigModal()" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">關閉</button>
+        <button onclick="saveLineHubConfig()" class="px-5 py-2.5 rounded-xl text-xs font-black bg-slate-900 hover:bg-slate-800 text-white shadow-sm transition active:scale-95">儲存連線設定</button>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>
