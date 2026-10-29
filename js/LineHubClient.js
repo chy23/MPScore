@@ -93,8 +93,9 @@
     if (typeof fetch !== 'undefined') {
       return fetch(this.hubUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: jsonStr
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: jsonStr,
+        redirect: 'follow'
       }).then(function(res) {
         return res.json();
       }).catch(function(err) {

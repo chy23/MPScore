@@ -3782,6 +3782,7 @@
         if (data.success && data.students && data.students.length > 0) {
           cachedStudents = data.students;
           if (data.examList && data.examList.length > 0) {
+            window.cachedExamList = data.examList;
             const exSel = document.getElementById('cardExamSource');
             if (exSel) {
               exSel.innerHTML = '<option value="none">純 QR Code 查詢通知卡 (不呈現考試成績)</option>';
@@ -7805,6 +7806,16 @@
     let singlePushTargetStudent = null;
     let cachedLineExamsList = [];
 
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
     function getLineHubConfig() {
       return {
         hubUrl: localStorage.getItem('mpscore_line_hub_url') || DEFAULT_LINE_HUB_URL,
@@ -7835,26 +7846,48 @@
       const sel = document.getElementById('linePushExamSelect');
       if (!sel) return;
 
-      const pool = (cachedStudents && cachedStudents.length > 0) ? cachedStudents : DEMO_STUDENTS;
-      const sampleSt = pool[0];
-      const demoExams = buildDemoExamsForStudent(sampleSt);
-
-      let examList = [];
-      if (Array.isArray(window.currentStudentExams) && window.currentStudentExams.length > 0) {
-        examList = window.currentStudentExams;
-      } else if (Array.isArray(cachedExams) && cachedExams.length > 0) {
-        examList = cachedExams;
-      } else {
-        examList = demoExams;
+      let examNames = [];
+      if (Array.isArray(window.cachedExamList) && window.cachedExamList.length > 0) {
+        examNames = [...window.cachedExamList];
       }
 
-      cachedLineExamsList = examList.filter(e => {
-        const title = (e.sheetName || e.examTitle || '').trim();
-        if (!title || title.startsWith('_')) return false;
-        const low = title.toLowerCase();
+      const cardExSel = document.getElementById('cardExamSource');
+      if (examNames.length === 0 && cardExSel && cardExSel.options.length > 0) {
+        for (let i = 0; i < cardExSel.options.length; i++) {
+          const val = cardExSel.options[i].value;
+          if (val && val !== 'none') {
+            examNames.push(val);
+          }
+        }
+      }
+
+      if (examNames.length === 0) {
+        const pool = (cachedStudents && cachedStudents.length > 0) ? cachedStudents : DEMO_STUDENTS;
+        pool.forEach(st => {
+          if (st.examStats) {
+            Object.keys(st.examStats).forEach(k => {
+              if (!examNames.includes(k)) examNames.push(k);
+            });
+          }
+        });
+      }
+
+      if (examNames.length === 0) {
+        examNames = ['114學年度第2學期期末考', '114學年度第2學期期中考'];
+      }
+
+      // 嚴格排除系統日誌分頁
+      examNames = examNames.filter(t => {
+        if (!t || t === 'none' || t.startsWith('_')) return false;
+        const low = t.toLowerCase();
         if (low.includes('名冊') || low.includes('閱覽') || low.includes('瀏覽') || low.includes('紀錄') || low.includes('記錄') || low.includes('日誌') || low.includes('log')) return false;
         return true;
       });
+
+      cachedLineExamsList = examNames.map(name => ({
+        sheetName: name,
+        examTitle: name
+      }));
 
       sel.innerHTML = '';
       cachedLineExamsList.forEach((ex, idx) => {
@@ -7956,6 +7989,18 @@
         let summaryResult = null;
         if (hub) {
           summaryResult = await hub.getAllBindingsSummary();
+        }
+
+        // 若直接連線中樞未果且有主系統 API，透過後端 GAS 代理查詢
+        if ((!summaryResult || summaryResult.status !== 'success') && activeApiUrl) {
+          try {
+            const sep = activeApiUrl.includes('?') ? '&' : '?';
+            const resp = await fetch(activeApiUrl + sep + 'action=getLineBindings');
+            const gasData = await resp.json();
+            if (gasData && gasData.status === 'success') {
+              summaryResult = gasData;
+            }
+          } catch(e) {}
         }
 
         if (summaryResult && summaryResult.status === 'success') {
@@ -8296,7 +8341,8 @@
           await fetchLineBindingsSummary(false);
         }
       } catch (e) {
-        alert('名冊同步失敗：' + e.message);
+        console.error('名冊同步異常:', e);
+        showAppleToast('⚠️ 名冊同步異常：' + e.message, 'warning');
       }
     }
 
