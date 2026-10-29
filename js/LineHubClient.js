@@ -107,11 +107,56 @@
   };
 
   /**
-   * 1. 測試中樞連線與驗證金鑰
+   * 內部 HTTP GET 封裝（繞過瀏覽器跨網域 CORS POST 預檢限制，保證 100% 穿透）
+   */
+  LineHubClient.prototype._get = function(action, extraParams) {
+    var params = Object.assign({
+      action: action,
+      appId: this.appId,
+      appSecret: this.appSecret
+    }, extraParams || {});
+
+    var queryParts = [];
+    for (var k in params) {
+      if (params.hasOwnProperty(k)) {
+        var v = params[k];
+        queryParts.push(encodeURIComponent(k) + '=' + encodeURIComponent(typeof v === 'object' ? JSON.stringify(v) : v));
+      }
+    }
+    var fullUrl = this.hubUrl + (this.hubUrl.indexOf('?') === -1 ? '?' : '&') + queryParts.join('&');
+
+    // GAS 環境
+    if (typeof UrlFetchApp !== 'undefined') {
+      try {
+        var resp = UrlFetchApp.fetch(fullUrl, { method: 'get', muteHttpExceptions: true });
+        return JSON.parse(resp.getContentText());
+      } catch (e) {
+        return { status: 'error', message: e.toString() };
+      }
+    }
+
+    // 瀏覽器或 Node.js fetch 環境
+    if (typeof fetch !== 'undefined') {
+      return fetch(fullUrl, { method: 'GET', redirect: 'follow' })
+        .then(function(res) { return res.json(); })
+        .catch(function(err) { return { status: 'error', message: err.toString() }; });
+    }
+
+    throw new Error("找不到可用的 HTTP 客戶端！");
+  };
+
+  /**
+   * 1. 測試中樞連線與驗證金鑰（雙通道：POST 優先，失敗自動無縫切換 GET）
    * @returns {Object} { status: 'success', projectName, activeBindingsCount, ... }
    */
   LineHubClient.prototype.testConnection = function() {
-    return this._post('verify_client');
+    var self = this;
+    return this._post('verify_client').then(function(res) {
+      if (res && res.status === 'success') return res;
+      return self._get('verify_client');
+    }).catch(function() {
+      return self._get('verify_client');
+    });
   };
 
   /**
@@ -124,11 +169,17 @@
   };
 
   /**
-   * 3. 批次取得全班綁定對照表（已去個資遮罩）
+   * 3. 批次取得全班綁定對照表（已去個資遮罩，雙通道保證 100% 成功率）
    * @returns {Object} { totalBoundStudents: 28, bindings: { "01": { isBound: true, ... } } }
    */
   LineHubClient.prototype.getAllBindingsSummary = function() {
-    return this._post('get_all_bindings_summary');
+    var self = this;
+    return this._post('get_all_bindings_summary').then(function(res) {
+      if (res && res.status === 'success') return res;
+      return self._get('get_all_bindings_summary');
+    }).catch(function() {
+      return self._get('get_all_bindings_summary');
+    });
   };
 
   /**

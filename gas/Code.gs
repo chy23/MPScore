@@ -398,6 +398,13 @@ function doGet(e) {
         .setMimeType(ContentService.MimeType.JSON);
     }
 
+    // 📲 LINE 推播中樞綁定概況查詢（只讀取中樞綁定統計，免金鑰即可快速顯示）
+    if (action === 'getLineBindings') {
+      output = getLineBindingsFromHub();
+      return ContentService.createTextOutput(JSON.stringify(output))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
     // 2. 高權限教師管理端點：自動配對或嚴格比對教師安全金鑰
     var verifyResult = verifyOrCreateTeacherKey(teacherKey);
     if (!verifyResult.success) {
@@ -1124,6 +1131,7 @@ function getStudentListForTeacher() {
  * 高速解析單一考試分頁內所有學生的統計摘要
  */
 function getExamAllStudentsStats(sheet) {
+  if (!sheet || !isExamSheetName(sheet.getName())) return null;
   var data = sheet.getDataRange().getValues();
   if (data.length < 2) return null;
 
