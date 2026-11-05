@@ -179,7 +179,7 @@
       body > :not(#printPreviewModal) {
         display: none !important;
       }
-      header, nav, main, #teacherApp, #parentPortal, #teacherChangelogModal, #parentStatsHelpModal, #qrScannerModal, footer, .no-print {
+      header, nav, main, #teacherApp, #parentPortal, #teacherChangelogModal, #allParentLinksModal, #parentStatsHelpModal, #qrScannerModal, footer, .no-print {
         display: none !important;
       }
       #printPreviewModal {
@@ -309,6 +309,10 @@
 
       <!-- 快捷功能與更新紀錄 -->
       <div class="flex items-center gap-2">
+        <button onclick="openAllParentLinksModal()" class="text-xs font-black bg-sky-600 hover:bg-sky-700 text-white px-3 py-2 rounded-xl transition flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer" title="一鍵取得全班家長共用查詢總連結與每位學生的專屬直達連結清冊">
+          <span>🔗</span>
+          <span>全班家長連結清冊</span>
+        </button>
         <button onclick="openTeacherChangelogModal()" class="text-xs font-bold bg-amber-50 hover:bg-amber-100 text-amber-900 px-3 py-2 rounded-xl transition flex items-center gap-1.5 border border-amber-200/90 shadow-2xs active:scale-95 cursor-pointer">
           <span>📋</span>
           <span>系統更新紀錄</span>
@@ -759,7 +763,11 @@
             <h2 class="text-lg font-bold text-slate-900">🖨️ 家長個別查詢小卡 A4 列印中心</h2>
             <p class="text-xs text-slate-500 mt-1">系統自動排版為一頁 8 張小卡，裁切後發給家長或黏貼於紙本成績單背面。</p>
           </div>
-          <div class="flex gap-2">
+          <div class="flex flex-wrap gap-2">
+            <button onclick="openAllParentLinksModal()" class="text-xs font-black bg-sky-600 hover:bg-sky-700 text-white px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer" title="一鍵取得全班家長共用查詢總連結與每位學生的專屬直達連結清冊">
+              <span>🔗</span>
+              <span>全班家長連結清冊</span>
+            </button>
             <button onclick="syncStudentsFromApi()" class="text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200 px-3 py-2 rounded-xl hover:bg-amber-100 transition flex items-center gap-1">
               <span>🔄 從試算表同步名單與成績</span>
             </button>
@@ -1001,6 +1009,10 @@
             <p class="text-xs text-slate-500 mt-1">即時掌握家長掃描與查閱狀況 ‧ 智慧辨識未讀座號 ‧ 一鍵複製貼上班級提醒</p>
           </div>
           <div class="flex items-center gap-2 flex-wrap">
+            <button onclick="openAllParentLinksModal()" class="text-xs font-black bg-sky-600 hover:bg-sky-700 text-white px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer" title="一鍵取得全班家長共用查詢總連結與每位學生的專屬直達連結清冊">
+              <span>🔗</span>
+              <span>全班家長連結清冊</span>
+            </button>
             <button onclick="fetchParentAccessLogs(true)" id="btnRefreshLogs" class="text-xs font-bold bg-amber-50 hover:bg-amber-100 text-amber-900 px-3.5 py-2 rounded-xl border border-amber-200 transition flex items-center gap-1.5 shadow-2xs active:scale-95 cursor-pointer">
               <span id="refreshLogIcon">🔄</span>
               <span>重新整理紀錄</span>
@@ -8547,6 +8559,244 @@
       fetchLineBindingsSummary(true);
     }
 
+    // =========================================================================
+    // 🔗 全班家長連結清冊模組（方案 A：全班共用查詢總連結 ＆ 方案 B：全班每位學生一對一直達連結）
+    // =========================================================================
+    let currentParentLinksFormat = 'tsv'; // 'tsv' | 'urls_only' | 'chat'
+
+    function getActiveParentPortalBaseUrl() {
+      const baseUrl = window.location.origin + window.location.pathname;
+      return baseUrl.substring(0, baseUrl.lastIndexOf('/') + 1) + 'parent.html';
+    }
+
+    function buildSharedParentPortalUrl() {
+      const parentBaseUrl = getActiveParentPortalPortalUrlBase();
+      const examSource = document.getElementById('cardExamSource') ? document.getElementById('cardExamSource').value : 'none';
+      let apiId = '';
+      if (activeApiUrl) {
+        const m = activeApiUrl.match(/macros\/s\/([^\/]+)/);
+        if (m && m[1]) apiId = m[1];
+      }
+      const queryParts = [];
+      if (apiId) queryParts.push('a=' + encodeURIComponent(apiId));
+      if (examSource && examSource !== 'none') queryParts.push('e=' + encodeURIComponent(examSource));
+      if (typeof getVisibilityFlagString === 'function') {
+        const vStr = getVisibilityFlagString();
+        if (vStr) queryParts.push('v=' + encodeURIComponent(vStr));
+      }
+      return queryParts.length > 0 ? `${parentBaseUrl}?${queryParts.join('&')}` : parentBaseUrl;
+    }
+
+    function getActiveParentPortalPortalUrlBase() {
+      return getActiveParentPortalBaseUrl();
+    }
+
+    function buildStudentParentPortalUrl(token) {
+      const parentBaseUrl = getActiveParentPortalBaseUrl();
+      const examSource = document.getElementById('cardExamSource') ? document.getElementById('cardExamSource').value : 'none';
+      let apiId = '';
+      if (activeApiUrl) {
+        const m = activeApiUrl.match(/macros\/s\/([^\/]+)/);
+        if (m && m[1]) apiId = m[1];
+      }
+      const cleanToken = encodeURIComponent(String(token || '').trim());
+      return parentBaseUrl + '?t=' + cleanToken + (apiId ? '&a=' + apiId : '') + (examSource && examSource !== 'none' ? '&e=' + encodeURIComponent(examSource) : '') + (typeof getVisibilityFlagString === 'function' ? '&v=' + getVisibilityFlagString() : '');
+    }
+
+    async function openAllParentLinksModal() {
+      const modal = document.getElementById('allParentLinksModal');
+      if (!modal) return;
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+
+      const statusEl = document.getElementById('parentLinksCopyStatus');
+      if (statusEl) statusEl.classList.add('hidden');
+      const sharedStatusEl = document.getElementById('sharedParentUrlCopyStatus');
+      if (sharedStatusEl) sharedStatusEl.classList.add('hidden');
+
+      if ((!cachedStudents || cachedStudents.length === 0) && activeApiUrl && typeof syncStudentsFromApi === 'function') {
+        const textarea = document.getElementById('allParentLinksTextarea');
+        if (textarea) textarea.value = '⏳ 正在從雲端試算表同步全班學生名單與專屬連結...';
+        try {
+          await syncStudentsFromApi();
+        } catch (e) {}
+      }
+
+      renderAllParentLinksModalContent();
+    }
+
+    function closeAllParentLinksModal() {
+      const modal = document.getElementById('allParentLinksModal');
+      if (modal) {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+      }
+    }
+
+    function switchParentLinksFormat(fmt) {
+      currentParentLinksFormat = fmt;
+      const btnTsv = document.getElementById('btnLinkFmtTsv');
+      const btnUrls = document.getElementById('btnLinkFmtUrlsOnly');
+      const btnChat = document.getElementById('btnLinkFmtChat');
+      const activeCls = 'px-2.5 py-1 rounded-lg text-xs font-black bg-sky-600 text-white shadow-2xs cursor-pointer';
+      const idleCls = 'px-2.5 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 cursor-pointer';
+
+      if (btnTsv) btnTsv.className = fmt === 'tsv' ? activeCls : idleCls;
+      if (btnUrls) btnUrls.className = fmt === 'urls_only' ? activeCls : idleCls;
+      if (btnChat) btnChat.className = fmt === 'chat' ? activeCls : idleCls;
+
+      renderAllParentLinksModalContent();
+    }
+
+    function copySharedParentPortalUrl() {
+      const sharedUrl = buildSharedParentPortalUrl();
+      const inputEl = document.getElementById('sharedParentPortalUrlInput');
+      const statusEl = document.getElementById('sharedParentUrlCopyStatus');
+      if (inputEl) {
+        inputEl.value = sharedUrl;
+        inputEl.select();
+      }
+      navigator.clipboard.writeText(sharedUrl).then(() => {
+        if (statusEl) {
+          statusEl.textContent = '✅ 已成功複製「全班家長共用查詢總連結」！貼給家長後，家長輸入自己孩子的「座號＋姓名」或「專屬代碼」即可直接查詢！';
+          statusEl.classList.remove('hidden');
+        }
+        showAppleToast('✅ 已複製全班共用查詢總連結！', 'success');
+      }).catch(() => {
+        document.execCommand('copy');
+        if (statusEl) {
+          statusEl.textContent = '✅ 已複製全班共用查詢總連結！';
+          statusEl.classList.remove('hidden');
+        }
+      });
+    }
+
+    function renderAllParentLinksModalContent() {
+      const textarea = document.getElementById('allParentLinksTextarea');
+      const tbody = document.getElementById('allParentLinksTableBody');
+      const countBadge = document.getElementById('allParentLinksCountBadge');
+      const sharedInputEl = document.getElementById('sharedParentPortalUrlInput');
+      const sharedOpenLinkEl = document.getElementById('sharedParentPortalOpenBtn');
+
+      const sharedUrl = buildSharedParentPortalUrl();
+      if (sharedInputEl) sharedInputEl.value = sharedUrl;
+      if (sharedOpenLinkEl) sharedOpenLinkEl.href = sharedUrl;
+
+      const pool = (cachedStudents && cachedStudents.length > 0) ? cachedStudents : DEMO_STUDENTS;
+      if (countBadge) countBadge.textContent = `全班共 ${pool.length} 位學生`;
+
+      if (!pool || pool.length === 0) {
+        if (textarea) textarea.value = '⚠️ 尚未載入學生名冊。請先於【4 步設定精靈】完成試算表連線！';
+        if (tbody) {
+          tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-xs text-slate-500">尚未載入學生名冊，請先連線雲端試算表。</td></tr>`;
+        }
+        return;
+      }
+
+      let textOutput = '';
+      if (currentParentLinksFormat === 'urls_only') {
+        textOutput = pool.map(st => buildStudentParentPortalUrl(st.token)).join('\n');
+      } else if (currentParentLinksFormat === 'chat') {
+        textOutput = pool.map(st => {
+          const url = buildStudentParentPortalUrl(st.token);
+          const seat = st.seatNumber || st.seatNo || '';
+          return `【${st.className || '本班'} ${seat}號 ${st.name}】家長專屬成績手札連結：\n${url}`;
+        }).join('\n\n');
+      } else {
+        const header = ['班級', '座號', '姓名', '專屬代碼', '家長端專屬連結'].join('\t');
+        const rows = pool.map(st => {
+          const url = buildStudentParentPortalUrl(st.token);
+          const seat = st.seatNumber || st.seatNo || '';
+          return [st.className || '本班', seat, st.name || '', st.token || '', url].join('\t');
+        });
+        textOutput = [header, ...rows].join('\n');
+      }
+
+      if (textarea) textarea.value = textOutput;
+
+      if (tbody) {
+        tbody.innerHTML = pool.map(st => {
+          const url = buildStudentParentPortalUrl(st.token);
+          const seat = st.seatNumber || st.seatNo || '';
+          return `
+            <tr class="hover:bg-sky-50/60 transition">
+              <td class="py-2 px-3 font-mono font-bold text-slate-700">${seat}</td>
+              <td class="py-2 px-3 font-black text-slate-800">${st.name}</td>
+              <td class="py-2 px-3 font-mono font-bold text-amber-800">${st.token}</td>
+              <td class="py-2 px-3 font-mono text-[11px] text-sky-700 break-all">
+                <a href="${url}" target="_blank" class="hover:underline">${url}</a>
+              </td>
+              <td class="py-2 px-3 text-right whitespace-nowrap">
+                <button type="button" onclick="copySingleStudentParentLink('${st.token}', '${st.name}', '${seat}')"
+                  class="px-2.5 py-1 rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 font-bold text-xs transition cursor-pointer">
+                  🔗 複製此連結
+                </button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      }
+    }
+
+    function copyAllParentLinksFromModal() {
+      const textarea = document.getElementById('allParentLinksTextarea');
+      const statusEl = document.getElementById('parentLinksCopyStatus');
+      const pool = (cachedStudents && cachedStudents.length > 0) ? cachedStudents : DEMO_STUDENTS;
+      if (!textarea || !pool || pool.length === 0) return;
+
+      textarea.select();
+      textarea.setSelectionRange(0, 999999);
+
+      navigator.clipboard.writeText(textarea.value).then(() => {
+        if (statusEl) {
+          statusEl.textContent = `✅ 已成功複製全班 ${pool.length} 位學生的家長端連結至剪貼簿！現在可直接貼上（Ctrl+V / Cmd+V）。`;
+          statusEl.classList.remove('hidden');
+        }
+        showAppleToast(`✅ 已複製全班 ${pool.length} 位學生的家長端連結！`, 'success');
+      }).catch(() => {
+        document.execCommand('copy');
+        if (statusEl) {
+          statusEl.textContent = `✅ 已選取並複製全班連結！現在可直接貼上（Ctrl+V / Cmd+V）。`;
+          statusEl.classList.remove('hidden');
+        }
+      });
+    }
+
+    function copySingleStudentParentLink(token, name, seatNo) {
+      const url = buildStudentParentPortalUrl(token);
+      const label = `${seatNo ? seatNo + '號 ' : ''}${name || ''}`.trim();
+      navigator.clipboard.writeText(url).then(() => {
+        showAppleToast(`🔗 已複製【${label}】的家長端專屬連結！`, 'success');
+      }).catch(() => {
+        prompt(`請複製【${label}】的家長端專屬連結：`, url);
+      });
+    }
+
+    function exportAllStudentParentLinksCsv() {
+      const pool = (cachedStudents && cachedStudents.length > 0) ? cachedStudents : DEMO_STUDENTS;
+      if (!pool || pool.length === 0) return;
+
+      const escapeCsv = val => `"${String(val ?? '').replace(/"/g, '""')}"`;
+      const header = ['班級', '座號', '姓名', '專屬查詢代碼', '家長端專屬連結'].map(escapeCsv).join(',');
+      const rows = pool.map(st => {
+        const url = buildStudentParentPortalUrl(st.token);
+        const seat = st.seatNumber || st.seatNo || '';
+        return [st.className || '本班', seat, st.name || '', st.token || '', url].map(escapeCsv).join(',');
+      });
+      const csvContent = '\uFEFF' + [header, ...rows].join('\r\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const downloadUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const className = (pool[0] && pool[0].className) ? pool[0].className : '全班';
+      const dateStr = new Date().toISOString().split('T')[0];
+      a.href = downloadUrl;
+      a.download = `MPScore_${className}_家長端專屬連結清冊_${dateStr}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(downloadUrl);
+    }
+
 </script>
   <!-- ==================== 家長端：新統計方法與圖表說明彈窗 (Apple HIG Bottom Sheet) ==================== -->
   <div id="parentStatsHelpModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 transition-all">
@@ -8960,6 +9210,125 @@
       <div class="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
         <button onclick="toggleLineHubConfigModal()" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">關閉</button>
         <button onclick="saveLineHubConfig()" class="px-5 py-2.5 rounded-xl text-xs font-black bg-slate-900 hover:bg-slate-800 text-white shadow-sm transition active:scale-95">儲存連線設定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: 🔗 全班家長端專屬連結清冊 (All Student Parent Links Modal)            -->
+  <!-- ========================================================================= -->
+  <div id="allParentLinksModal" class="no-print fixed inset-0 z-50 hidden flex items-center justify-center p-3 sm:p-6 bg-slate-900/60 backdrop-blur-xs">
+    <div class="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden">
+      <!-- Header -->
+      <div class="px-5 py-4 bg-gradient-to-r from-sky-50 to-emerald-50 border-b border-slate-200 flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5">
+          <span class="w-9 h-9 rounded-xl bg-sky-600 text-white flex items-center justify-center text-base shadow-xs">🔗</span>
+          <div>
+            <h3 class="font-black text-base text-slate-900">全班家長端專屬連結清冊</h3>
+            <p class="text-xs text-slate-600">可一鍵複製貼至 Google 試算表、Excel、LINE 或下載 CSV 檔案</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeAllParentLinksModal()" class="w-9 h-9 rounded-xl bg-white hover:bg-slate-100 text-slate-600 border border-slate-200 font-black text-sm flex items-center justify-center cursor-pointer">✕</button>
+      </div>
+
+      <!-- Body -->
+      <div class="p-5 overflow-y-auto space-y-4 flex-1">
+        <!-- 🌟 方案 A：全班家長共用「單一查詢總連結」（家長輸入自己孩子的座號＋姓名或代碼即可查詢） -->
+        <div class="p-4 rounded-2xl bg-gradient-to-r from-amber-50 via-yellow-50/80 to-emerald-50 border-2 border-amber-300 shadow-xs space-y-2.5">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 rounded-lg bg-amber-500 text-slate-950 font-black text-xs">🌟 最省事 ‧ 全班共用單一網址</span>
+              <span class="font-black text-sm text-slate-900">家長自助查詢總連結（直接發進班級群組即可！）</span>
+            </div>
+            <span class="text-[11px] font-bold text-amber-900 bg-white/90 px-2.5 py-0.5 rounded-full border border-amber-200">家長輸入「座號＋學生完整姓名」即可查自己小孩</span>
+          </div>
+          <p class="text-xs text-slate-700 leading-relaxed">
+            只要把下方這一個網址貼到班級 LINE 群組或班網，家長點開後輸入自己小孩的<b>「座號 ＋ 學生完整姓名」</b>（或 6 碼專屬代碼），就能直接查詢自己小孩的段考成績與成長常模！
+          </p>
+          <div class="flex flex-wrap sm:flex-nowrap items-center gap-2">
+            <input type="text" id="sharedParentPortalUrlInput" readonly
+              onclick="this.select()"
+              class="w-full flex-1 px-3 py-2 rounded-xl bg-white border border-amber-300 font-mono text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500">
+            <button type="button" onclick="copySharedParentPortalUrl()"
+              class="min-h-[38px] px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs shadow-sm transition flex items-center gap-1.5 shrink-0 cursor-pointer active:scale-95">
+              <span>📋</span>
+              <span>複製全班共用查詢總連結</span>
+            </button>
+            <a id="sharedParentPortalOpenBtn" href="parent.html" target="_blank"
+              class="min-h-[38px] px-3 py-2 rounded-xl bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 font-black text-xs transition flex items-center gap-1 shrink-0">
+              <span>↗ 預覽開啟</span>
+            </a>
+          </div>
+          <div id="sharedParentUrlCopyStatus" class="hidden text-xs font-black text-emerald-800 bg-emerald-100/90 border border-emerald-300 px-3 py-1.5 rounded-xl"></div>
+        </div>
+
+        <!-- 🔗 方案 B：全班每位學生「一對一免輸入直達連結清冊」 -->
+        <div class="pt-1 border-t border-slate-200/80 flex flex-wrap items-center justify-between gap-2 bg-slate-50 p-3 rounded-2xl border border-slate-200">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="text-xs font-black text-slate-700">📋 個別學生直達連結格式：</span>
+            <button type="button" id="btnLinkFmtTsv" onclick="switchParentLinksFormat('tsv')" class="px-2.5 py-1 rounded-lg text-xs font-black bg-sky-600 text-white shadow-2xs cursor-pointer">
+              📊 試算表格式（含座號/姓名/代碼/網址）
+            </button>
+            <button type="button" id="btnLinkFmtUrlsOnly" onclick="switchParentLinksFormat('urls_only')" class="px-2.5 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 cursor-pointer">
+              🔗 僅純網址（每行一個連結）
+            </button>
+            <button type="button" id="btnLinkFmtChat" onclick="switchParentLinksFormat('chat')" class="px-2.5 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 cursor-pointer">
+              💬 LINE 私訊文字格式
+            </button>
+          </div>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="copyAllParentLinksFromModal()" class="min-h-[36px] px-3.5 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-black text-xs shadow-sm transition flex items-center gap-1.5 cursor-pointer active:scale-95">
+              <span>📋</span>
+              <span>一鍵全選複製下方文字</span>
+            </button>
+            <button type="button" onclick="exportAllStudentParentLinksCsv()" class="min-h-[36px] px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-sm transition flex items-center gap-1.5 cursor-pointer active:scale-95">
+              <span>📥</span>
+              <span>下載 CSV</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Copy Status Banner -->
+        <div id="parentLinksCopyStatus" class="hidden p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold text-center"></div>
+
+        <!-- Textarea for direct copy -->
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label for="allParentLinksTextarea" class="text-xs font-extrabold text-slate-700">👇 全班連結文字框（可直接點選全選複製，或貼入 Excel / Google 試算表）：</label>
+            <span id="allParentLinksCountBadge" class="text-xs font-bold text-sky-700">全班共 0 位學生</span>
+          </div>
+          <textarea id="allParentLinksTextarea" rows="7" readonly
+            onclick="this.select()"
+            class="w-full p-3 rounded-2xl bg-slate-900 text-emerald-300 font-mono text-xs leading-relaxed border border-slate-700 focus:outline-none focus:ring-2 focus:ring-sky-500"></textarea>
+        </div>
+
+        <!-- Interactive Table -->
+        <div class="border border-slate-200 rounded-2xl overflow-hidden">
+          <div class="bg-slate-100 px-4 py-2 text-xs font-black text-slate-700 border-b border-slate-200 flex items-center justify-between">
+            <span>👩‍🎓 逐一學生連結清單（可單獨複製或點擊預覽）</span>
+            <span class="text-[11px] text-slate-500 font-normal">家長點開連結即可直接查看，免輸入密碼</span>
+          </div>
+          <div class="max-h-60 overflow-y-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead class="bg-slate-50 text-slate-600 font-bold border-b border-slate-200 sticky top-0">
+                <tr>
+                  <th class="py-2 px-3 whitespace-nowrap">座號</th>
+                  <th class="py-2 px-3 whitespace-nowrap">姓名</th>
+                  <th class="py-2 px-3 whitespace-nowrap">查詢代碼</th>
+                  <th class="py-2 px-3">家長端專屬連結</th>
+                  <th class="py-2 px-3 text-right whitespace-nowrap">操作</th>
+                </tr>
+              </thead>
+              <tbody id="allParentLinksTableBody" class="divide-y divide-slate-200/70"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="px-5 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+        <span class="text-xs text-slate-500">💡 提示：每位學生的連結皆綁定其專屬防偽代碼，學期中更新試算表分數後連結永久有效，無須重新產生。</span>
+        <button type="button" onclick="closeAllParentLinksModal()" class="px-4 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 font-black text-xs transition cursor-pointer">關閉視窗</button>
       </div>
     </div>
   </div>

@@ -381,12 +381,12 @@ function formatExamSheet(sheet, examTitle, rowsData) {
  */
 function doGet(e) {
   var params = e ? e.parameter : {};
-  var action = params.action || (params.token ? 'query' : 'ping');
+  var action = params.action || ((params.token || params.seat || params.name) ? 'query' : 'ping');
   var teacherKey = params.key || (e && e.headers && (e.headers['x-teacher-key'] || e.headers['X-Teacher-Key'])) || '';
   var output = {};
 
   try {
-    // 1. 公開安全端點（任何人免金鑰可存取：健康檢查、金鑰綁定與個人專屬代碼查詢）
+    // 1. 公開安全端點（任何人免金鑰可存取：健康檢查、金鑰綁定與個人專屬代碼／座號＋姓名查詢）
     if (action === 'ping') {
       output = checkSystemStatus(teacherKey);
       return ContentService.createTextOutput(JSON.stringify(output))
@@ -402,7 +402,7 @@ function doGet(e) {
     
     if (action === 'query') {
       var isSimulation = params.isSimulation === 'true' || params.simulate === 'true' || params.mock === 'true' || params.preview === 'true';
-      output = getStudentScoreByToken(params.token, isSimulation);
+      output = getStudentScoreByToken(params.token, isSimulation, params.seat, params.name);
       return ContentService.createTextOutput(JSON.stringify(output))
         .setMimeType(ContentService.MimeType.JSON);
     }
@@ -524,41 +524,37 @@ function checkSystemStatus(teacherKey) {
 }
 
 /**
- * 依據專屬 Token 查詢該名學生歷次考試成績與自動運算成果
+ * 依據專屬 Token 或「座號＋學生完整姓名」查詢該名學生歷次考試成績與自動運算成果
  * 🔒 資安防護：
- * 1. 代碼長度 < 4 一律拒絕，全面封鎖同儕用 01~40 純座號猜測
- * 2. 僅接受專屬 6 碼代碼精確比對，廢除姓名與座號比對，消除越權偷看隱患
+ * 1. 禁止單純以 01~40 純座號猜測查詢
+ * 2. 支援家長以「6 碼專屬代碼」或「座號＋學生完整姓名（雙因子核對）」直接查詢自己孩子的成績
  */
-function getStudentScoreByToken(token, isSimulation) {
+function getStudentScoreByToken(token, isSimulation, seatParam, nameParam) {
   isSimulation = !!isSimulation;
-  if (!token) return { success: false, message: '請提供專屬查詢代碼' };
-  token = token.toString().trim();
+  var rawTokenInput = (token || '').toString().trim();
+  var tokenUpper = rawTokenInput.toUpperCase();
+  var cleanSeat = normalizeSeatNumber(seatParam || '');
+  var cleanName = (nameParam || '').toString().trim().replace(/[\s\u3000]+/g, '');
 
-  // 安全防護：代碼必須至少 4 碼以上（防暴力猜測純數字座號），僅接受專屬 6 碼代碼查詢
-  if (token.length < 4) {
-    return {
-      success: false,
-      message: '查詢代碼格式無效。為保護學生個資與成績隱私，系統已全面關閉純座號查詢。請使用成績通知單上之專屬 6 碼查詢代碼或掃描專屬 QR Code！'
-    };
+  // 若家長在單一輸入框輸入「01 陳小明」或「1號陳小明」，自動拆解座號與姓名
+  if (!cleanSeat && !cleanName && rawTokenInput) {
+    var comboMatch = rawTokenInput.match(/^(\d{1,2})\s*號?\s+(.+)$/) || rawTokenInput.match(/^(\d{1,2})\s*號\s*(.+)$/);
+    if (comboMatch) {
+      cleanSeat = normalizeSeatNumber(comboMatch[1]);
+      cleanName = comboMatch[2].trim().replace(/[\s\u3000]+/g, '');
+    }
   }
 
-  // 0. 極速快取檢查：若 10 分鐘內已有運算快取，0.1 秒秒速回傳，避免家長誤會網站失效
-  var tokenUpper = token.toUpperCase();
-  var scriptCache = CacheService.getScriptCache();
-  var cacheKey = 'st_score_v3_' + encodeURIComponent(tokenUpper);
-  try {
-    var cachedJson = scriptCache.get(cacheKey);
-    if (cachedJson) {
-      var cachedObj = JSON.parse(cachedJson);
-      cachedObj.fromCache = true;
-      cachedObj.isSimulation = isSimulation;
-      if (cachedObj.student && !isSimulation) {
-        recordParentAccess(cachedObj.student, false);
-      }
-      return cachedObj;
-    }
-  } catch (e) {
-    // 忽略快取讀取異常，正常降級至試算表即時運算
+  if (!rawTokenInput && !cleanSeat && !cleanName) {
+    return { success: false, message: '請輸入孩子的「座號＋姓名」、「專屬查詢代碼」或掃描 QR Code！' };
+  }
+
+  // 安全防護：若未提供座號＋姓名，而僅輸入少於 4 碼的純座號，一律拒絕以防同儕用 01~40 純座號猜測
+  if (!cleanSeat && !cleanName && rawTokenInput.length < 4) {
+    return {
+      success: false,
+      message: '為保護學生個資與成績隱私，不開放僅輸入座號查詢。請同時輸入「座號＋學生完整姓名」，或使用專屬 6 碼查詢代碼／掃描 QR Code！'
+    };
   }
 
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -567,7 +563,7 @@ function getStudentScoreByToken(token, isSimulation) {
     return { success: false, message: '試算表缺少【學生名冊】分頁' };
   }
 
-  // 1. 在【學生名冊】中尋找此代碼對應的學生（嚴格僅比對專屬 6 碼代碼，杜絕座號與姓名碰撞）
+  // 1. 在【學生名冊】中尋找對應的學生（支援專屬 6 碼代碼 或 座號＋完整姓名雙重核對）
   var sData = sSheet.getDataRange().getValues();
   var student = null;
 
@@ -576,14 +572,16 @@ function getStudentScoreByToken(token, isSimulation) {
     var rowCls = row[0] ? row[0].toString().trim() : '';
     var rowSeat = normalizeSeatNumber(row[1]);
     var rowName = row[2] ? row[2].toString().trim() : '';
+    var cleanRowName = rowName.replace(/[\s\u3000]+/g, '');
     var rowToken = row[3] ? row[3].toString().trim() : ''; // D 欄: 專屬代碼
     var isEnabled = row[4]; // E 欄: 啟用狀態
 
-    // 嚴格比對專屬 6 碼代碼 (不分大小寫)
-    var isMatch = rowToken && (rowToken.toUpperCase() === tokenUpper);
+    var isTokenMatch = (tokenUpper && rowToken && rowToken.toUpperCase() === tokenUpper);
+    var isSeatAndNameMatch = (cleanSeat && cleanName && rowSeat === cleanSeat && cleanRowName === cleanName);
+    var isSeatAndRawTokenNameMatch = (!isTokenMatch && cleanSeat && rawTokenInput && rowSeat === cleanSeat && cleanRowName === rawTokenInput.replace(/[\s\u3000]+/g, ''));
 
-    if (isMatch) {
-      if (isEnabled === false) {
+    if (isTokenMatch || isSeatAndNameMatch || isSeatAndRawTokenNameMatch) {
+      if (isEnabled === false || (isEnabled && isEnabled.toString().toUpperCase() === 'FALSE')) {
         return { success: false, message: '此學生帳號已被停用。' };
       }
       student = {
@@ -598,7 +596,29 @@ function getStudentScoreByToken(token, isSimulation) {
   }
 
   if (!student) {
-    return { success: false, message: '驗證失敗：查無此專屬代碼「' + token + '」，請確認是否輸入正確或重新掃描通知單上的 QR Code。' };
+    if (cleanSeat || cleanName) {
+      return { success: false, message: '查無相符的學生資料，請確認輸入的「座號」與「學生完整姓名」是否正確！' };
+    }
+    return { success: false, message: '驗證失敗：查無此專屬代碼「' + rawTokenInput + '」，請確認是否輸入正確或改用「座號＋學生完整姓名」查詢。' };
+  }
+
+  // 0. 極速快取檢查：若 10 分鐘內已有運算快取，0.1 秒秒速回傳
+  var effectiveTokenKey = (student.token || tokenUpper || (student.seatNumber + '_' + student.name)).toString().trim().toUpperCase();
+  var scriptCache = CacheService.getScriptCache();
+  var cacheKey = 'st_score_v3_' + encodeURIComponent(effectiveTokenKey);
+  try {
+    var cachedJson = scriptCache.get(cacheKey);
+    if (cachedJson) {
+      var cachedObj = JSON.parse(cachedJson);
+      cachedObj.fromCache = true;
+      cachedObj.isSimulation = isSimulation;
+      if (cachedObj.student && !isSimulation) {
+        recordParentAccess(cachedObj.student, false);
+      }
+      return cachedObj;
+    }
+  } catch (e) {
+    // 忽略快取讀取異常，正常降級至試算表即時運算
   }
 
   // 記錄家長閱覽日誌（若為教師模擬模式，嚴格略過寫入日誌，保證日誌零污染）
@@ -1943,7 +1963,7 @@ function getParentAccessLogs() {
 
   if (logSheet && logSheet.getLastRow() > 1) {
     var logData = logSheet.getDataRange().getValues();
-    totalLogsCount = logData.length - 1;
+    totalLogsCount = 0;
 
     // 從最後一列往回讀 (最新排前面)
     for (var r = logData.length - 1; r >= 1; r--) {
@@ -1955,10 +1975,16 @@ function getParentAccessLogs() {
       var logToken = logRow[4] ? logRow[4].toString().trim().toUpperCase() : '';
       var logNote = logRow[5] ? logRow[5].toString().trim() : '線上成績查閱';
 
+      // 略過空白列（例如老師框選清除內容但未刪除整列）
+      if (!timeStr && !logToken && !logName && !logSeat) continue;
+      if (!logToken && !logName && !logSeat) continue;
+
       // 嚴格排除任何可能手動或測試時產生的模擬紀錄
       if (logNote.indexOf('模擬') !== -1 || logNote.indexOf('測試') !== -1 || logNote.indexOf('mock') !== -1 || logNote.indexOf('sim') !== -1) {
         continue;
       }
+
+      totalLogsCount++;
 
       // 歸納進學生統計
       var matchedStudent = (logToken && studentsMap[logToken]) || (logSeat && studentsMap['SEAT_' + logSeat]);

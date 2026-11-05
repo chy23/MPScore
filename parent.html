@@ -140,29 +140,81 @@
 
   <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-5 md:mt-8 space-y-6">
     
-    <!-- 🔒 學生隱私安全防護入口 (不提供手動輸入姓名/代碼，由 QR Code 掃描直達) -->
+    <!-- 🔒 家長查詢入口：支援直接輸入孩子「座號＋姓名」、「專屬查詢代碼」或掃描 QR Code -->
     <div id="parentLoginBox" class="apple-glass rounded-3xl p-6 sm:p-8 space-y-5 max-w-lg mx-auto shadow-sm text-center">
       <!-- 隱私安全徽章 -->
       <div class="inline-flex items-center gap-1.5 text-xs font-bold text-amber-900 bg-amber-50 px-3.5 py-1 rounded-full border border-amber-200">
-        <span class="text-amber-600">🛡️</span> 學生個人隱私安全保護
+        <span class="text-amber-600">🛡️</span> 個人專屬查詢 ‧ 個資去識別化保護
       </div>
 
       <!-- 說明標題 -->
       <div class="space-y-1.5">
-        <h2 class="text-base sm:text-lg font-black text-slate-800 tracking-tight">請掃描個人成績通知單上的 QR Code</h2>
+        <h2 class="text-base sm:text-lg font-black text-slate-800 tracking-tight">查詢孩子的學習成長手札</h2>
         <p class="text-xs text-slate-500 leading-relaxed max-w-sm mx-auto">
-          為守護每位學生的個人成績隱私，本系統不提供手動輸入姓名或代碼查詢。<br>請開啟鏡頭掃描紙本通知單上的專屬 QR Code 即可直達。
+          請輸入您孩子的<b>「座號＋完整姓名」</b>或<b>「專屬查詢代碼」</b>，亦可直接掃描紙本通知單上的 QR Code。
         </p>
       </div>
 
-      <!-- 隱藏 input 供程式化存取相容 -->
-      <input type="hidden" id="parentTokenInput">
+      <!-- 🔑 方式一：直接輸入自己小孩的「座號＋姓名」或「專屬查詢代碼」 -->
+      <div class="p-4 rounded-2xl bg-amber-50/75 border border-amber-200/90 space-y-3 text-left shadow-2xs">
+        <div class="flex items-center justify-between">
+          <div class="text-xs font-black text-amber-950 flex items-center gap-1.5">
+            <span>👨‍👩‍👧</span>
+            <span>直接輸入自己小孩的資料查詢</span>
+          </div>
+          <span class="text-[11px] font-bold text-amber-800 bg-white/90 px-2 py-0.5 rounded-full border border-amber-200">免掃碼直查</span>
+        </div>
+
+        <!-- (A) 座號 + 學生姓名 查詢 -->
+        <div class="space-y-2 bg-white/95 p-3 rounded-xl border border-amber-200/80">
+          <div class="text-[11px] font-extrabold text-slate-700">方法一：輸入「座號」＋「學生完整姓名」</div>
+          <div class="grid grid-cols-12 gap-2">
+            <div class="col-span-4">
+              <label for="seatInput" class="block text-[11px] font-bold text-slate-500 mb-1">座號</label>
+              <input type="text" id="seatInput" inputmode="numeric" maxlength="3" placeholder="例：01"
+                onkeydown="if(event.key==='Enter') document.getElementById('nameInput')?.focus()"
+                class="w-full min-h-[42px] px-2.5 py-1.5 rounded-xl bg-slate-50 border border-slate-300 font-mono font-black text-sm text-slate-800 text-center focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white">
+            </div>
+            <div class="col-span-8">
+              <label for="nameInput" class="block text-[11px] font-bold text-slate-500 mb-1">學生完整姓名</label>
+              <input type="text" id="nameInput" maxlength="10" placeholder="例：陳小明"
+                onkeydown="if(event.key==='Enter') submitSeatAndNameLookup()"
+                class="w-full min-h-[42px] px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-300 font-black text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white">
+            </div>
+          </div>
+          <button type="button" onclick="submitSeatAndNameLookup()"
+            class="w-full min-h-[42px] py-2 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black text-xs shadow-sm transition active:scale-98 cursor-pointer flex items-center justify-center gap-1.5">
+            <span>🔍</span>
+            <span>查詢孩子成績</span>
+          </button>
+        </div>
+
+        <!-- (B) 專屬查詢代碼 查詢 -->
+        <div class="space-y-1.5 bg-white/85 p-3 rounded-xl border border-slate-200/80">
+          <label for="parentTokenInput" class="block text-[11px] font-extrabold text-slate-600">方法二：若有 6 碼「專屬查詢代碼」也可直接輸入</label>
+          <div class="flex items-center gap-2">
+            <input type="text" id="parentTokenInput" maxlength="16" placeholder="輸入 6 碼專屬代碼（例：A8K9ZM）"
+              onkeydown="if(event.key==='Enter') submitTokenLookup()"
+              class="flex-1 min-h-[40px] px-3 py-1.5 rounded-xl bg-white border border-slate-300 font-mono font-black text-xs text-slate-800 uppercase tracking-wider placeholder:normal-case placeholder:tracking-normal placeholder:font-sans placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-amber-500">
+            <button type="button" onclick="submitTokenLookup()"
+              class="min-h-[40px] px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-black text-xs shadow-xs transition active:scale-95 shrink-0 cursor-pointer">
+              查詢
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="relative flex items-center py-0.5">
+        <div class="flex-grow border-t border-slate-200"></div>
+        <span class="flex-shrink mx-3 text-xs font-bold text-slate-400">或掃描紙本通知小卡 QR Code</span>
+        <div class="flex-grow border-t border-slate-200"></div>
+      </div>
 
       <!-- 掃描動作按鈕組 (Apple 質感圓角大按鈕) -->
-      <div class="space-y-2.5 pt-1">
+      <div class="space-y-2.5">
         <!-- 主按鈕：相機即時掃描 -->
-        <button id="startScanBtn" onclick="openQrScannerModal()" class="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 active:scale-98 text-slate-950 font-black px-6 py-3.5 rounded-2xl text-sm sm:text-base transition shadow-md shadow-amber-500/20 flex items-center justify-center gap-2 cursor-pointer">
-          <svg class="w-5 h-5 text-slate-950" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <button id="startScanBtn" onclick="openQrScannerModal()" class="w-full bg-white hover:bg-amber-50 active:scale-98 text-amber-900 border border-amber-300 font-black px-6 py-3 rounded-2xl text-sm transition shadow-2xs flex items-center justify-center gap-2 cursor-pointer">
+          <svg class="w-5 h-5 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
           <span>開啟相機鏡頭掃描 QR Code</span>
         </button>
 
@@ -172,15 +224,6 @@
           <span>選取通知單照片或截圖辨識</span>
           <input type="file" id="qrFileInput" accept="image/*" class="hidden" onchange="handleQrFileSelect(event)">
         </label>
-      </div>
-
-      <!-- 溫馨提示與示範按鈕 -->
-      <div class="text-[11px] text-slate-500 bg-slate-50/80 rounded-2xl p-3 border border-slate-100 text-left space-y-1 leading-relaxed">
-        <div class="font-bold text-slate-700 flex items-center gap-1">
-          <span>💡</span> 溫馨叮嚀：
-        </div>
-        <p>1. 您也可以直接用手機「相機 App」或「LINE」對準通知單上的 QR Code，點擊彈出的網址即可直達。</p>
-        <p>2. 若點擊開啟鏡頭時跳出權限提示，請點選「允許」使用相機。</p>
       </div>
 
       <!-- 示範展示連結 (供評估測試使用) -->
@@ -1396,7 +1439,43 @@
         window.history.replaceState({}, '', u);
       } catch (e) {}
 
-      doParentQuery(cleanToken);
+      doParentQuery(cleanToken, '', '');
+    }
+
+    function submitSeatAndNameLookup() {
+      const seatEl = document.getElementById('seatInput');
+      const nameEl = document.getElementById('nameInput');
+      const errBox = document.getElementById('parentErrorMsg');
+      const seatVal = (seatEl ? seatEl.value : '').trim();
+      const nameVal = (nameEl ? nameEl.value : '').trim();
+
+      if (!seatVal || !nameVal) {
+        if (errBox) {
+          errBox.innerText = '⚠️ 請同時輸入孩子的「座號」（例如：01）與「學生完整姓名」（例如：陳小明）！';
+          errBox.classList.remove('hidden');
+        }
+        return;
+      }
+
+      if (errBox) errBox.classList.add('hidden');
+      doParentQuery('', seatVal, nameVal);
+    }
+
+    function submitTokenLookup() {
+      const tokenEl = document.getElementById('parentTokenInput');
+      const errBox = document.getElementById('parentErrorMsg');
+      const tokVal = (tokenEl ? tokenEl.value : '').trim();
+
+      if (!tokVal) {
+        if (errBox) {
+          errBox.innerText = '⚠️ 請輸入 6 碼專屬查詢代碼，或使用上方「座號＋學生完整姓名」查詢！';
+          errBox.classList.remove('hidden');
+        }
+        return;
+      }
+
+      if (errBox) errBox.classList.add('hidden');
+      queryStudentByToken(tokVal);
     }
 
     function resetParentToScan() {
@@ -1412,6 +1491,8 @@
         u.searchParams.delete('token');
         u.searchParams.delete('t');
         u.searchParams.delete('id');
+        u.searchParams.delete('seat');
+        u.searchParams.delete('name');
         window.history.replaceState({}, '', u);
       } catch (e) {}
       // 清空暫存 input
@@ -1423,6 +1504,8 @@
     window.addEventListener('DOMContentLoaded', () => {
       const urlParams = new URLSearchParams(window.location.search);
       const token = urlParams.get('t') || urlParams.get('token') || urlParams.get('id');
+      const seatParam = (urlParams.get('seat') || urlParams.get('s') || '').trim();
+      const nameParam = (urlParams.get('name') || urlParams.get('n') || '').trim();
       const apiParam = urlParams.get('a') || urlParams.get('api');
       const isSimulation = urlParams.get('simulate') === 'true' || urlParams.get('preview') === 'true' || urlParams.get('isSimulation') === 'true' || urlParams.get('mock') === 'true';
 
@@ -1445,17 +1528,25 @@
 
       if (token) {
         queryStudentByToken(token);
+      } else if (seatParam && nameParam) {
+        const seatEl = document.getElementById('seatInput');
+        const nameEl = document.getElementById('nameInput');
+        if (seatEl) seatEl.value = seatParam;
+        if (nameEl) nameEl.value = nameParam;
+        doParentQuery('', seatParam, nameParam);
       }
     });
 
-    async function doParentQuery(overrideToken) {
+    async function doParentQuery(overrideToken, seatParam = '', nameParam = '') {
       const input = (overrideToken || (document.getElementById('parentTokenInput') ? document.getElementById('parentTokenInput').value : '')).trim();
+      const cleanSeat = String(seatParam || '').trim();
+      const cleanName = String(nameParam || '').trim();
       const errBox = document.getElementById('parentErrorMsg');
       const cacheNotice = document.getElementById('parentCacheNotice');
 
-      if (!input) {
+      if (!input && (!cleanSeat || !cleanName)) {
         if (errBox) {
-          errBox.innerText = '請開啟鏡頭掃描成績通知單上的 QR Code，或選取相片辨識。';
+          errBox.innerText = '請輸入孩子的「座號＋完整姓名」、「專屬查詢代碼」或開啟鏡頭掃描 QR Code。';
           errBox.classList.remove('hidden');
         }
         return;
@@ -1463,7 +1554,8 @@
       if (errBox) errBox.classList.add('hidden');
 
       // 0. 本地快取秒開檢查 (Stale-While-Revalidate，0.01 秒秒開，徹底避免家長誤會網站失效)
-      const cacheKey = 'mpscore_parent_cache_' + input.toUpperCase();
+      const lookupIdentityKey = input ? input.toUpperCase() : `SEAT_${cleanSeat.padStart(2, '0')}_${cleanName}`;
+      const cacheKey = 'mpscore_parent_cache_' + lookupIdentityKey;
       let hasRenderedCache = false;
       try {
         const cachedRaw = localStorage.getItem(cacheKey);
@@ -1491,7 +1583,10 @@
           const urlParams = new URLSearchParams(window.location.search);
           const isSim = urlParams.get('simulate') === 'true' || urlParams.get('preview') === 'true' || urlParams.get('isSimulation') === 'true' || urlParams.get('mock') === 'true';
           const simParam = isSim ? '&isSimulation=true' : '';
-          const qUrl = activeApiUrl + (activeApiUrl.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(input) + simParam;
+          const seatNameQuery = (cleanSeat || cleanName)
+            ? `&seat=${encodeURIComponent(cleanSeat)}&name=${encodeURIComponent(cleanName)}`
+            : '';
+          const qUrl = activeApiUrl + (activeApiUrl.includes('?') ? '&' : '?') + 'action=query&token=' + encodeURIComponent(input) + seatNameQuery + simParam;
           
           // 設定 10 秒超時控制
           const controller = new AbortController();
@@ -1506,6 +1601,15 @@
           if (data.success) {
             const finalExams = data.exams || transformFlatRecordsToExams(data.records);
             renderParentDashboard(data.student, finalExams);
+
+            // 若是由座號＋姓名查出該生專屬 token，同步更新網址列方便家長加入書籤直達
+            if (data.student && data.student.token) {
+              try {
+                const u = new URL(window.location);
+                u.searchParams.set('token', data.student.token);
+                window.history.replaceState({}, '', u);
+              } catch (e) {}
+            }
 
             // 寫入本機快取，下次秒開
             try {
@@ -1534,7 +1638,7 @@
             return;
           } else {
             if (!hasRenderedCache) {
-              errBox.innerText = data.message || `查無代碼「${input}」的成績，請確認是否為本次考試之有效通知單。`;
+              errBox.innerText = data.message || `查無相符的學生成績資料，請確認輸入的「座號＋完整姓名」或「專屬代碼」是否正確。`;
               errBox.classList.remove('hidden');
             }
             return;
@@ -1554,17 +1658,20 @@
       setQueryLoading(false);
 
       // 2. 本地展示模式：比對示範名冊
+      const normInputSeat = cleanSeat ? normalizeSeatNumber(cleanSeat) : '';
       const targetSt = DEMO_STUDENTS.find(s => 
-        (s.token && s.token.toUpperCase() === input.toUpperCase()) ||
-        (s.name && s.name === input) ||
-        (input.length <= 2 && normalizeSeatNumber(s.seatNumber) === normalizeSeatNumber(input))
+        (input && s.token && s.token.toUpperCase() === input.toUpperCase()) ||
+        (normInputSeat && cleanName && normalizeSeatNumber(s.seatNumber) === normInputSeat && s.name === cleanName) ||
+        (input && s.name && s.name === input) ||
+        (input && input.length <= 2 && normalizeSeatNumber(s.seatNumber) === normalizeSeatNumber(input))
       );
 
       if (targetSt) {
         const computedExams = buildDemoExamsForStudent(targetSt);
         renderParentDashboard(targetSt, computedExams);
       } else {
-        errBox.innerHTML = `查無代碼「${input}」。<br><span class="text-[11px] text-slate-500 font-normal mt-1 block">💡 提示：本機目前處於離線展示狀態。若您是家長，請掃描個別成績通知單上的專屬 QR Code！</span>`;
+        const displayTarget = input || `${cleanSeat}號 ${cleanName}`;
+        errBox.innerHTML = `查無「${displayTarget}」的相符學生資料。<br><span class="text-[11px] text-slate-500 font-normal mt-1 block">💡 提示：請確認輸入的「座號＋學生完整姓名」或「專屬代碼」是否正確！</span>`;
         errBox.classList.remove('hidden');
       }
     }
