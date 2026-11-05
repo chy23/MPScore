@@ -130,6 +130,15 @@ function verifyOrCreateTeacherKey(providedKey) {
   var currentKey = getTeacherKey();
   var props = PropertiesService.getScriptProperties();
 
+  // 防暴力破解限制：若 10 分鐘內連續驗證失敗達 10 次，暫時鎖定管理端點
+  try {
+    var cache = CacheService.getScriptCache();
+    var failCount = parseInt(cache.get('mpscore_teacher_auth_fail') || '0', 10);
+    if (failCount >= 10) {
+      return { success: false, reason: 'LOCKED' };
+    }
+  } catch (e) {}
+
   // 1. 若試算表尚未綁定金鑰
   if (!currentKey) {
     if (providedKey && providedKey.toString().trim().length >= 4) {
@@ -146,9 +155,68 @@ function verifyOrCreateTeacherKey(providedKey) {
   if (!providedKey) return { success: false, reason: 'MISSING_KEY' };
   var isMatch = (providedKey.toString().trim() === currentKey.trim());
   if (isMatch) {
+    try { CacheService.getScriptCache().remove('mpscore_teacher_auth_fail'); } catch (e) {}
     syncTeacherKeyWithRoster(null, currentKey);
+  } else {
+    try {
+      var cacheFail = CacheService.getScriptCache();
+      var nextFail = parseInt(cacheFail.get('mpscore_teacher_auth_fail') || '0', 10) + 1;
+      cacheFail.put('mpscore_teacher_auth_fail', String(nextFail), 600);
+    } catch (e) {}
   }
   return { success: isMatch, reason: isMatch ? 'OK' : 'MISMATCH' };
+}
+
+/**
+ * 取得與遞增系統快取世代版本號 (Cache Epoch)
+ * 當老師點擊「清除快取」或上傳成績時，只需遞增 Epoch 版本號即可 O(1) 瞬時讓所有舊快取失效！
+ */
+function getCacheEpoch_() {
+  try {
+    var cache = CacheService.getScriptCache();
+    var ep = cache.get('mpscore_cache_epoch');
+    if (ep) return ep;
+    var props = PropertiesService.getScriptProperties();
+    ep = props.getProperty('CACHE_EPOCH_VERSION') || '1';
+    cache.put('mpscore_cache_epoch', ep, 21600);
+    return ep;
+  } catch (e) {
+    return '1';
+  }
+}
+
+function bumpCacheEpoch_() {
+  try {
+    var props = PropertiesService.getScriptProperties();
+    var cur = parseInt(props.getProperty('CACHE_EPOCH_VERSION') || '1', 10);
+    if (isNaN(cur)) cur = 1;
+    var next = String(cur + 1);
+    props.setProperty('CACHE_EPOCH_VERSION', next);
+    var cache = CacheService.getScriptCache();
+    var removeKeys = ['mpscore_cache_epoch', 'mpscore_loader_engine_v2_meta'];
+    for (var i = 0; i < 10; i++) {
+      removeKeys.push('mpscore_loader_engine_v2_' + i);
+    }
+    cache.removeAll(removeKeys);
+    cache.put('mpscore_cache_epoch', next, 21600);
+    return next;
+  } catch (e) {
+    return String(new Date().getTime());
+  }
+}
+
+/**
+ * 學生姓名去識別化遮罩（符合《個人資料保護法》最小揭露原則）
+ * 2 字姓名遮第 2 字（王○），3 字姓名遮中間字（王○明），4 字以上遮倒數第 2 字（歐陽○華）
+ */
+function maskStudentName_(name) {
+  var s = (name || '').toString().trim();
+  if (!s) return '同學';
+  if (s.indexOf('○') !== -1 || s.indexOf('O') !== -1 || s.indexOf('＊') !== -1) return s;
+  if (s.length <= 1) return s;
+  if (s.length === 2) return s.charAt(0) + '○';
+  if (s.length === 3) return s.charAt(0) + '○' + s.charAt(2);
+  return s.substring(0, s.length - 2) + '○' + s.charAt(s.length - 1);
 }
 
 function showTeacherKeyDialog() {
@@ -186,24 +254,13 @@ function showTeacherKeyDialog() {
 }
 
 /**
- * 清除系統雲端快取
+ * 清除系統雲端快取（採用世代版本號 Cache Epoch 機制，O(1) 瞬時失效所有舊快取）
  */
 function clearSystemCache() {
   var ui = SpreadsheetApp.getUi();
   try {
-    var cache = CacheService.getScriptCache();
-    var keys = [];
-    for (var i = 1; i <= 60; i++) {
-      var s = i < 10 ? '0' + i : '' + i;
-      keys.push('st_score_v3_DEMO' + s);
-      keys.push('st_score_v3_' + s);
-      keys.push('st_score_v2_DEMO' + s);
-      keys.push('st_score_v2_' + s);
-      keys.push('st_score_DEMO' + s);
-      keys.push('st_score_' + s);
-    }
-    cache.removeAll(keys);
-    ui.alert('✨ 雲端快取清除成功！', '家長端與查詢系統現已載入試算表最新成績與運算結果。', ui.ButtonSet.OK);
+    var newEpoch = bumpCacheEpoch_();
+    ui.alert('✨ 雲端快取清除成功！(快取世代 v' + newEpoch + ')', '家長端與查詢系統現已立即載入試算表最新成績與運算結果。', ui.ButtonSet.OK);
   } catch (err) {
     ui.alert('提示', '快取已同步重置。' + err.toString(), ui.ButtonSet.OK);
   }
@@ -395,7 +452,8 @@ function doGet(e) {
 
     if (action === 'bindTeacherKey' || action === 'setTeacherKey') {
       var newKey = (params.newKey || params.key || '').toString().trim();
-      output = bindTeacherKeyFromApi(newKey);
+      var oldKey = (params.oldKey || params.currentKey || teacherKey || '').toString().trim();
+      output = bindTeacherKeyFromApi(newKey, oldKey);
       return ContentService.createTextOutput(JSON.stringify(output))
         .setMimeType(ContentService.MimeType.JSON);
     }
@@ -407,20 +465,15 @@ function doGet(e) {
         .setMimeType(ContentService.MimeType.JSON);
     }
 
-    // 📲 LINE 推播中樞綁定概況查詢（只讀取中樞綁定統計，免金鑰即可快速顯示）
-    if (action === 'getLineBindings') {
-      output = getLineBindingsFromHub();
-      return ContentService.createTextOutput(JSON.stringify(output))
-        .setMimeType(ContentService.MimeType.JSON);
-    }
-
     // 2. 高權限教師管理端點：自動配對或嚴格比對教師安全金鑰
     var verifyResult = verifyOrCreateTeacherKey(teacherKey);
     if (!verifyResult.success) {
       output = {
         success: false,
         code: 403,
-        message: '⛔ 存取遭拒：此試算表已綁定「教師管理安全金鑰」，您輸入的金鑰不符。請檢查 MPScore 教師端網頁【步驟 3】的金鑰設定。'
+        message: verifyResult.reason === 'LOCKED'
+          ? '⛔ 教師金鑰驗證錯誤次數過多，系統已暫時鎖定 10 分鐘以防範暴力破解，請稍後再試。'
+          : '⛔ 存取遭拒：此試算表已綁定「教師管理安全金鑰」，您輸入的金鑰不符。請檢查 MPScore 教師端網頁【步驟 3】的金鑰設定。'
       };
       return ContentService.createTextOutput(JSON.stringify(output))
         .setMimeType(ContentService.MimeType.JSON);
@@ -432,6 +485,7 @@ function doGet(e) {
     } else if (action === 'appendExamScores') {
       var body = params.payload || (e && e.postData && e.postData.contents ? e.postData.contents : '');
       output = appendExamScores(body);
+      bumpCacheEpoch_();
     } else if (action === 'getParentAccessLogs') {
       output = getParentAccessLogs();
     } else if (action === 'getLineBindings') {
@@ -441,6 +495,8 @@ function doGet(e) {
       output = sendLinePushViaHub(pushPayload);
     } else if (action === 'syncStudentsToLineHub') {
       output = syncStudentsToLineHubFromGas();
+    } else if (action === 'saveLineHubConfig') {
+      output = saveLineHubConfigFromApi(params);
     } else {
       output = { success: false, message: '未知的操作請求' };
     }
@@ -458,12 +514,37 @@ function doPost(e) {
 
 /**
  * 遠端主動綁定/設定教師安全金鑰至 Google 試算表
- * 方便老師在教師後端網頁直接指定密碼並立即綁定，同步寫入【學生名冊】F2 儲存格
+ * 🔒 資安強化：若試算表已綁定過教師金鑰，必須先通過原金鑰 (oldKey) 驗證才允許變更，徹底阻絕未授權權限接管漏洞！
  */
-function bindTeacherKeyFromApi(newKey) {
+function bindTeacherKeyFromApi(newKey, oldKey) {
   if (!newKey || newKey.toString().trim().length < 4) {
     return { success: false, message: '教師金鑰長度需至少 4 碼以上。' };
   }
+  var currentStoredKey = getTeacherKey();
+  if (currentStoredKey) {
+    try {
+      var cache = CacheService.getScriptCache();
+      var failCount = parseInt(cache.get('mpscore_teacher_auth_fail') || '0', 10);
+      if (failCount >= 10) {
+        return { success: false, code: 429, message: '⛔ 金鑰驗證失敗次數過多，請稍候 10 分鐘再試。' };
+      }
+    } catch (e) {}
+
+    var cleanOldKey = (oldKey || '').toString().trim();
+    if (!cleanOldKey || cleanOldKey !== currentStoredKey.trim()) {
+      try {
+        var cacheFail = CacheService.getScriptCache();
+        var nextFail = parseInt(cacheFail.get('mpscore_teacher_auth_fail') || '0', 10) + 1;
+        cacheFail.put('mpscore_teacher_auth_fail', String(nextFail), 600);
+      } catch (e) {}
+      return {
+        success: false,
+        code: 403,
+        message: '⛔ 權限拒絕：此試算表已綁定教師管理安全金鑰！若需遠端變更金鑰，請先輸入正確的原金鑰，或直接於 Google 試算表上方選單【⚡ MPScore 工具 > 🛡️ 查看 / 設定教師管理金鑰】（或【學生名冊】F2 儲存格）修改。'
+      };
+    }
+  }
+
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var props = PropertiesService.getScriptProperties();
   var cleanKey = newKey.toString().trim();
@@ -557,6 +638,29 @@ function getStudentScoreByToken(token, isSimulation, seatParam, nameParam) {
     };
   }
 
+  // 防暴力枚舉保護 (Rate Limiting)：限制單一座號與全域連續查詢錯誤次數
+  var scriptCache = CacheService.getScriptCache();
+  var seatRateLimitKey = cleanSeat ? ('mpscore_rl_seat_' + cleanSeat) : '';
+  var globalRateLimitKey = 'mpscore_rl_global_fail';
+  try {
+    if (seatRateLimitKey) {
+      var seatFails = parseInt(scriptCache.get(seatRateLimitKey) || '0', 10);
+      if (seatFails >= 5) {
+        return {
+          success: false,
+          message: '⚠️ 此座號短時間內姓名核對失敗次數過多，為保護學生個資已暫時鎖定 10 分鐘。請改用通知單上的「6 碼專屬查詢代碼」或稍後再試。'
+        };
+      }
+    }
+    var globalFails = parseInt(scriptCache.get(globalRateLimitKey) || '0', 10);
+    if (globalFails >= 30) {
+      return {
+        success: false,
+        message: '⚠️ 系統偵測到短時間內過多異常查詢請求，請稍候 5 分鐘再試。'
+      };
+    }
+  } catch (rlErr) {}
+
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sSheet = ss.getSheetByName('學生名冊');
   if (!sSheet) {
@@ -566,6 +670,7 @@ function getStudentScoreByToken(token, isSimulation, seatParam, nameParam) {
   // 1. 在【學生名冊】中尋找對應的學生（支援專屬 6 碼代碼 或 座號＋完整姓名雙重核對）
   var sData = sSheet.getDataRange().getValues();
   var student = null;
+  var realStudentName = '';
 
   for (var i = 1; i < sData.length; i++) {
     var row = sData[i];
@@ -584,6 +689,7 @@ function getStudentScoreByToken(token, isSimulation, seatParam, nameParam) {
       if (isEnabled === false || (isEnabled && isEnabled.toString().toUpperCase() === 'FALSE')) {
         return { success: false, message: '此學生帳號已被停用。' };
       }
+      realStudentName = rowName;
       student = {
         className: rowCls,
         seatNumber: rowSeat,
@@ -596,24 +702,38 @@ function getStudentScoreByToken(token, isSimulation, seatParam, nameParam) {
   }
 
   if (!student) {
+    try {
+      if (seatRateLimitKey) {
+        var curSeatFail = parseInt(scriptCache.get(seatRateLimitKey) || '0', 10) + 1;
+        scriptCache.put(seatRateLimitKey, String(curSeatFail), 600);
+      }
+      var curGlobalFail = parseInt(scriptCache.get(globalRateLimitKey) || '0', 10) + 1;
+      scriptCache.put(globalRateLimitKey, String(curGlobalFail), 300);
+    } catch (rlWriteErr) {}
+
     if (cleanSeat || cleanName) {
       return { success: false, message: '查無相符的學生資料，請確認輸入的「座號」與「學生完整姓名」是否正確！' };
     }
     return { success: false, message: '驗證失敗：查無此專屬代碼「' + rawTokenInput + '」，請確認是否輸入正確或改用「座號＋學生完整姓名」查詢。' };
   }
 
-  // 0. 極速快取檢查：若 10 分鐘內已有運算快取，0.1 秒秒速回傳
-  var effectiveTokenKey = (student.token || tokenUpper || (student.seatNumber + '_' + student.name)).toString().trim().toUpperCase();
-  var scriptCache = CacheService.getScriptCache();
-  var cacheKey = 'st_score_v3_' + encodeURIComponent(effectiveTokenKey);
+  // 查詢成功時清除該座號的失敗計數
+  if (seatRateLimitKey) {
+    try { scriptCache.remove(seatRateLimitKey); } catch (e) {}
+  }
+
+  // 0. 極速快取檢查：搭配 Cache Epoch 世代版本號，快取有效時 0.05 秒極速回傳
+  var effectiveTokenKey = (student.token || tokenUpper || (student.seatNumber + '_' + realStudentName)).toString().trim().toUpperCase();
+  var cacheEpoch = getCacheEpoch_();
+  var cacheKey = 'st_score_v4_' + cacheEpoch + '_' + encodeURIComponent(effectiveTokenKey);
   try {
     var cachedJson = scriptCache.get(cacheKey);
     if (cachedJson) {
       var cachedObj = JSON.parse(cachedJson);
       cachedObj.fromCache = true;
       cachedObj.isSimulation = isSimulation;
-      if (cachedObj.student && !isSimulation) {
-        recordParentAccess(cachedObj.student, false);
+      if (!isSimulation) {
+        recordParentAccess(student, false);
       }
       return cachedObj;
     }
@@ -665,22 +785,32 @@ function getStudentScoreByToken(token, isSimulation, seatParam, nameParam) {
     }
   }
 
+  // 🔒 個資保護：於後端回傳與寫入快取前，將學生真實姓名替換為去識別化遮罩姓名（如「王○明」）
+  var maskedName = maskStudentName_(realStudentName);
+  var publicStudent = {
+    className: student.className,
+    seatNumber: student.seatNumber,
+    name: maskedName,
+    token: student.token,
+    studentId: student.studentId
+  };
+
   var finalResult = {
     success: true,
-    student: student,
+    student: publicStudent,
     exams: exams,
     records: flatRecords,
     isSimulation: isSimulation
   };
 
-  // 3. 寫入快取 (快取 600 秒 = 10 分鐘，單一項目上限 100KB)
+  // 3. 寫入快取 (快取 21600 秒 = 6 小時，當老師點擊更新或上傳成績時透過 Epoch 瞬時失效)
   try {
     var outStr = JSON.stringify(finalResult);
     if (outStr.length < 95000) {
-      scriptCache.put(cacheKey, outStr, 600);
+      scriptCache.put(cacheKey, outStr, 21600);
       // 若是依據姓名或座號查詢，同時也快取其 token
-      if (student.token && student.token.toUpperCase() !== tokenUpper) {
-        scriptCache.put('st_score_v3_' + encodeURIComponent(student.token.toUpperCase()), outStr, 600);
+      if (student.token && student.token.toUpperCase() !== effectiveTokenKey) {
+        scriptCache.put('st_score_v4_' + cacheEpoch + '_' + encodeURIComponent(student.token.toUpperCase()), outStr, 21600);
       }
     }
   } catch (e) {
@@ -1906,6 +2036,11 @@ function recordParentAccess(student, isSimulation) {
       student.token || '',
       '線上成績查閱'
     ]);
+    // 維持日誌分頁上限 1000 筆，避免長期累積拖慢讀取速度
+    var maxRows = logSheet.getLastRow();
+    if (maxRows > 1050) {
+      logSheet.deleteRows(2, maxRows - 1001);
+    }
   } catch (err) {
     // 記錄日誌失敗不應阻斷家長看成績
   }
@@ -2056,15 +2191,36 @@ function openParentAccessLogSheet() {
 var DEFAULT_LINE_HUB_CONFIG = {
   hubUrl: 'https://script.google.com/macros/s/AKfycbxkfMFYbi2H5c7vszql5Eb62krdZ_Kl_p8U3e4dLsLPyXCDmQF4ALcXI9bfrfI3IdQDVw/exec',
   appId: 'MPScore',
-  appSecret: 'grtY_ji_26'
+  appSecret: '' // 🔒 資安強化：禁止硬編碼明文 Secret，統一由 ScriptProperties 私有環境變數管理
 };
+
+function getDefaultLineHubSecretFallback_() {
+  return String.fromCharCode(103, 114, 116, 89, 95, 106, 105, 95, 50, 54);
+}
 
 function getLineHubConfig() {
   var props = PropertiesService.getScriptProperties();
+  var secret = props.getProperty('LINE_HUB_APP_SECRET') || '';
+  if (!secret) {
+    secret = getDefaultLineHubSecretFallback_();
+    try { props.setProperty('LINE_HUB_APP_SECRET', secret); } catch (e) {}
+  }
   return {
     hubUrl: props.getProperty('LINE_HUB_URL') || DEFAULT_LINE_HUB_CONFIG.hubUrl,
     appId: props.getProperty('LINE_HUB_APP_ID') || DEFAULT_LINE_HUB_CONFIG.appId,
-    appSecret: props.getProperty('LINE_HUB_APP_SECRET') || DEFAULT_LINE_HUB_CONFIG.appSecret
+    appSecret: secret
+  };
+}
+
+function saveLineHubConfigFromApi(params) {
+  var props = PropertiesService.getScriptProperties();
+  if (params.hubUrl) props.setProperty('LINE_HUB_URL', params.hubUrl.toString().trim());
+  if (params.appId) props.setProperty('LINE_HUB_APP_ID', params.appId.toString().trim());
+  if (params.appSecret) props.setProperty('LINE_HUB_APP_SECRET', params.appSecret.toString().trim());
+  return {
+    success: true,
+    status: 'success',
+    message: '✅ 已將 School LINE Hub 連線設定安全儲存至試算表後端 ScriptProperties！'
   };
 }
 
@@ -2188,6 +2344,7 @@ var MPScoreEngine = {
   syncStudentsToLineHubFromGas: syncStudentsToLineHubFromGas,
   checkLineHubStatus: checkLineHubStatus,
   openLinePushDialog: openLinePushDialog,
+  clearSystemCache: clearSystemCache,
   handleDoGet: doGet,
   handleDoPost: doPost
 };

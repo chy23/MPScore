@@ -1526,6 +1526,30 @@
         localStorage.setItem('mpscore_gas_url', activeApiUrl);
       }
 
+      // 隱私保護：自動清除舊版可能留存於 localStorage 含明文姓名的快取鍵值
+      try {
+        const keysToClean = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && k.startsWith('mpscore_parent_cache_SEAT_') && !k.includes('○')) {
+            keysToClean.push(k);
+          }
+        }
+        keysToClean.forEach(k => localStorage.removeItem(k));
+      } catch (e) {}
+
+      // 隱私保護：若網址列含有明文姓名或座號參數，讀取後立即自瀏覽器網址列與歷史紀錄洗淨
+      if (urlParams.has('name') || urlParams.has('n') || urlParams.has('seat') || urlParams.has('s')) {
+        try {
+          const cleanU = new URL(window.location);
+          cleanU.searchParams.delete('name');
+          cleanU.searchParams.delete('n');
+          cleanU.searchParams.delete('seat');
+          cleanU.searchParams.delete('s');
+          window.history.replaceState({}, document.title, cleanU);
+        } catch (e) {}
+      }
+
       if (token) {
         queryStudentByToken(token);
       } else if (seatParam && nameParam) {
@@ -1553,8 +1577,9 @@
       }
       if (errBox) errBox.classList.add('hidden');
 
-      // 0. 本地快取秒開檢查 (Stale-While-Revalidate，0.01 秒秒開，徹底避免家長誤會網站失效)
-      const lookupIdentityKey = input ? input.toUpperCase() : `SEAT_${cleanSeat.padStart(2, '0')}_${cleanName}`;
+      // 0. 本地快取秒開檢查 (Stale-While-Revalidate，快取鍵值與內容全面採用遮罩姓名，絕不留存明文全名)
+      const maskedLookupName = maskStudentName(cleanName);
+      const lookupIdentityKey = input ? input.toUpperCase() : `SEAT_${cleanSeat.padStart(2, '0')}_${maskedLookupName}`;
       const cacheKey = 'mpscore_parent_cache_' + lookupIdentityKey;
       let hasRenderedCache = false;
       try {
@@ -1562,6 +1587,7 @@
         if (cachedRaw) {
           const cachedData = JSON.parse(cachedRaw);
           if (cachedData && cachedData.student && cachedData.exams && cachedData.exams.length > 0) {
+            cachedData.student.name = maskStudentName(cachedData.student.name || '');
             renderParentDashboard(cachedData.student, cachedData.exams);
             hasRenderedCache = true;
             if (cacheNotice) {
@@ -1599,29 +1625,36 @@
           setQueryLoading(false);
 
           if (data.success) {
+            const safeStudent = Object.assign({}, data.student || {}, {
+              name: maskStudentName((data.student && data.student.name) || '')
+            });
             const finalExams = data.exams || transformFlatRecordsToExams(data.records);
-            renderParentDashboard(data.student, finalExams);
+            renderParentDashboard(safeStudent, finalExams);
 
-            // 若是由座號＋姓名查出該生專屬 token，同步更新網址列方便家長加入書籤直達
-            if (data.student && data.student.token) {
+            // 若是由座號＋姓名查出該生專屬 token，同步更新網址列並徹底洗淨明文姓名與座號參數
+            if (safeStudent && safeStudent.token) {
               try {
                 const u = new URL(window.location);
-                u.searchParams.set('token', data.student.token);
+                u.searchParams.delete('name');
+                u.searchParams.delete('n');
+                u.searchParams.delete('seat');
+                u.searchParams.delete('s');
+                u.searchParams.set('token', safeStudent.token);
                 window.history.replaceState({}, '', u);
               } catch (e) {}
             }
 
-            // 寫入本機快取，下次秒開
+            // 寫入本機快取（僅儲存遮罩後姓名，絕不寫入未遮罩真實全名）
             try {
               localStorage.setItem(cacheKey, JSON.stringify({
                 timestamp: Date.now(),
-                student: data.student,
+                student: safeStudent,
                 exams: finalExams
               }));
-              if (data.student.token) {
-                localStorage.setItem('mpscore_parent_cache_' + data.student.token.toUpperCase(), JSON.stringify({
+              if (safeStudent.token) {
+                localStorage.setItem('mpscore_parent_cache_' + safeStudent.token.toUpperCase(), JSON.stringify({
                   timestamp: Date.now(),
-                  student: data.student,
+                  student: safeStudent,
                   exams: finalExams
                 }));
               }

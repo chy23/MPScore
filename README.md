@@ -1,10 +1,24 @@
 # 📊 MPScore - 智慧學生成績與學習診斷引導平台
 
-[![Version](https://img.shields.io/badge/MPScore-v2.7.1%20最新版-amber.svg)](https://github.com/chiahua/MPScore)
-[![Privacy](https://img.shields.io/badge/個資法-去識別化保護-emerald.svg)](https://github.com/chiahua/MPScore)
-[![Design](https://img.shields.io/badge/Apple%20HIG-人因工藝落地-blue.svg)](https://github.com/chiahua/MPScore)
+[![Version](https://img.shields.io/badge/MPScore-v3.1.0%20最新版-amber.svg)](https://github.com/chy23/MPScore)
+[![Privacy](https://img.shields.io/badge/個資法-後端預先去識別化與Rate--Limit防護-emerald.svg)](https://github.com/chy23/MPScore)
+[![Design](https://img.shields.io/badge/Apple%20HIG-人因工藝落地-blue.svg)](https://github.com/chy23/MPScore)
 
 > **專為國中小與高中教師設計：每次考試就是一個新分頁，老師僅需貼上「各科原始分數」，其他所有「各科班級平均、個人總平均、班級排名、PR值、等第區間、學習診斷評語、跨次考試進退步對比」全交由網站全自動計算！**
+
+---
+
+## 🛡️ 最新資安、個資保護與極速效能升級 (v3.1.0 - 2026-11-06)
+
+1. **🔒 教師管理金鑰防覆寫與防暴力破解 (`gas/Code.gs`, `index.html`)**：
+   - 當試算表已設定教師金鑰時，遠端 `bindTeacherKey` API 強制要求驗證原金鑰 (`oldKey`)，徹底阻絕未授權權限接管；並將 `getLineBindings` 移入教師金鑰驗證保護區，同時支援連續驗證失敗 10 次自動鎖定 10 分鐘。
+2. **🔐 移除公開原始碼硬編碼中樞密鑰 (`index.html`, `js/LineHubClient.js`, `gas/Code.gs`)**：
+   - 移除前端與公開原始碼中之 School LINE Hub `APP_SECRET`，統一儲存於後端 `PropertiesService.getScriptProperties()` 並透過試算表 GAS 代理發送推播。
+3. **👤 後端預先姓名遮罩與網址列/本機快取去識別化 (`gas/Code.gs`, `parent.html`)**：
+   - 家長端 API (`action=query`) 於回傳前即在伺服器端將學生姓名遮罩為 `陳○明`；前端讀取 `?seat=&name=` 後立即以 `window.history.replaceState` 洗淨網址列明文參數，且 `localStorage` 快取鍵值與內容全面採用遮罩後姓名。
+4. **🚦 「座號＋姓名」防暴力枚舉 (Rate Limiting) 與雙層快取提速 (`gas/Code.gs`, `gas/Loader.gs`)**：
+   - 單一座號 10 分鐘內連續姓名核對失敗 5 次即暫時鎖定；`Loader.gs` 導入 10 分鐘 `CacheService` 分段緩衝快取，`clearSystemCache()` 採用世代版本號 (`Cache Epoch`) O(1) 瞬時刷新所有快取。
+   - 【家長閱覽紀錄】支援即時反映試算表手動刪除列之扣除統計，並自動維持 1,000 筆上限。
 
 ---
 

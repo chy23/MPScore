@@ -13,7 +13,7 @@
  * var hub = new LineHubClient({
  *   hubUrl: "https://script.google.com/macros/s/AKfycb.../exec",
  *   appId: "PROJECT_HW",
- *   appSecret: "sec_hw_demo_9823471"
+ *   appSecret: "<YOUR_APP_SECRET_FROM_SCRIPT_PROPERTIES>"
  * });
  * 
  * // 1. 測試連線
@@ -43,7 +43,7 @@
   var DEFAULT_HUB_CONFIG = {
     hubUrl: "https://script.google.com/macros/s/AKfycbxkfMFYbi2H5c7vszql5Eb62krdZ_Kl_p8U3e4dLsLPyXCDmQF4ALcXI9bfrfI3IdQDVw/exec",
     appId: "MPScore",
-    appSecret: "grtY_ji_26"
+    appSecret: "" // 🔒 資安強化：禁止於前端或公開 SDK 內硬編碼 App Secret，統一由後端 GAS ScriptProperties 代理發送
   };
 
   function LineHubClient(config) {

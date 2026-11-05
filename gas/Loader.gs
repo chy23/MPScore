@@ -15,17 +15,74 @@
  */
 var GITHUB_CORE_URL = "https://raw.githubusercontent.com/chy23/MPScore/main/gas/Code.gs";
 var _cachedEngine = null;
+var LOADER_CACHE_PREFIX_ = "mpscore_loader_engine_v2_";
+var LOADER_CACHE_TTL_SEC_ = 600; // 快取 10 分鐘，大幅降低高併發時對 GitHub 的重複請求
 
 function setup() {
-  getEngine();
+  getEngine(true);
   SpreadsheetApp.getActiveSpreadsheet();
 }
 
-function getEngine() {
-  if (!_cachedEngine) {
-    var t = new Date().getTime();
-    var response = UrlFetchApp.fetch(GITHUB_CORE_URL + "?t=" + t);
-    var code = response.getContentText();
+function readEngineCodeFromCache_() {
+  try {
+    var cache = CacheService.getScriptCache();
+    var meta = cache.get(LOADER_CACHE_PREFIX_ + "meta");
+    if (!meta) return null;
+    var chunkCount = parseInt(meta, 10);
+    if (isNaN(chunkCount) || chunkCount <= 0 || chunkCount > 20) return null;
+    var keys = [];
+    for (var i = 0; i < chunkCount; i++) {
+      keys.push(LOADER_CACHE_PREFIX_ + i);
+    }
+    var map = cache.getAll(keys);
+    var parts = [];
+    for (var j = 0; j < chunkCount; j++) {
+      var chunk = map[LOADER_CACHE_PREFIX_ + j];
+      if (!chunk) return null;
+      parts.push(chunk);
+    }
+    return parts.join("");
+  } catch (e) {
+    return null;
+  }
+}
+
+function writeEngineCodeToCache_(code) {
+  try {
+    if (!code || code.length < 100) return;
+    var cache = CacheService.getScriptCache();
+    var chunkSize = 45000; // 確保單一鍵值小於 GAS CacheService 100KB 上限
+    var chunkCount = Math.ceil(code.length / chunkSize);
+    if (chunkCount > 20) return;
+    var payload = {};
+    for (var i = 0; i < chunkCount; i++) {
+      payload[LOADER_CACHE_PREFIX_ + i] = code.substring(i * chunkSize, (i + 1) * chunkSize);
+    }
+    payload[LOADER_CACHE_PREFIX_ + "meta"] = String(chunkCount);
+    cache.putAll(payload, LOADER_CACHE_TTL_SEC_);
+  } catch (e) {}
+}
+
+function clearLoaderEngineCache_() {
+  try {
+    var cache = CacheService.getScriptCache();
+    var keys = [LOADER_CACHE_PREFIX_ + "meta"];
+    for (var i = 0; i < 10; i++) {
+      keys.push(LOADER_CACHE_PREFIX_ + i);
+    }
+    cache.removeAll(keys);
+  } catch (e) {}
+}
+
+function getEngine(forceReload) {
+  if (!_cachedEngine || forceReload) {
+    var code = !forceReload ? readEngineCodeFromCache_() : null;
+    if (!code) {
+      var t = new Date().getTime();
+      var response = UrlFetchApp.fetch(GITHUB_CORE_URL + "?t=" + t);
+      code = response.getContentText();
+      writeEngineCodeToCache_(code);
+    }
     (1, eval)(code);
     if (typeof MPScoreEngine !== 'undefined') {
       _cachedEngine = MPScoreEngine;
@@ -49,6 +106,7 @@ function onOpen() {
     .addItem('🛡️ 查看 / 設定「教師管理金鑰」', 'showTeacherKeyDialog')
     .addItem('📋 查看「家長閱覽紀錄」', 'openParentAccessLogSheet')
     .addItem('📐 自動整理欄寬與表格排版', 'autoFormatAndResizeAllSheets')
+    .addItem('🚀 立即更新雲端資料（改完分數點此）', 'clearSystemCache')
     .addItem('📊 查看全班成績與各科平均', 'previewClassStatistics')
     .addSeparator()
     .addItem('📶 檢查系統連線狀態', 'testGitHubConnection')
@@ -64,6 +122,11 @@ function showTeacherKeyDialog() { getEngine().showTeacherKeyDialog(); }
 function openParentAccessLogSheet() { getEngine().openParentAccessLogSheet(); }
 function autoFormatAndResizeAllSheets() { getEngine().autoFormatAndResizeAllSheets(); }
 function previewClassStatistics() { getEngine().previewClassStatistics(); }
+function clearSystemCache() {
+  _cachedEngine = null;
+  clearLoaderEngineCache_();
+  getEngine(true).clearSystemCache();
+}
 
 // Web API 入口點 (附完整錯誤捕捉保護，絕不回傳 HTML 當機頁面)
 function doGet(e) {
