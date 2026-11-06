@@ -2705,21 +2705,29 @@
         const compAvgX = getX(compCAvg);
         const compAvgY = getY(compKde.points[Math.round(compCAvg)] ? compKde.points[Math.round(compCAvg)].density : maxDensity * 0.6);
 
-        // 避免圖釘氣泡碰撞：錯開高度
-        let curTagY = Math.max(22, stY - 18);
-        let compTagY = Math.max(22, compStY - 18);
-        if (Math.abs(stX - compStX) < 85) {
-          curTagY = 22;
-          compTagY = 48;
+        // 避免圖釘氣泡碰撞：智慧引線對話框 (Leader Line Callout Boxes)
+        let box1X, box1Y, box2X, box2Y;
+        if (stX <= compStX) {
+          box1X = Math.max(80, Math.min(stX - 45, 330));
+          box2X = Math.max(box1X + 150, Math.min(compStX + 15, 520));
+        } else {
+          box2X = Math.max(80, Math.min(compStX - 45, 330));
+          box1X = Math.max(box2X + 150, Math.min(stX + 15, 520));
         }
-        const curTagX = Math.max(65, Math.min(535, stX));
-        const compTagX = Math.max(65, Math.min(535, compStX));
+
+        if (Math.abs(box1X - box2X) < 145) {
+          box1Y = 20;
+          box2Y = 56;
+        } else {
+          box1Y = 22;
+          box2Y = 22;
+        }
 
         // 跨次成長位移軌跡弧線 (以 PR 常模位移為基準，杜絕原始分數相減)
         let trajectorySvg = '';
         if (Math.abs(stX - compStX) >= 6 || Math.abs(diffPr) > 0) {
           const midX = (stX + compStX) / 2;
-          const arcTopY = Math.max(18, Math.min(stY, compStY) - 26);
+          const arcTopY = Math.max(85, Math.min(stY, compStY) - 18);
           const strokeCol = isUp ? '#059669' : '#e11d48';
           const badgeCol = isUp ? '#059669' : '#e11d48';
 
@@ -2729,11 +2737,11 @@
                 <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="${strokeCol}" />
               </marker>
             </defs>
-            <path d="M ${compStX} ${compStY} Q ${midX} ${arcTopY} ${stX} ${stY}" fill="none" stroke="${strokeCol}" stroke-width="2.5" stroke-dasharray="4,3" marker-end="url(#pGrowthArrow)" />
-            <g transform="translate(${midX}, ${arcTopY - 6})">
-              <rect x="-65" y="-12" width="130" height="24" rx="12" fill="${badgeCol}" filter="drop-shadow(0 2px 5px rgba(0,0,0,0.18))" />
-              <text x="0" y="4" font-size="11" font-weight="900" fill="#ffffff" text-anchor="middle">
-                常模位移 PR ${diffPr >= 0 ? '+' + diffPr : diffPr} ${isUp ? '▲' : '▼'}
+            <path d="M ${compStX} ${compStY} Q ${midX} ${arcTopY} ${stX} ${stY}" fill="none" stroke="${strokeCol}" stroke-width="2" stroke-dasharray="3,3" marker-end="url(#pGrowthArrow)" />
+            <g transform="translate(${midX}, ${arcTopY - 10})">
+              <rect x="-42" y="-8" width="84" height="17" rx="8.5" fill="${badgeCol}" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.15))" />
+              <text x="0" y="3.5" font-size="9" font-weight="900" fill="#ffffff" text-anchor="middle">
+                PR ${diffPr >= 0 ? '+' + diffPr : diffPr} ${isUp ? '▲' : '▼'}
               </text>
             </g>
           `;
@@ -2777,41 +2785,43 @@
                 <text x="0" y="13" font-size="12" fill="#047857" text-anchor="middle" font-weight="900">100</text>
               </g>
 
-              <!-- 對比班均標記線 (冷灰虛線) -->
+              <!-- 對比班均標記線 (冷灰虛線，標籤置於底部基線區避免遮擋曲線頂部) -->
               <line x1="${compAvgX}" y1="${compAvgY}" x2="${compAvgX}" y2="175" stroke="#64748b" stroke-width="1.8" stroke-dasharray="3,3" opacity="0.85" />
-              <circle cx="${compAvgX}" cy="${compAvgY}" r="4.5" fill="#ffffff" stroke="#64748b" stroke-width="2" />
-              <g transform="translate(${compAvgX}, ${Math.min(150, compAvgY + 14)})">
-                <rect x="-35" y="-11" width="70" height="20" rx="10" fill="#ffffff" stroke="#64748b" stroke-width="1.2" opacity="0.95" />
-                <text x="0" y="3" font-size="11" fill="#475569" font-weight="bold" text-anchor="middle">對比均 ${compCAvg}</text>
+              <circle cx="${compAvgX}" cy="${compAvgY}" r="4" fill="#ffffff" stroke="#64748b" stroke-width="2" />
+              <g transform="translate(${compAvgX}, 163)">
+                <rect x="-35" y="-9" width="70" height="18" rx="9" fill="#f8fafc" stroke="#64748b" stroke-width="1.2" filter="drop-shadow(0 1px 2px rgba(0,0,0,0.06))" />
+                <text x="0" y="3" font-size="10" fill="#475569" font-weight="bold" text-anchor="middle">對比均 ${compCAvg}</text>
               </g>
 
-              <!-- 本次班均標記線 (琥珀虛線) -->
+              <!-- 本次班均標記線 (琥珀虛線，標籤錯高置於底部基線區) -->
               <line x1="${curAvgX}" y1="${curAvgY}" x2="${curAvgX}" y2="175" stroke="#d97706" stroke-width="2" stroke-dasharray="3,3" />
-              <circle cx="${curAvgX}" cy="${curAvgY}" r="5" fill="#ffffff" stroke="#d97706" stroke-width="2.5" />
-              <g transform="translate(${curAvgX}, ${Math.min(138, curAvgY + 12)})">
-                <rect x="-36" y="-11" width="72" height="20" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="1.2" />
-                <text x="0" y="3" font-size="11" fill="#b45309" font-weight="bold" text-anchor="middle">本次均 ${cAvg}</text>
+              <circle cx="${curAvgX}" cy="${curAvgY}" r="4.5" fill="#ffffff" stroke="#d97706" stroke-width="2.5" />
+              <g transform="translate(${curAvgX}, 145)">
+                <rect x="-35" y="-9" width="70" height="18" rx="9" fill="#fffbeb" stroke="#d97706" stroke-width="1.2" filter="drop-shadow(0 1px 2px rgba(0,0,0,0.06))" />
+                <text x="0" y="3" font-size="10" fill="#b45309" font-weight="900" text-anchor="middle">本次均 ${cAvg}</text>
               </g>
 
               <!-- 跨次位移軌跡弧線 -->
               ${trajectorySvg}
 
-              <!-- 對比考試得分落點圖釘 (冷灰底白色字) -->
-              <line x1="${compStX}" y1="${compStY}" x2="${compStX}" y2="175" stroke="#64748b" stroke-width="2" stroke-dasharray="3,2" />
+              <!-- ⏱️ 對比考試得分：引線指向曲線落點與懸浮對話框 (拉出顯示，絕不重疊) -->
+              <path d="M ${box2X} ${box2Y + 16} Q ${(box2X + compStX) / 2} ${(box2Y + 16 + compStY) / 2} ${compStX} ${compStY}" fill="none" stroke="#64748b" stroke-width="1.8" stroke-dasharray="3,2" />
               <circle cx="${compStX}" cy="${compStY}" r="6.5" fill="#ffffff" stroke="#64748b" stroke-width="2.5" />
-              <circle cx="${compStX}" cy="${compStY}" r="2.5" fill="#64748b" />
-              <g transform="translate(${compTagX}, ${compTagY})">
-                <rect x="-52" y="-13" width="104" height="24" rx="12" fill="#475569" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.2))" />
-                <text x="0" y="4" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">⏱️ 對比 ${compScore}分</text>
+              <circle cx="${compStX}" cy="${compStY}" r="2" fill="#64748b" />
+              <g transform="translate(${box2X}, ${box2Y})">
+                <rect x="-72" y="-16" width="144" height="32" rx="16" fill="#334155" filter="drop-shadow(0 3px 8px rgba(15,23,42,0.3))" />
+                <text x="0" y="-1" font-size="12" font-weight="900" fill="#ffffff" text-anchor="middle">⏱️ 對比得分 ${compScore}分</text>
+                <text x="0" y="11" font-size="10" font-weight="bold" fill="#94a3b8" text-anchor="middle">常模落點 PR ${compPr}</text>
               </g>
 
-              <!-- 本次考試得分落點圖釘 (高亮琥珀底大字) -->
-              <line x1="${stX}" y1="${stY}" x2="${stX}" y2="175" stroke="#d97706" stroke-width="2.5" />
-              <circle cx="${stX}" cy="${stY}" r="8" fill="#fef3c7" stroke="#d97706" stroke-width="3" />
-              <circle cx="${stX}" cy="${stY}" r="3" fill="#d97706" />
-              <g transform="translate(${curTagX}, ${curTagY})">
-                <rect x="-58" y="-14" width="116" height="26" rx="13" fill="#d97706" filter="drop-shadow(0 3px 6px rgba(217,119,6,0.35))" />
-                <text x="0" y="4" font-size="13" font-weight="900" fill="#ffffff" text-anchor="middle">📍 本次 ${score}分</text>
+              <!-- 📍 本次考試得分：引線指向曲線落點與懸浮對話框 (高亮琥珀對話框拉出顯示) -->
+              <path d="M ${box1X} ${box1Y + 16} Q ${(box1X + stX) / 2} ${(box1Y + 16 + stY) / 2} ${stX} ${stY}" fill="none" stroke="#d97706" stroke-width="2" stroke-dasharray="3,2" />
+              <circle cx="${stX}" cy="${stY}" r="7.5" fill="#fef3c7" stroke="#d97706" stroke-width="3" />
+              <circle cx="${stX}" cy="${stY}" r="2.5" fill="#d97706" />
+              <g transform="translate(${box1X}, ${box1Y})">
+                <rect x="-72" y="-16" width="144" height="32" rx="16" fill="#d97706" filter="drop-shadow(0 3px 8px rgba(217,119,6,0.35))" />
+                <text x="0" y="-1" font-size="12" font-weight="900" fill="#ffffff" text-anchor="middle">📍 本次得分 ${score}分</text>
+                <text x="0" y="11" font-size="10" font-weight="bold" fill="#fef3c7" text-anchor="middle">常模落點 PR ${pr}</text>
               </g>
             </svg>
           </div>
@@ -2895,6 +2905,9 @@
       const avgDensity = curKde.points[Math.round(cAvg)] ? curKde.points[Math.round(cAvg)].density : (curKde.maxDensity * 0.7);
       const avgY = getY(avgDensity);
 
+      const boxX = Math.max(85, Math.min(stX, 515));
+      const boxY = 22;
+
       const missingNotice = (isComparing && compExam && !compSub)
         ? `<div class="text-xs text-amber-800 bg-amber-50 p-2.5 rounded-xl border border-amber-200 font-bold mb-2">
              ⚠️ 對比考試【${compExam.examTitle || compExam.sheetName}】未包含【${activeSub.name}】科目，目前呈現單次曲線。
@@ -2945,28 +2958,28 @@
               <text x="0" y="13" font-size="12" fill="#047857" text-anchor="middle" font-weight="900">100</text>
             </g>
 
-            <!-- 班級平均垂直標示線與標記 -->
+            <!-- 班級平均垂直標示線與標記 (置於底部基線區，避免遮擋波峰與得分標籤) -->
             <line x1="${avgX}" y1="${avgY}" x2="${avgX}" y2="175" stroke="#475569" stroke-width="2" stroke-dasharray="3,3" />
-            <circle cx="${avgX}" cy="${avgY}" r="5" fill="#ffffff" stroke="#475569" stroke-width="2.5" />
-            <g transform="translate(${avgX}, ${Math.min(145, Math.max(35, avgY + 14))})">
-              <rect x="-38" y="-11" width="76" height="22" rx="11" fill="#ffffff" stroke="#475569" stroke-width="1.5" filter="drop-shadow(0 1px 3px rgba(0,0,0,0.1))" />
-              <text x="0" y="4" font-size="12" fill="#334155" font-weight="900" text-anchor="middle">班均 ${cAvg}</text>
+            <circle cx="${avgX}" cy="${avgY}" r="4.5" fill="#ffffff" stroke="#475569" stroke-width="2.5" />
+            <g transform="translate(${avgX}, 152)">
+              <rect x="-36" y="-10" width="72" height="20" rx="10" fill="#f8fafc" stroke="#475569" stroke-width="1.3" filter="drop-shadow(0 1px 2px rgba(0,0,0,0.08))" />
+              <text x="0" y="3.5" font-size="11" fill="#334155" font-weight="900" text-anchor="middle">班均 ${cAvg}</text>
             </g>
             ${(cfg.showDifficulty !== false && activeSub.difficultyBadge) ? `
-              <g transform="translate(${avgX}, ${Math.min(160, Math.max(55, avgY + 32))})">
-                <text x="0" y="0" font-size="11" fill="#b45309" font-weight="900" text-anchor="middle">${activeSub.difficultyBadge}</text>
+              <g transform="translate(${avgX}, 132)">
+                <text x="0" y="0" font-size="10" fill="#b45309" font-weight="900" text-anchor="middle">${activeSub.difficultyBadge}</text>
               </g>
             ` : ''}
 
-            <!-- 學生個人得分落點垂直引線與定位圖釘 -->
-            <line x1="${stX}" y1="${stY}" x2="${stX}" y2="175" stroke="#d97706" stroke-width="2.5" />
-            <circle cx="${stX}" cy="${stY}" r="8" fill="#fef3c7" stroke="#d97706" stroke-width="3" />
-            <circle cx="${stX}" cy="${stY}" r="3" fill="#d97706" />
+            <!-- 📍 學生個人得分落點與智慧引線對話框 (拉出頂部顯示，清晰大字絕不重疊) -->
+            <path d="M ${boxX} ${boxY + 16} Q ${(boxX + stX) / 2} ${(boxY + 16 + stY) / 2} ${stX} ${stY}" fill="none" stroke="#d97706" stroke-width="2" stroke-dasharray="3,2" />
+            <circle cx="${stX}" cy="${stY}" r="7.5" fill="#fef3c7" stroke="#d97706" stroke-width="3" />
+            <circle cx="${stX}" cy="${stY}" r="2.5" fill="#d97706" />
 
-            <!-- 學生得分懸浮氣泡徽章 (大字級清晰閱讀) -->
-            <g transform="translate(${Math.max(65, Math.min(535, stX))}, ${Math.max(22, stY - 18)})">
-              <rect x="-62" y="-14" width="124" height="26" rx="13" fill="#d97706" filter="drop-shadow(0 3px 6px rgba(217,119,6,0.35))" />
-              <text x="0" y="4" font-size="13" font-weight="900" fill="#ffffff" text-anchor="middle">📍 個人得分 ${score}分</text>
+            <g transform="translate(${boxX}, ${boxY})">
+              <rect x="-72" y="-16" width="144" height="32" rx="16" fill="#d97706" filter="drop-shadow(0 3px 8px rgba(217,119,6,0.35))" />
+              <text x="0" y="-1" font-size="12" font-weight="900" fill="#ffffff" text-anchor="middle">📍 個人得分 ${score}分</text>
+              <text x="0" y="11" font-size="10" font-weight="bold" fill="#fef3c7" text-anchor="middle">常模落點 PR ${pr}</text>
             </g>
           </svg>
         </div>
