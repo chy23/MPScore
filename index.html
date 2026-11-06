@@ -6395,7 +6395,12 @@
 
       const isComparing = compareIdx >= 0 && allExams && compareIdx < allExams.length && compareIdx !== curIdx;
       const compExam = isComparing ? allExams[compareIdx] : null;
-      const compSub = (compExam && compExam.subjects) ? compExam.subjects.find(s => s.name === activeSub.name) : null;
+      const compSub = (compExam && compExam.subjects) ? compExam.subjects.find(s => {
+        if (!s || !s.name || !activeSub || !activeSub.name) return false;
+        const s1 = s.name.trim();
+        const s2 = activeSub.name.trim();
+        return s1 === s2 || s1.replace(/科$/, '') === s2.replace(/科$/, '') || s1.includes(s2) || s2.includes(s1);
+      }) : null;
 
       // 3. 計算本次考試 KDE
       const curSamples = getSubjectScoreSamples(activeSub);
@@ -6419,31 +6424,31 @@
         const diffScore = Math.round((score - compScore) * 10) / 10;
         const diffPr = pr - compPr;
         const diffClassAvg = Math.round((cAvg - compCAvg) * 10) / 10;
+        const isUp = diffPr >= 0;
 
         if (badgeEl) {
           const diffBadgeHtml = (cfg.showDifficulty !== false && activeSub.difficultyBadge)
-            ? ` <span class="ml-1 px-1.5 py-0.5 rounded-full bg-white text-slate-800 border border-amber-200 font-bold shadow-2xs text-[9px]" title="*難易度以班級成績估計">${activeSub.difficultyBadge}</span>`
+            ? ` <span class="ml-1 px-2 py-0.5 rounded-full bg-white text-slate-800 border border-amber-200 font-bold shadow-2xs text-[10px]" title="*難易度以班級成績估計">${activeSub.difficultyBadge}</span>`
             : '';
           badgeEl.innerHTML = `<span>${activeSub.name}：${score}分 (本次) vs ${compScore}分 (對比)</span>${diffBadgeHtml}`;
         }
 
         const maxDensity = Math.max(curKde.maxDensity, compKde.maxDensity) || 1;
-        const getX = s => 35 + (Math.max(0, Math.min(100, s)) / 100) * 530;
-        const getY = d => 165 - (d / maxDensity) * 115;
+        const getX = s => 45 + (Math.max(0, Math.min(100, s)) / 100) * 510;
+        const getY = d => 175 - (d / maxDensity) * 125;
 
         // 本次路徑 (實線)
-        let pathCur = `M ${getX(0).toFixed(1)} 165`;
+        let pathCur = `M ${getX(0).toFixed(1)} 175`;
         for (let s = 0; s <= 100; s += 1) {
           pathCur += ` L ${getX(s).toFixed(1)} ${getY(curKde.points[s].density).toFixed(1)}`;
         }
-        pathCur += ` L ${getX(100).toFixed(1)} 165 Z`;
+        pathCur += ` L ${getX(100).toFixed(1)} 175 Z`;
 
-        // 對比路徑 (虛線)
-        let pathComp = `M ${getX(0).toFixed(1)} 165`;
+        // 對比路徑 (冷灰幽靈虛線，無填充，杜絕混色)
+        let pathComp = `M ${getX(0).toFixed(1)} 175`;
         for (let s = 0; s <= 100; s += 1) {
           pathComp += ` L ${getX(s).toFixed(1)} ${getY(compKde.points[s].density).toFixed(1)}`;
         }
-        pathComp += ` L ${getX(100).toFixed(1)} 165 Z`;
 
         // 坐標
         const stX = getX(score);
@@ -6458,24 +6463,23 @@
         const compAvgX = getX(compCAvg);
         const compAvgY = getY(compKde.points[Math.round(compCAvg)] ? compKde.points[Math.round(compCAvg)].density : maxDensity * 0.6);
 
-        // 避免圖釘氣泡碰撞
-        let curTagY = Math.max(16, stY - 18);
-        let compTagY = Math.max(16, compStY - 18);
-        if (Math.abs(stX - compStX) < 70) {
-          curTagY = 16;
-          compTagY = 38;
+        // 避免圖釘氣泡碰撞：錯開高度
+        let curTagY = Math.max(22, stY - 18);
+        let compTagY = Math.max(22, compStY - 18);
+        if (Math.abs(stX - compStX) < 85) {
+          curTagY = 22;
+          compTagY = 48;
         }
-        const curTagX = Math.max(50, Math.min(550, stX));
-        const compTagX = Math.max(50, Math.min(550, compStX));
+        const curTagX = Math.max(65, Math.min(535, stX));
+        const compTagX = Math.max(65, Math.min(535, compStX));
 
-        // 跨次成長位移軌跡弧線 (專注呈現常模 PR 百分位位移，移除跨次原始分數差額)
+        // 跨次成長位移軌跡弧線 (以 PR 常模位移為基準)
         let trajectorySvg = '';
-        if (Math.abs(stX - compStX) >= 6) {
+        if (Math.abs(stX - compStX) >= 6 || Math.abs(diffPr) > 0) {
           const midX = (stX + compStX) / 2;
-          const arcTopY = Math.max(16, Math.min(stY, compStY) - 24);
-          const isUp = diffPr >= 0;
-          const strokeCol = isUp ? '#059669' : '#d97706';
-          const badgeCol = isUp ? '#059669' : '#d97706';
+          const arcTopY = Math.max(18, Math.min(stY, compStY) - 26);
+          const strokeCol = isUp ? '#059669' : '#e11d48';
+          const badgeCol = isUp ? '#059669' : '#e11d48';
           const markerId = prefix + 'GrowthArrow';
 
           trajectorySvg = `
@@ -6484,10 +6488,10 @@
                 <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="${strokeCol}" />
               </marker>
             </defs>
-            <path d="M ${compStX} ${compStY} Q ${midX} ${arcTopY} ${stX} ${stY}" fill="none" stroke="${strokeCol}" stroke-width="2" stroke-dasharray="3,3" marker-end="url(#${markerId})" />
+            <path d="M ${compStX} ${compStY} Q ${midX} ${arcTopY} ${stX} ${stY}" fill="none" stroke="${strokeCol}" stroke-width="2.5" stroke-dasharray="4,3" marker-end="url(#${markerId})" />
             <g transform="translate(${midX}, ${arcTopY - 6})">
-              <rect x="-46" y="-10" width="92" height="20" rx="10" fill="${badgeCol}" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.15))" />
-              <text x="0" y="4" font-size="9" font-weight="900" fill="#ffffff" text-anchor="middle">
+              <rect x="-65" y="-12" width="130" height="24" rx="12" fill="${badgeCol}" filter="drop-shadow(0 2px 5px rgba(0,0,0,0.18))" />
+              <text x="0" y="4" font-size="11" font-weight="900" fill="#ffffff" text-anchor="middle">
                 常模位移 PR ${diffPr >= 0 ? '+' + diffPr : diffPr} ${isUp ? '▲' : '▼'}
               </text>
             </g>
@@ -6495,130 +6499,133 @@
         }
 
         const curGradId = prefix + 'CurAreaGrad';
-        const compGradId = prefix + 'CompAreaGrad';
 
         container.innerHTML = `
           <div class="relative w-full">
-            <svg viewBox="0 0 600 215" class="w-full h-auto drop-shadow-sm select-none">
+            <svg viewBox="0 0 600 225" class="w-full h-auto drop-shadow-sm select-none">
               <defs>
                 <linearGradient id="${curGradId}" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.35" />
-                  <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.03" />
-                </linearGradient>
-                <linearGradient id="${compGradId}" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.18" />
-                  <stop offset="100%" stop-color="#f59e0b" stop-opacity="0.02" />
+                  <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.28" />
+                  <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.02" />
                 </linearGradient>
               </defs>
 
               <!-- 垂直參考格線與及格線 (60 分) -->
               ${[0, 20, 40, 60, 80, 100].map(v => `
-                <line x1="${getX(v)}" y1="30" x2="${getX(v)}" y2="165" stroke="${v === 60 ? '#f59e0b' : '#e2e8f0'}" stroke-width="${v === 60 ? '1.5' : '1'}" stroke-dasharray="${v === 60 ? '3,3' : '2,2'}" />
+                <line x1="${getX(v)}" y1="35" x2="${getX(v)}" y2="175" stroke="${v === 60 ? '#f59e0b' : '#cbd5e1'}" stroke-width="${v === 60 ? '1.5' : '1'}" stroke-dasharray="${v === 60 ? '3,3' : '2,2'}" />
               `).join('')}
 
-              <!-- 對比考試分佈曲線 (琥珀色虛線) -->
-              <path d="${pathComp}" fill="url(#${compGradId})" stroke="#f59e0b" stroke-width="2.5" stroke-dasharray="5,3.5" stroke-linecap="round" />
+              <!-- 對比考試分佈曲線 (冷灰幽靈虛線，無填充，杜絕混色) -->
+              <path d="${pathComp}" fill="none" stroke="#64748b" stroke-width="2.5" stroke-dasharray="6,4" stroke-linecap="round" />
 
-              <!-- 本次考試分佈曲線 (湛藍實線) -->
-              <path d="${pathCur}" fill="url(#${curGradId})" stroke="#d97706" stroke-width="3" stroke-linecap="round" />
+              <!-- 本次考試分佈曲線 (琥珀實線，微漸變底色) -->
+              <path d="${pathCur}" fill="url(#${curGradId})" stroke="#d97706" stroke-width="3.5" stroke-linecap="round" />
 
               <!-- 分數基準軸 (X 軸) -->
-              <line x1="25" y1="165" x2="575" y2="165" stroke="#64748b" stroke-width="1.5" />
+              <line x1="30" y1="175" x2="570" y2="175" stroke="#64748b" stroke-width="1.5" />
 
-              <!-- 分數刻度文字 -->
-              <text x="${getX(0)}" y="181" font-size="9" fill="#94a3b8" text-anchor="middle" font-weight="bold">0 分</text>
-              <text x="${getX(20)}" y="181" font-size="9" fill="#94a3b8" text-anchor="middle" font-weight="bold">20 分</text>
-              <text x="${getX(40)}" y="181" font-size="9" fill="#94a3b8" text-anchor="middle" font-weight="bold">40 分</text>
-              <text x="${getX(60)}" y="181" font-size="9" fill="#d97706" text-anchor="middle" font-black">及格 60</text>
-              <text x="${getX(80)}" y="181" font-size="9" fill="#94a3b8" text-anchor="middle" font-weight="bold">80 分</text>
-              <text x="${getX(100)}" y="181" font-size="9" fill="#059669" text-anchor="middle" font-black">100 分</text>
+              <!-- 分數刻度文字與標籤 (清晰大字級) -->
+              <text x="${getX(0)}" y="196" font-size="13" fill="#64748b" text-anchor="middle" font-weight="bold">0</text>
+              <text x="${getX(20)}" y="196" font-size="13" fill="#64748b" text-anchor="middle" font-weight="bold">20</text>
+              <text x="${getX(40)}" y="196" font-size="13" fill="#64748b" text-anchor="middle" font-weight="bold">40</text>
+              <g transform="translate(${getX(60)}, 183)">
+                <rect x="-28" y="-1" width="56" height="20" rx="6" fill="#fef3c7" stroke="#f59e0b" stroke-width="1" />
+                <text x="0" y="13" font-size="12" fill="#b45309" text-anchor="middle" font-weight="900">及格 60</text>
+              </g>
+              <text x="${getX(80)}" y="196" font-size="13" fill="#64748b" text-anchor="middle" font-weight="bold">80</text>
+              <g transform="translate(${getX(100)}, 183)">
+                <rect x="-22" y="-1" width="44" height="20" rx="6" fill="#dcfce7" stroke="#10b981" stroke-width="1" />
+                <text x="0" y="13" font-size="12" fill="#047857" text-anchor="middle" font-weight="900">100</text>
+              </g>
 
-              <!-- 對比班均標記線 -->
-              <line x1="${compAvgX}" y1="${compAvgY}" x2="${compAvgX}" y2="165" stroke="#f59e0b" stroke-width="1.8" stroke-dasharray="2,2" opacity="0.85" />
-              <circle cx="${compAvgX}" cy="${compAvgY}" r="4" fill="#ffffff" stroke="#f59e0b" stroke-width="2" />
-              <text x="${compAvgX}" y="${Math.min(155, compAvgY + 13)}" font-size="8.5" fill="#d97706" font-weight="bold" text-anchor="middle">對比均 ${compCAvg}</text>
+              <!-- 對比班均標記線 (冷灰虛線) -->
+              <line x1="${compAvgX}" y1="${compAvgY}" x2="${compAvgX}" y2="175" stroke="#64748b" stroke-width="1.8" stroke-dasharray="3,3" opacity="0.85" />
+              <circle cx="${compAvgX}" cy="${compAvgY}" r="4.5" fill="#ffffff" stroke="#64748b" stroke-width="2" />
+              <g transform="translate(${compAvgX}, ${Math.min(150, compAvgY + 14)})">
+                <rect x="-35" y="-11" width="70" height="20" rx="10" fill="#ffffff" stroke="#64748b" stroke-width="1.2" opacity="0.95" />
+                <text x="0" y="3" font-size="11" fill="#475569" font-weight="bold" text-anchor="middle">對比均 ${compCAvg}</text>
+              </g>
 
-              <!-- 本次班均標記線 -->
-              <line x1="${curAvgX}" y1="${curAvgY}" x2="${curAvgX}" y2="165" stroke="#b45309" stroke-width="1.8" stroke-dasharray="3,3" />
-              <circle cx="${curAvgX}" cy="${curAvgY}" r="4.5" fill="#ffffff" stroke="#b45309" stroke-width="2" />
-              <text x="${curAvgX}" y="${Math.min(143, curAvgY + 12)}" font-size="8.5" fill="#b45309" font-weight="bold" text-anchor="middle">本次均 ${cAvg}</text>
-              ${(cfg.showDifficulty !== false && activeSub.difficultyBadge) ? `
-                <text x="${curAvgX}" y="${Math.min(155, curAvgY + 22)}" font-size="8" fill="#b45309" font-weight="bold" text-anchor="middle">${activeSub.difficultyBadge}</text>
-              ` : ''}
+              <!-- 本次班均標記線 (琥珀虛線) -->
+              <line x1="${curAvgX}" y1="${curAvgY}" x2="${curAvgX}" y2="175" stroke="#d97706" stroke-width="2" stroke-dasharray="3,3" />
+              <circle cx="${curAvgX}" cy="${curAvgY}" r="5" fill="#ffffff" stroke="#d97706" stroke-width="2.5" />
+              <g transform="translate(${curAvgX}, ${Math.min(138, curAvgY + 12)})">
+                <rect x="-36" y="-11" width="72" height="20" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="1.2" />
+                <text x="0" y="3" font-size="11" fill="#b45309" font-weight="bold" text-anchor="middle">本次均 ${cAvg}</text>
+              </g>
 
               <!-- 跨次位移軌跡弧線 -->
               ${trajectorySvg}
 
-              <!-- 對比考試得分落點圖釘 -->
-              <line x1="${compStX}" y1="${compStY}" x2="${compStX}" y2="165" stroke="#f59e0b" stroke-width="2" stroke-dasharray="3,2" />
-              <circle cx="${compStX}" cy="${compStY}" r="6.5" fill="#ffffff" stroke="#f59e0b" stroke-width="2.5" />
-              <circle cx="${compStX}" cy="${compStY}" r="2.5" fill="#f59e0b" />
+              <!-- 對比考試得分落點圖釘 (冷灰底白色字) -->
+              <line x1="${compStX}" y1="${compStY}" x2="${compStX}" y2="175" stroke="#64748b" stroke-width="2" stroke-dasharray="3,2" />
+              <circle cx="${compStX}" cy="${compStY}" r="6.5" fill="#ffffff" stroke="#64748b" stroke-width="2.5" />
+              <circle cx="${compStX}" cy="${compStY}" r="2.5" fill="#64748b" />
               <g transform="translate(${compTagX}, ${compTagY})">
-                <rect x="-44" y="-12" width="88" height="20" rx="10" fill="#f59e0b" filter="drop-shadow(0 2px 4px rgba(245,158,11,0.25))" />
-                <text x="0" y="2" font-size="9" font-weight="900" fill="#ffffff" text-anchor="middle">📍 對比 ${compScore}分</text>
+                <rect x="-52" y="-13" width="104" height="24" rx="12" fill="#475569" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.2))" />
+                <text x="0" y="4" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">⏱️ 對比 ${compScore}分</text>
               </g>
 
-              <!-- 本次考試得分落點圖釘 -->
-              <line x1="${stX}" y1="${stY}" x2="${stX}" y2="165" stroke="#d97706" stroke-width="2.5" />
-              <circle cx="${stX}" cy="${stY}" r="7" fill="#fbbf24" stroke="#d97706" stroke-width="3" />
-              <circle cx="${stX}" cy="${stY}" r="2.5" fill="#d97706" />
+              <!-- 本次考試得分落點圖釘 (高亮琥珀底大字) -->
+              <line x1="${stX}" y1="${stY}" x2="${stX}" y2="175" stroke="#d97706" stroke-width="2.5" />
+              <circle cx="${stX}" cy="${stY}" r="8" fill="#fef3c7" stroke="#d97706" stroke-width="3" />
+              <circle cx="${stX}" cy="${stY}" r="3" fill="#d97706" />
               <g transform="translate(${curTagX}, ${curTagY})">
-                <rect x="-46" y="-12" width="92" height="20" rx="10" fill="#d97706" filter="drop-shadow(0 2px 5px rgba(217,119,6,0.35))" />
-                <text x="0" y="2" font-size="9.5" font-weight="900" fill="#ffffff" text-anchor="middle">📍 本次 ${score}分</text>
+                <rect x="-58" y="-14" width="116" height="26" rx="13" fill="#d97706" filter="drop-shadow(0 3px 6px rgba(217,119,6,0.35))" />
+                <text x="0" y="4" font-size="13" font-weight="900" fill="#ffffff" text-anchor="middle">📍 本次 ${score}分</text>
               </g>
             </svg>
           </div>
 
           <!-- 雙曲線圖例提示列 -->
-          <div class="flex flex-wrap items-center justify-between gap-2 px-3 py-1.5 bg-white/90 rounded-2xl border border-slate-200/70 text-[11px] shadow-2xs">
+          <div class="flex flex-wrap items-center justify-between gap-2 px-3 py-2 bg-white/95 rounded-2xl border border-slate-200/80 text-xs shadow-2xs">
             <div class="flex items-center gap-3">
               <div class="flex items-center gap-1.5 font-black text-amber-950">
                 <span class="w-3.5 h-1 bg-amber-500 rounded-full inline-block"></span>
                 <span>本次：${curExam.sheetName || curExam.examTitle}</span>
               </div>
-              <div class="flex items-center gap-1.5 font-bold text-amber-700">
-                <span class="w-3.5 h-0.5 border-t-2 border-dashed border-amber-500 inline-block"></span>
+              <div class="flex items-center gap-1.5 font-bold text-slate-600">
+                <span class="w-3.5 h-0.5 border-t-2 border-dashed border-slate-400 inline-block"></span>
                 <span>對比：${compExam.sheetName || compExam.examTitle}</span>
               </div>
             </div>
-            <span class="font-black text-[10px] ${diffPr >= 0 ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-amber-800 bg-amber-50 border-amber-200'} border px-2.5 py-0.5 rounded-full">
-              ${diffPr >= 0 ? `▲ 常模位移 PR +${diffPr}` : `▼ 常模位移 PR ${diffPr}`}
+            <span class="font-black text-xs ${diffPr >= 0 ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-slate-700 bg-slate-50 border-slate-200'} border px-2.5 py-0.5 rounded-full">
+              常模位移 PR ${diffPr >= 0 ? '+' + diffPr : diffPr} ${isUp ? '▲' : '▼'}
             </span>
           </div>
 
-          <!-- 雙次關鍵指標對照膠囊列 -->
-          <div class="flex flex-wrap items-center justify-center gap-1.5 pt-0.5">
-            <span class="text-[10px] font-black text-amber-950 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full shadow-2xs">
-              📍 本次 ${score} 分 (PR ${pr} · 均 ${cAvg})
-            </span>
-            <span class="text-[10px] font-bold text-amber-900 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full shadow-2xs">
-              📍 對比 ${compScore} 分 (PR ${compPr} · 均 ${compCAvg})
-            </span>
-            <span class="text-[10px] font-bold ${diffPr >= 0 ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-amber-800 bg-amber-50 border-amber-200'} border px-2.5 py-1 rounded-full shadow-2xs">
-              📊 常模位移 PR ${diffPr >= 0 ? '+' + diffPr : diffPr}
-            </span>
-            ${(cfg.showDifficulty !== false && activeSub.difficultyBadge) ? `
-              <span class="text-[10px] font-bold bg-white text-slate-800 border border-slate-200 px-2.5 py-1 rounded-full shadow-2xs inline-flex items-center gap-1" title="*難易度以班級成績估計">
-                <span>🎯 試卷難易度：${activeSub.difficultyBadge}</span>
-                ${(compSub && compSub.difficultyBadge) ? `<span class="text-slate-400 font-normal">(對比 ${compSub.difficultyBadge})</span>` : ''}
-                <span class="text-[9px] text-slate-400 font-normal">(*班級估計)</span>
-              </span>
-            ` : ''}
+          <!-- 雙次關鍵指標對照卡片群 -->
+          <div class="grid grid-cols-3 gap-2 pt-1 text-slate-800">
+            <div class="bg-amber-50/90 border border-amber-200/80 rounded-2xl p-2.5 text-center shadow-2xs">
+              <div class="text-xs text-amber-900 font-bold">📍 本次考試</div>
+              <div class="text-base font-black text-amber-950 mt-0.5">${score} <span class="text-xs font-normal">分</span></div>
+              <div class="text-[11px] text-amber-800 font-bold">PR ${pr} ‧ 均 ${cAvg}</div>
+            </div>
+            <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-2.5 text-center shadow-2xs">
+              <div class="text-xs text-slate-600 font-bold">⏱️ 對比考試</div>
+              <div class="text-base font-black text-slate-700 mt-0.5">${compScore} <span class="text-xs font-normal">分</span></div>
+              <div class="text-[11px] text-slate-600 font-bold">PR ${compPr} ‧ 均 ${compCAvg}</div>
+            </div>
+            <div class="${diffPr >= 0 ? 'bg-emerald-50 border-emerald-200' : 'bg-slate-50 border-slate-200'} border rounded-2xl p-2.5 text-center shadow-2xs">
+              <div class="text-xs ${diffPr >= 0 ? 'text-emerald-900' : 'text-slate-700'} font-bold">🚀 常模位移</div>
+              <div class="text-base font-black ${diffPr >= 0 ? 'text-emerald-700' : 'text-slate-800'} mt-0.5">PR ${diffPr >= 0 ? '+' + diffPr : diffPr} ${isUp ? '▲' : '▼'}</div>
+              <div class="text-[11px] ${diffClassAvg >= 0 ? 'text-blue-700' : 'text-slate-500'} font-bold">班均差 ${diffClassAvg >= 0 ? '+' + diffClassAvg : diffClassAvg} 分</div>
+            </div>
           </div>
 
           <!-- 跨次分佈動態成長解讀卡 -->
-          <div class="p-3 bg-gradient-to-r from-amber-50/80 via-white to-amber-50/70 rounded-2xl border border-amber-200/70 text-[11px] text-slate-700 leading-relaxed space-y-1.5 shadow-2xs">
+          <div class="p-3.5 bg-gradient-to-r from-amber-50/80 via-white to-amber-50/70 rounded-2xl border border-amber-200/70 text-xs text-slate-700 leading-relaxed space-y-1.5 shadow-2xs">
             <div class="font-bold text-slate-800 flex items-center justify-between">
-              <span class="flex items-center gap-1.5"><span class="text-sm">🔄</span> 【${activeSub.name}】跨次考試分佈疊加與學習足跡解讀</span>
-              <span class="text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200/60">
-                ${diffPr >= 0 ? '常模躍升' : '穩健蓄力'}
+              <span class="flex items-center gap-1.5"><span class="text-sm">🔄</span> 【${activeSub.name}】跨次考試常模分佈疊加與學習足跡解讀</span>
+              <span class="text-[11px] font-bold text-amber-900 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200/60">
+                ${diffPr >= 0 ? '常模躍升' : '常模持穩'}
               </span>
             </div>
-            <div class="text-slate-600">
-              圖表已疊合兩次考試班級分數分佈走向。全班平均由 <b>${compCAvg} 分</b> 移至 <b>${cAvg} 分</b>（高分聚集區由 ${compKde.modeScore} 分移至 ${curKde.modeScore} 分）。<br>
-              孩子本次得分 <b>${score} 分 (PR ${pr})</b>，相較上次 <b>${compScore} 分 (PR ${compPr})</b>，在全班同儕常模百分等級中相對位移了 <b>${diffPr >= 0 ? '+' + diffPr : diffPr} 個百分位</b>（由 PR ${compPr} 推進至 PR ${pr}）！兩次考試難易度與題型不同，常模百分等級（PR）能更客觀掌握孩子在群體中的相對進步與穩健度。
+            <div class="text-slate-600 text-[11.5px]">
+              圖表已疊合兩次評量之班級常模分佈走向。全班平均由 <b>${compCAvg} 分</b> 移至 <b>${cAvg} 分</b>（高分聚集區由 ${compKde.modeScore} 分移至 ${curKde.modeScore} 分）。<br>
+              孩子本次得分 <b>${score} 分 (PR ${pr})</b>，相較對比考試 <b>${compScore} 分 (PR ${compPr})</b>。考量兩次評量題型與難易度不同，常模分析顯示在全班同儕的百分等級相對位移為 <b>PR ${diffPr >= 0 ? '+' + diffPr : diffPr}</b>，${diffPr >= 0 ? '在全班同儕百分等級超越幅度增加，展現穩步成長！' : '常模落點持穩，建議針對失分單元適度補強！'}
             </div>
-            ${activeSub.advice ? `<div class="text-[10px] text-amber-950 bg-amber-50/90 p-2 rounded-xl border border-amber-200 font-medium">💡 適性引導：${activeSub.advice}</div>` : ''}
+            ${activeSub.advice ? `<div class="text-xs text-amber-950 bg-amber-50/80 p-2.5 rounded-xl border border-amber-200 font-medium">💡 適性引導：${activeSub.advice}</div>` : ''}
           </div>
         `;
         return;
@@ -6627,19 +6634,19 @@
       // 5. 單次考試常態渲染 (不疊加 或 對比考試無該科)
       if (badgeEl) {
         const diffBadgeHtml = (cfg.showDifficulty !== false && activeSub.difficultyBadge)
-          ? ` <span class="ml-1 px-1.5 py-0.5 rounded-full bg-white text-slate-800 border border-amber-200 font-bold shadow-2xs text-[9px]" title="*難易度以班級成績估計">${activeSub.difficultyBadge}</span>`
+          ? ` <span class="ml-1 px-2 py-0.5 rounded-full bg-white text-slate-800 border border-amber-200 font-bold shadow-2xs text-[10px]" title="*難易度以班級成績估計">${activeSub.difficultyBadge}</span>`
           : '';
         badgeEl.innerHTML = `<span>${activeSub.name}：${score}分 (PR ${pr})</span>${diffBadgeHtml}`;
       }
 
-      const getX = s => 35 + (Math.max(0, Math.min(100, s)) / 100) * 530;
-      const getY = d => 160 - (d / curKde.maxDensity) * 120;
+      const getX = s => 45 + (Math.max(0, Math.min(100, s)) / 100) * 510;
+      const getY = d => 175 - (d / curKde.maxDensity) * 125;
 
-      let pathD = `M ${getX(0).toFixed(1)} 160`;
+      let pathD = `M ${getX(0).toFixed(1)} 175`;
       for (let s = 0; s <= 100; s += 1) {
         pathD += ` L ${getX(s).toFixed(1)} ${getY(curKde.points[s].density).toFixed(1)}`;
       }
-      pathD += ` L ${getX(100).toFixed(1)} 160 Z`;
+      pathD += ` L ${getX(100).toFixed(1)} 175 Z`;
 
       const stX = getX(score);
       const stDensity = curKde.points[Math.round(score)] ? curKde.points[Math.round(score)].density : (curKde.maxDensity * 0.5);
@@ -6653,18 +6660,18 @@
       const gradStrokeId = isSb ? 'sbDistStrokeGradient' : 'pDistStrokeGradient';
 
       const missingNotice = (isComparing && compExam && !compSub)
-        ? `<div class="text-[10px] text-amber-800 bg-amber-50 p-2 rounded-xl border border-amber-200 font-bold mb-1">
-             ⚠️ 對比考試【${compExam.examTitle || compExam.sheetName}】未包含【${activeSub.name}】科目，目前僅呈現本次曲線。
+        ? `<div class="text-xs text-amber-800 bg-amber-50 p-2.5 rounded-xl border border-amber-200 font-bold mb-2">
+             ⚠️ 對比考試【${compExam.examTitle || compExam.sheetName}】未包含【${activeSub.name}】科目，目前呈現單次曲線。
            </div>`
         : '';
 
       container.innerHTML = `
         ${missingNotice}
         <div class="relative w-full">
-          <svg viewBox="0 0 600 205" class="w-full h-auto drop-shadow-sm select-none">
+          <svg viewBox="0 0 600 225" class="w-full h-auto drop-shadow-sm select-none">
             <defs>
               <linearGradient id="${gradCurveId}" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stop-color="#f43f5e" stop-opacity="0.15" />
+                <stop offset="0%" stop-color="#f43f5e" stop-opacity="0.16" />
                 <stop offset="35%" stop-color="#f59e0b" stop-opacity="0.22" />
                 <stop offset="70%" stop-color="#3b82f6" stop-opacity="0.26" />
                 <stop offset="100%" stop-color="#10b981" stop-opacity="0.30" />
@@ -6679,90 +6686,97 @@
 
             <!-- 垂直參考格線與及格線 (60 分) -->
             ${[0, 20, 40, 60, 80, 100].map(v => `
-              <line x1="${getX(v)}" y1="30" x2="${getX(v)}" y2="160" stroke="${v === 60 ? '#f59e0b' : '#e2e8f0'}" stroke-width="${v === 60 ? '1.5' : '1'}" stroke-dasharray="${v === 60 ? '3,3' : '2,2'}" />
+              <line x1="${getX(v)}" y1="35" x2="${getX(v)}" y2="175" stroke="${v === 60 ? '#f59e0b' : '#cbd5e1'}" stroke-width="${v === 60 ? '1.5' : '1'}" stroke-dasharray="${v === 60 ? '3,3' : '2,2'}" />
             `).join('')}
 
             <!-- 班級成績分佈曲線本體 (KDE 面積與曲線) -->
-            <path d="${pathD}" fill="url(#${gradCurveId})" stroke="url(#${gradStrokeId})" stroke-width="3" stroke-linecap="round" />
+            <path d="${pathD}" fill="url(#${gradCurveId})" stroke="url(#${gradStrokeId})" stroke-width="3.5" stroke-linecap="round" />
 
             <!-- 分數基準軸 (X 軸) -->
-            <line x1="25" y1="160" x2="575" y2="160" stroke="#64748b" stroke-width="1.5" />
+            <line x1="30" y1="175" x2="570" y2="175" stroke="#64748b" stroke-width="1.5" />
 
-            <!-- 分數刻度文字 -->
-            <text x="${getX(0)}" y="176" font-size="9" fill="#94a3b8" text-anchor="middle" font-weight="bold">0 分</text>
-            <text x="${getX(20)}" y="176" font-size="9" fill="#94a3b8" text-anchor="middle" font-weight="bold">20 分</text>
-            <text x="${getX(40)}" y="176" font-size="9" fill="#94a3b8" text-anchor="middle" font-weight="bold">40 分</text>
-            <text x="${getX(60)}" y="176" font-size="9" fill="#d97706" text-anchor="middle" font-black">及格 60</text>
-            <text x="${getX(80)}" y="176" font-size="9" fill="#94a3b8" text-anchor="middle" font-weight="bold">80 分</text>
-            <text x="${getX(100)}" y="176" font-size="9" fill="#059669" text-anchor="middle" font-black">100 分</text>
+            <!-- 分數刻度文字與標籤 (清晰大字級) -->
+            <text x="${getX(0)}" y="196" font-size="13" fill="#64748b" text-anchor="middle" font-weight="bold">0</text>
+            <text x="${getX(20)}" y="196" font-size="13" fill="#64748b" text-anchor="middle" font-weight="bold">20</text>
+            <text x="${getX(40)}" y="196" font-size="13" fill="#64748b" text-anchor="middle" font-weight="bold">40</text>
+            <g transform="translate(${getX(60)}, 183)">
+              <rect x="-28" y="-1" width="56" height="20" rx="6" fill="#fef3c7" stroke="#f59e0b" stroke-width="1" />
+              <text x="0" y="13" font-size="12" fill="#b45309" text-anchor="middle" font-weight="900">及格 60</text>
+            </g>
+            <text x="${getX(80)}" y="196" font-size="13" fill="#64748b" text-anchor="middle" font-weight="bold">80</text>
+            <g transform="translate(${getX(100)}, 183)">
+              <rect x="-22" y="-1" width="44" height="20" rx="6" fill="#dcfce7" stroke="#10b981" stroke-width="1" />
+              <text x="0" y="13" font-size="12" fill="#047857" text-anchor="middle" font-weight="900">100</text>
+            </g>
 
-            <!-- 班級平均垂直標示線與標記 (含試卷難易度) -->
-            <line x1="${avgX}" y1="${avgY}" x2="${avgX}" y2="160" stroke="#64748b" stroke-width="1.8" stroke-dasharray="3,3" />
-            <circle cx="${avgX}" cy="${avgY}" r="4.5" fill="#ffffff" stroke="#64748b" stroke-width="2" />
-            <text x="${avgX}" y="${Math.min(143, avgY + 12)}" font-size="9" fill="#475569" font-weight="bold" text-anchor="middle">班均 ${cAvg}</text>
+            <!-- 班級平均垂直標示線與標記 -->
+            <line x1="${avgX}" y1="${avgY}" x2="${avgX}" y2="175" stroke="#475569" stroke-width="2" stroke-dasharray="3,3" />
+            <circle cx="${avgX}" cy="${avgY}" r="5" fill="#ffffff" stroke="#475569" stroke-width="2.5" />
+            <g transform="translate(${avgX}, ${Math.min(145, Math.max(35, avgY + 14))})">
+              <rect x="-38" y="-11" width="76" height="22" rx="11" fill="#ffffff" stroke="#475569" stroke-width="1.5" filter="drop-shadow(0 1px 3px rgba(0,0,0,0.1))" />
+              <text x="0" y="4" font-size="12" fill="#334155" font-weight="900" text-anchor="middle">班均 ${cAvg}</text>
+            </g>
             ${(cfg.showDifficulty !== false && activeSub.difficultyBadge) ? `
-              <text x="${avgX}" y="${Math.min(154, avgY + 22)}" font-size="8" fill="#b45309" font-weight="bold" text-anchor="middle">${activeSub.difficultyBadge}</text>
+              <g transform="translate(${avgX}, ${Math.min(160, Math.max(55, avgY + 32))})">
+                <text x="0" y="0" font-size="11" fill="#b45309" font-weight="900" text-anchor="middle">${activeSub.difficultyBadge}</text>
+              </g>
             ` : ''}
 
             <!-- 學生個人得分落點垂直引線與定位圖釘 -->
-            <line x1="${stX}" y1="${stY}" x2="${stX}" y2="160" stroke="#d97706" stroke-width="2.5" />
-            <circle cx="${stX}" cy="${stY}" r="7" fill="#fbbf24" stroke="#d97706" stroke-width="3" />
-            <circle cx="${stX}" cy="${stY}" r="2.5" fill="#d97706" />
+            <line x1="${stX}" y1="${stY}" x2="${stX}" y2="175" stroke="#d97706" stroke-width="2.5" />
+            <circle cx="${stX}" cy="${stY}" r="8" fill="#fef3c7" stroke="#d97706" stroke-width="3" />
+            <circle cx="${stX}" cy="${stY}" r="3" fill="#d97706" />
 
-            <!-- 學生得分懸浮氣泡徽章 -->
-            <g transform="translate(${Math.max(65, Math.min(535, stX))}, ${Math.max(20, stY - 14)})">
-              <rect x="-56" y="-16" width="112" height="22" rx="11" fill="#d97706" filter="drop-shadow(0 2px 5px rgba(217,119,6,0.35))" />
-              <text x="0" y="-1" font-size="10" font-weight="900" fill="#ffffff" text-anchor="middle">📍 個人得分 ${score}分</text>
+            <!-- 學生得分懸浮氣泡徽章 (大字級清晰閱讀) -->
+            <g transform="translate(${Math.max(65, Math.min(535, stX))}, ${Math.max(22, stY - 18)})">
+              <rect x="-62" y="-14" width="124" height="26" rx="13" fill="#d97706" filter="drop-shadow(0 3px 6px rgba(217,119,6,0.35))" />
+              <text x="0" y="4" font-size="13" font-weight="900" fill="#ffffff" text-anchor="middle">📍 個人得分 ${score}分</text>
             </g>
           </svg>
         </div>
 
-        <!-- 關鍵統計數據膠囊列 -->
-        <div class="flex flex-wrap items-center justify-center gap-1.5 pt-1">
-          <span class="text-[10px] font-black text-amber-950 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full shadow-2xs">
-            📍 個人得分 ${score} 分
-          </span>
-          <span class="text-[10px] font-bold text-slate-700 bg-white border border-slate-200 px-2.5 py-1 rounded-full shadow-2xs">
-            👥 班級平均 ${cAvg} 分
-          </span>
-          ${(cfg.showDifficulty !== false && activeSub.difficultyBadge) ? `
-            <span class="text-[10px] font-bold bg-amber-50 text-amber-950 border border-amber-200 px-2.5 py-1 rounded-full shadow-2xs flex items-center gap-1" title="*難易度以班級成績估計">
-              <span>🎯 試卷難易度：${activeSub.difficultyBadge}</span>
-              <span class="text-[9px] text-amber-700/80 font-normal">(*班級估計)</span>
-            </span>
-          ` : ''}
-          <span class="text-[10px] font-bold text-slate-700 bg-white border border-slate-200 px-2.5 py-1 rounded-full shadow-2xs">
-            📊 中位數 ${med} 分
-          </span>
-          <span class="text-[10px] font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full shadow-2xs">
-            🌟 該科落點 PR ${pr}
-          </span>
-          <span class="text-[10px] font-bold ${activeSub.diff >= 0 ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-rose-700 bg-rose-50 border-rose-200'} border px-2.5 py-1 rounded-full shadow-2xs">
-            ${activeSub.diff >= 0 ? `與班均差距 +${activeSub.diff}` : `與班均差距 ${activeSub.diff}`} 分
-          </span>
+        <!-- 關鍵統計數據指標卡群 (Apple 風格清爽大字級排版) -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1 text-slate-800">
+          <div class="bg-amber-50/90 border border-amber-200/80 rounded-2xl p-2.5 text-center shadow-2xs">
+            <div class="text-xs text-amber-900 font-bold">📍 個人得分</div>
+            <div class="text-lg font-black text-amber-950 mt-0.5">${score} <span class="text-xs font-normal">分</span></div>
+            <div class="text-[11px] font-bold text-amber-700">落點 PR ${pr}</div>
+          </div>
+          <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-2.5 text-center shadow-2xs">
+            <div class="text-xs text-slate-600 font-bold">👥 班級平均</div>
+            <div class="text-lg font-black text-slate-900 mt-0.5">${cAvg} <span class="text-xs font-normal">分</span></div>
+            <div class="text-[11px] font-bold ${activeSub.diff >= 0 ? 'text-emerald-700' : 'text-rose-600'}">
+              ${activeSub.diff >= 0 ? `與班均 +${activeSub.diff}` : `與班均 ${activeSub.diff}`} 分
+            </div>
+          </div>
+          <div class="bg-white border border-slate-200/80 rounded-2xl p-2.5 text-center shadow-2xs col-span-2 sm:col-span-1">
+            <div class="text-xs text-slate-600 font-bold">🎯 試卷難易度</div>
+            <div class="text-sm font-black text-slate-900 mt-1">${activeSub.difficultyBadge || '適中 (*以班級估計)'}</div>
+            <div class="text-[10px] text-slate-400 font-normal">中位數 ${med} 分</div>
+          </div>
         </div>
 
         <!-- 該科當次分佈正向成長解讀卡 -->
-        <div class="p-3 bg-gradient-to-r from-amber-50/80 via-white to-amber-50/70 rounded-2xl border border-amber-200/60 text-[11px] text-slate-700 leading-relaxed space-y-1">
+        <div class="p-3.5 bg-gradient-to-r from-amber-50/80 via-white to-amber-50/70 rounded-2xl border border-amber-200/60 text-xs text-slate-700 leading-relaxed space-y-1.5 shadow-2xs">
           <div class="font-bold text-slate-800 flex items-center justify-between">
             <span class="flex items-center gap-1.5"><span class="text-sm">🌱</span> 【${activeSub.name}】當次班級成績分佈解讀</span>
             <div class="flex items-center gap-1">
               ${(cfg.showDifficulty !== false && activeSub.difficultyBadge) ? `
-                <span class="text-[10px] font-bold bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full border border-amber-300" title="*難易度以班級成績估計">
-                  ${activeSub.difficultyBadge} (*以班級估計)
+                <span class="text-[11px] font-bold bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full border border-amber-300" title="*難易度以班級成績估計">
+                  ${activeSub.difficultyBadge}
                 </span>
               ` : ''}
-              <span class="text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200/60">
-                最高 ${activeSub.max || 100} 分 ‧ 最低 ${activeSub.min || 0} 分
+              <span class="text-[11px] font-bold text-amber-900 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200/60">
+                最高 ${activeSub.max || 100} ‧ 最低 ${activeSub.min || 0}
               </span>
             </div>
           </div>
-          <div class="text-slate-600">
+          <div class="text-slate-600 text-[11.5px]">
             曲線呈現當次全班同學在<b>【${activeSub.name}】</b>的真實分數分佈走勢（多數同學落在約 <b>${curKde.modeScore} 分</b> 區間）。
             ${(cfg.showDifficulty !== false && activeSub.difficultyBadge) ? `全班平均得分率推估此份試卷難易度為<b>「${activeSub.difficulty}」</b>（*難易度以班級成績估計）。` : ''}
             孩子本次得分 <b>${score} 分</b>，在全班同儕中相對超越約 <b>${pr}%</b> 的同學，處於<b>「${activeSub.zoneStatus || (activeSub.zone + '區間')}」</b>。
           </div>
-          ${activeSub.advice ? `<div class="text-[10px] text-amber-950 bg-amber-50/90 p-2 rounded-xl border border-amber-200 mt-1 font-medium">💡 適性引導：${activeSub.advice}</div>` : ''}
+          ${activeSub.advice ? `<div class="text-xs text-amber-950 bg-amber-50/80 p-2.5 rounded-xl border border-amber-200 mt-1 font-medium">💡 適性引導：${activeSub.advice}</div>` : ''}
         </div>
       `;
     }
