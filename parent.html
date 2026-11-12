@@ -6,8 +6,8 @@
   ==========================================================================
   • 核心設計與系統規劃：新北市林口區麗園國小 楊家驊老師 (Chiahua Yang)
   • 核心精神：點滴累積，見證孩子進步。捨棄挫折標籤，落實正向賦能與成長心態。
-  • 個資法與資安規範：落實姓名去識別化、相機 QR Code 零手動輸入、閱覽紀錄防抖追蹤。
-  • 系統架構：新北市林口區麗園國小 楊家驊老師 自主研發設計 (2026-10)。
+  • 個資法與資安規範：落實姓名去識別化、相機 QR Code 零手動輸入、閱覽紀錄防抖追蹤、抽離考試去標籤化零洩漏防護。
+  • 系統架構：新北市林口區麗園國小 楊家驊老師 自主研發設計 (2026-10 ~ 2026-11 v3.2)。
   ==========================================================================
 -->
 <head>
@@ -1969,11 +1969,11 @@
         }
       }
 
-      // 2. 🎯 各科能力雷達圖控制
+      // 2. 🎯 各科能力雷達圖控制 (抽離／額外採計科目保留個人得分，不連線班級平均)
       const radarCard = document.getElementById('pRadarCard');
-      const labels = curExam.subjects.map(s => s.name);
+      const labels = curExam.subjects.map(s => s.isExcluded ? `${s.name}(額外採計)` : s.name);
       const scores = curExam.subjects.map(s => s.score);
-      const classAvgs = curExam.subjects.map(s => s.classAverage);
+      const classAvgs = curExam.subjects.map(s => s.isExcluded ? null : s.classAverage);
 
       if (radarCard) {
         if (cfg.showRadar) {
@@ -2076,8 +2076,33 @@
       const table = document.getElementById('pScoreTable');
       table.innerHTML = '';
 
+      const statColsSpan = (cfg.showClassAvg ? 2 : 0) + (cfg.showPr ? 1 : 0);
+
       curExam.subjects.forEach(sub => {
         const theme = getSubjectTheme(sub.name);
+        if (sub.isExcluded) {
+          const exNote = sub.excludedNote || '該科目額外採計，該測驗不計入班級統計資料，僅呈現學生成績';
+          table.innerHTML += `
+            <tr class="bg-indigo-50/40 hover:bg-indigo-50/70 transition-colors">
+              <td class="py-2.5 px-3 font-bold text-slate-800 flex items-center gap-1.5 flex-wrap">
+                <span class="w-2 h-2 rounded-full ${theme.dot}"></span>
+                <span>${sub.name}</span>
+                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-indigo-100 text-indigo-800 border border-indigo-200">額外採計</span>
+              </td>
+              ${cfg.showSubjects ? `<td class="py-2.5 px-3 text-center font-black ${theme.textAccent} text-sm">${sub.score}</td>` : ''}
+              ${statColsSpan > 0 ? `
+                <td colspan="${statColsSpan}" class="py-2.5 px-3 text-center">
+                  <span class="inline-flex items-center gap-1 text-[11px] font-bold text-indigo-800 bg-indigo-50/90 px-2.5 py-1 rounded-xl border border-indigo-200/80 leading-snug">
+                    <span>📌</span>
+                    <span>${exNote}</span>
+                  </span>
+                </td>
+              ` : ''}
+            </tr>
+          `;
+          return;
+        }
+
         const prBadge = `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${sub.pr >= 75 ? 'bg-amber-100 text-amber-900 border border-amber-200' : 'bg-slate-100 text-slate-600'}">PR ${sub.pr}</span>`;
         const diffBadge = sub.diff >= 0 
           ? `<span class="text-emerald-600 font-bold">+${sub.diff}</span>` 
@@ -2226,6 +2251,26 @@
           diagList.innerHTML = '';
           curExam.subjects.forEach(sub => {
             const theme = getSubjectTheme(sub.name);
+            if (sub.isExcluded) {
+              const exNote = sub.excludedNote || '該科目額外採計，該測驗不計入班級統計資料，僅呈現學生成績';
+              diagList.innerHTML += `
+                <div class="p-3.5 bg-indigo-50/40 rounded-xl border border-indigo-200/80 shadow-xs space-y-2 border-l-4" style="border-left-color: #4f46e5">
+                  <div class="flex items-center justify-between flex-wrap gap-1.5">
+                    <div class="flex items-center gap-1.5 font-bold text-xs text-slate-800">
+                      <span class="w-2 h-2 rounded-full ${theme.dot}"></span>
+                      <span class="${theme.textDark} font-black">【${sub.name}】</span>
+                      ${cfg.showSubjects ? `得分 <span class="${theme.textAccent} font-black">${sub.score}</span> 分` : ''}
+                    </div>
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border bg-indigo-100 text-indigo-800 border-indigo-200">📌 額外採計（僅呈現學生成績）</span>
+                  </div>
+                  <div class="text-[11px] font-bold text-indigo-900 bg-indigo-100/70 px-2.5 py-1.5 rounded-lg border border-indigo-200">
+                    📌 ${exNote}
+                  </div>
+                  <div class="text-slate-600 leading-relaxed text-[11px] bg-white/80 p-2 rounded-lg border border-slate-100">${sub.advice}</div>
+                </div>
+              `;
+              return;
+            }
             const zoneBadgeClass = sub.zone === '精熟' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' :
                                    sub.zone === '穩健' ? 'bg-blue-100 text-blue-800 border-blue-200' :
                                    sub.zone === '努力' ? 'bg-amber-100 text-amber-800 border-amber-200' : 'bg-rose-100 text-rose-800 border-rose-200';
@@ -2279,13 +2324,37 @@
         btn.className = isActive
           ? `px-3 py-1.5 rounded-xl font-black text-xs bg-white text-slate-900 shadow-xs border border-black/5 transition-all duration-150 active:scale-95 flex items-center gap-1.5`
           : `px-3 py-1.5 rounded-xl font-medium text-xs text-slate-600 hover:text-slate-900 hover:bg-white/40 transition-all duration-150 active:scale-95 flex items-center gap-1.5`;
-        btn.innerHTML = `<span class="w-2 h-2 rounded-full ${theme.dot}"></span><span>${sub.name}</span> <span class="${isActive ? 'text-amber-800 font-bold' : 'text-slate-400 font-normal'}">(${sub.score}分)</span>`;
+        btn.innerHTML = `<span class="w-2 h-2 rounded-full ${theme.dot}"></span><span>${sub.name}</span> <span class="${isActive ? 'text-amber-800 font-bold' : 'text-slate-400 font-normal'}">(${sub.score}分)</span>${sub.isExcluded ? '<span class="text-[10px] bg-indigo-100 text-indigo-800 px-1 rounded font-bold">額外採計</span>' : ''}`;
         tabsContainer.appendChild(btn);
       });
 
       const activeSub = subs[parentBoxplotSubIdx];
       const activeTheme = getSubjectTheme(activeSub.name);
       const activeBadge = document.getElementById('pBoxplotActiveZoneBadge');
+      const chartArea = document.getElementById('pBoxplotChartContainer');
+      const zonesArea = document.getElementById('pBoxplotZoneCards');
+
+      if (activeSub.isExcluded) {
+        const exNote = activeSub.excludedNote || '該科目額外採計，該測驗不計入班級統計資料，僅呈現學生成績';
+        if (activeBadge) {
+          activeBadge.innerText = '📌 額外採計（僅呈現學生成績）';
+          activeBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200';
+        }
+        chartArea.innerHTML = `
+          <div class="p-4 bg-gradient-to-r from-indigo-50/80 via-white to-indigo-50/60 rounded-2xl border border-indigo-200/80 text-center space-y-2 shadow-2xs">
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-100 text-indigo-900 text-xs font-black">
+              <span>🌱</span>
+              <span>【${activeSub.name}】個人得分：${activeSub.score} 分</span>
+            </div>
+            <div class="text-xs font-bold text-indigo-950 leading-relaxed">
+              📌 ${exNote}
+            </div>
+          </div>
+        `;
+        if (zonesArea) zonesArea.innerHTML = '';
+        return;
+      }
+
       if (activeBadge) {
         activeBadge.innerText = activeSub.zoneStatus || (activeSub.zone + '區間');
         if (activeSub.zone === '精熟') activeBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200';
@@ -2313,7 +2382,6 @@
       const pScore = clamp(score);
       const boxW = Math.max(2, pQ3 - pQ1);
 
-      const chartArea = document.getElementById('pBoxplotChartContainer');
       chartArea.innerHTML = `
         <div class="flex items-center justify-between text-xs font-bold text-slate-700 mb-1">
           <div class="flex items-center gap-2">
@@ -2361,7 +2429,6 @@
       `;
 
       // 4 大區間指引 (正向成長心態)
-      const zonesArea = document.getElementById('pBoxplotZoneCards');
       const isCur = z => activeSub.zone === z;
       zonesArea.innerHTML = `
         <div class="p-2.5 rounded-2xl border ${isCur('精熟') ? 'bg-emerald-50/90 border-emerald-400 ring-2 ring-emerald-300 shadow-xs' : 'bg-slate-50/70 border-slate-200/80 opacity-70'}">
@@ -2535,7 +2602,7 @@
           btn.className = isActive
             ? `px-3 py-1.5 rounded-xl font-black text-xs bg-white text-slate-900 shadow-xs border border-black/5 transition-all duration-150 active:scale-95 flex items-center gap-1.5`
             : `px-3 py-1.5 rounded-xl font-medium text-xs text-slate-600 hover:text-slate-900 hover:bg-white/40 transition-all duration-150 active:scale-95 flex items-center gap-1.5`;
-          btn.innerHTML = `<span class="w-2 h-2 rounded-full ${theme.dot}"></span><span>${sub.name}</span> <span class="${isActive ? 'text-amber-800 font-bold' : 'text-slate-400 font-normal'}">(${sub.score}分)</span>`;
+          btn.innerHTML = `<span class="w-2 h-2 rounded-full ${theme.dot}"></span><span>${sub.name}</span> <span class="${isActive ? 'text-amber-800 font-bold' : 'text-slate-400 font-normal'}">(${sub.score}分)</span>${sub.isExcluded ? '<span class="text-[10px] bg-indigo-100 text-indigo-800 px-1 rounded font-bold">額外採計</span>' : ''}`;
           tabsContainer.appendChild(btn);
         });
       }
@@ -2591,6 +2658,26 @@
       }) : null;
 
       const badgeEl = document.getElementById('pPrCurveBadge');
+
+      if (activeSub.isExcluded || (isComparing && compSub && compSub.isExcluded)) {
+        const exNote = activeSub.excludedNote || (compSub && compSub.excludedNote) || '該科目額外採計，該測驗不計入班級統計資料，僅呈現學生成績';
+        if (badgeEl) {
+          badgeEl.innerHTML = `<span class="text-indigo-800 font-bold">📌 ${activeSub.name}：${activeSub.score}分（額外採計）</span>`;
+        }
+        container.innerHTML = `
+          <div class="p-4 bg-gradient-to-r from-indigo-50/80 via-white to-indigo-50/60 rounded-2xl border border-indigo-200/80 text-center space-y-2.5 shadow-2xs">
+            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-100 text-indigo-900 text-xs font-black">
+              <span>🌱</span>
+              <span>【${activeSub.name}】個人得分：${activeSub.score} 分${isComparing && compSub ? `（對比考試：${compSub.score} 分）` : ''}</span>
+            </div>
+            <div class="text-xs font-bold text-indigo-950 leading-relaxed">
+              📌 ${exNote}
+            </div>
+            ${activeSub.advice ? `<div class="text-xs text-slate-700 bg-white/90 p-2.5 rounded-xl border border-indigo-100 font-medium text-left">💡 適性引導：${activeSub.advice}</div>` : ''}
+          </div>
+        `;
+        return;
+      }
 
       // 3. 計算本次考試 KDE
       const curSamples = getSubjectScoreSamples(activeSub);
@@ -3017,13 +3104,35 @@
           btn.className = isActive
             ? `px-3 py-1.5 rounded-xl font-black text-xs bg-white text-slate-900 shadow-xs border border-black/5 transition-all duration-150 active:scale-95 flex items-center gap-1.5`
             : `px-3 py-1.5 rounded-xl font-medium text-xs text-slate-600 hover:text-slate-900 hover:bg-white/40 transition-all duration-150 active:scale-95 flex items-center gap-1.5`;
-          btn.innerHTML = `<span class="w-2 h-2 rounded-full ${theme.dot}"></span><span>${sub.name}</span> <span class="${isActive ? 'text-amber-800 font-bold' : 'text-slate-400 font-normal'}">(${sub.score}分)</span>`;
+          btn.innerHTML = `<span class="w-2 h-2 rounded-full ${theme.dot}"></span><span>${sub.name}</span> <span class="${isActive ? 'text-amber-800 font-bold' : 'text-slate-400 font-normal'}">(${sub.score}分)</span>${sub.isExcluded ? '<span class="text-[10px] bg-indigo-100 text-indigo-800 px-1 rounded font-bold">額外採計</span>' : ''}`;
           tabsContainer.appendChild(btn);
         });
       }
 
       const activeSub = subs[parentBeeswarmSubIdx];
       const score = activeSub.score !== undefined ? activeSub.score : 0;
+
+      if (activeSub.isExcluded) {
+        const exNote = activeSub.excludedNote || '該科目額外採計，該測驗不計入班級統計資料，僅呈現學生成績';
+        if (badgeEl) {
+          badgeEl.className = 'text-[10px] font-black px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200';
+          badgeEl.innerText = '📌 額外採計科目';
+        }
+        container.innerHTML = `
+          <div class="p-4 bg-gradient-to-r from-indigo-50/80 via-white to-indigo-50/60 rounded-2xl border border-indigo-200/80 text-center space-y-2 shadow-2xs">
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-100 text-indigo-900 text-xs font-black">
+              <span>🌱</span>
+              <span>【${activeSub.name}】個人得分：${score} 分</span>
+            </div>
+            <div class="text-xs font-bold text-indigo-950 leading-relaxed">
+              📌 ${exNote}
+            </div>
+          </div>
+        `;
+        if (analysisEl) analysisEl.innerHTML = '';
+        return;
+      }
+
       const cAvg = activeSub.classAverage !== undefined ? activeSub.classAverage : 75;
       const med = activeSub.median !== undefined ? activeSub.median : cAvg;
       const pr = activeSub.pr !== undefined ? activeSub.pr : 50;
@@ -3136,11 +3245,11 @@
         analysisEl.innerHTML = `
           <div class="font-bold text-slate-800 flex items-center justify-between mb-1">
             <span class="flex items-center gap-1"><span>🐝</span> <b>【${activeSub.name}】微觀落點聚落解讀</b></span>
-            <span class="text-[10px] text-amber-800 font-black">每個圓點代表 1 位同學匿名成績</span>
+            <span class="text-[10px] text-amber-800 font-black">每個圓點代表同學匿名成績</span>
           </div>
           <p class="text-slate-600 leading-relaxed text-xs">
             全班同學成績在 <b>${Math.max(40, cAvg - 8)} ~ ${Math.min(100, cAvg + 12)} 分</b> 形成密集微觀聚落。
-            孩子落點在 <b>${score} 分</b>，在全班 24 人中高於 <b>${pr}%</b> 的同學。
+            孩子落點在 <b>${score} 分</b>，在班級同儕常模中高於 <b>${pr}%</b> 的同學。
             ${score >= cAvg ? '穩居班級優勢區間，具備扎實掌握度！' : '處於積極追趕的蓄力區間，加強觀念扎根隨時能向前跨進！'}
           </p>
         `;
@@ -3165,9 +3274,27 @@
 
       container.innerHTML = '';
       curExam.subjects.forEach(sub => {
+        const score = sub.score !== undefined ? sub.score : 0;
+        if (sub.isExcluded) {
+          const exNote = sub.excludedNote || '該科目額外採計，該測驗不計入班級統計資料，僅呈現學生成績';
+          container.innerHTML += `
+            <div class="p-3 bg-indigo-50/50 rounded-2xl border border-indigo-200/80 space-y-1.5">
+              <div class="flex items-center justify-between flex-wrap gap-1.5 text-xs sm:text-sm">
+                <div class="flex items-center gap-2 font-bold text-slate-800">
+                  <span class="font-black text-slate-900">【${sub.name}】</span>
+                  <span class="text-xs text-slate-600 font-medium">原始得分: <b class="text-indigo-800">${score}</b>分</span>
+                </div>
+                <span class="text-[10px] font-black px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 border border-indigo-200">📌 額外採計科目</span>
+              </div>
+              <div class="text-[11px] font-bold text-indigo-900 bg-white/80 px-2.5 py-1.5 rounded-xl border border-indigo-100">
+                📌 ${exNote}
+              </div>
+            </div>
+          `;
+          return;
+        }
         const samples = getSubjectScoreSamples(sub);
         const cAvg = sub.classAverage !== undefined ? sub.classAverage : 75;
-        const score = sub.score !== undefined ? sub.score : 0;
 
         let variance = 0;
         samples.forEach(s => { variance += Math.pow(s - cAvg, 2); });
@@ -3371,8 +3498,13 @@
       const qDarkHorse = []; // 左上: PR < 50, Δ > 0 (黑馬蓄力)
       const qConsolidate = []; // 右下: PR >= 50, Δ < 0 (細心守成)
       const qCompanion = []; // 左下: PR < 50, Δ <= 0 (親師伴讀)
+      const excludedList = []; // 額外採計科目（不進入全班常模象限）
 
       curExam.subjects.forEach(cSub => {
+        if (cSub.isExcluded) {
+          excludedList.push(cSub);
+          return;
+        }
         const pr = cSub.pr !== undefined ? cSub.pr : 50;
         let delta = 0;
         if (prevExam && prevExam.subjects) {
@@ -3410,6 +3542,24 @@
           </div>
         `).join(' ');
       };
+
+      const excludedFooterHtml = excludedList.length > 0 ? `
+        <div class="mt-3 p-3 bg-indigo-50/70 rounded-2xl border border-indigo-200/80 space-y-1.5 text-xs">
+          <div class="font-black text-indigo-950 flex items-center gap-1.5">
+            <span>📌</span>
+            <span>額外採計科目（該測驗不計入班級統計資料，僅呈現學生成績）</span>
+          </div>
+          <div class="flex flex-wrap gap-1.5 pt-0.5">
+            ${excludedList.map(ex => `
+              <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white text-indigo-900 border border-indigo-200 text-xs font-bold shadow-2xs">
+                <span>${ex.name}</span>
+                <span class="font-black">${ex.score}分</span>
+                <span class="text-[10px] text-indigo-600">(額外採計)</span>
+              </div>
+            `).join(' ')}
+          </div>
+        </div>
+      ` : '';
 
       container.innerHTML = `
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
@@ -3461,6 +3611,7 @@
             </div>
           </div>
         </div>
+        ${excludedFooterHtml}
       `;
     }
 
@@ -3504,7 +3655,8 @@
                 badges.push({ icon: '🎖️', title: '破風躍進獎', desc: `總均顯著成長 +${diff.toFixed(1)}分` });
               }
             }
-            if (ex.subjects && ex.subjects.every(s => s.score >= s.classAverage)) {
+            const nonExSubs = (ex.subjects || []).filter(s => !s.isExcluded && typeof s.classAverage === 'number');
+            if (nonExSubs.length > 0 && nonExSubs.every(s => s.score >= s.classAverage)) {
               badges.push({ icon: '🌟', title: '全能卓越獎', desc: '全科高於班級平均' });
             }
             if (badges.length === 0) {
@@ -3669,18 +3821,30 @@
     }
 
     function buildDemoExamsForStudent(student) {
+      let localExMap = {};
+      try {
+        const rawMap = localStorage.getItem('mpscore_excluded_subjects_map');
+        if (rawMap) localExMap = JSON.parse(rawMap) || {};
+      } catch (e) {}
+
+      const isSubExcludedForSt = (seat, name, subName) => {
+        const sNorm = normalizeSeatNumber(seat);
+        const list = (sNorm && localExMap[sNorm]) || (name && localExMap[name]) || [];
+        if (!Array.isArray(list) || list.length === 0) return false;
+        const cleanSub = (subName || '').trim().replace(/科$/, '');
+        return list.some(ex => {
+          const cleanEx = (ex || '').trim().replace(/科$/, '');
+          return cleanEx && (cleanEx === cleanSub || cleanEx.includes(cleanSub) || cleanSub.includes(cleanEx));
+        });
+      };
+
+      const EXCLUDED_NOTE = '該科目額外採計，該測驗不計入班級統計資料，僅呈現學生成績';
+
       const calcExam = (title, sheetName, rawList) => {
         const subs = ['國語', '數學', '社會', '英文', '自然'];
         const totalCount = rawList.length;
-        
-        // 各科班平均
-        const subAvgs = {};
-        subs.forEach(s => {
-          const sum = rawList.reduce((acc, st) => acc + (st.scores[s] || 0), 0);
-          subAvgs[s] = Math.round((sum / totalCount) * 100) / 100;
-        });
 
-        // 排名與個人平均
+        // 排名與個人平均（全員納入班級總分與總平均排名）
         const ranked = rawList.map(st => {
           const myScores = subs.map(s => st.scores[s] || 0);
           const myAvg = myScores.reduce((a, b) => a + b, 0) / subs.length;
@@ -3691,18 +3855,25 @@
         const targetName = student ? (student.name || '').trim() : '';
         const myEntry = ranked.find(r => (targetSeat && r.seat === targetSeat) || (targetName && r.name === targetName)) || ranked[0];
         const myRank = ranked.findIndex(r => r === myEntry) + 1;
-        const classOverallAvg = Math.round((ranked.reduce((a, b) => a + b.avg, 0) / totalCount) * 100) / 100;
 
         const allAvgs = ranked.map(r => r.avg).sort((a, b) => a - b);
         const belowAvg = allAvgs.filter(v => v < myEntry.avg).length;
         const equalAvg = allAvgs.filter(v => v === myEntry.avg).length;
         const studentAveragePr = Math.round(((belowAvg + 0.5 * equalAvg) / totalCount) * 100);
 
-        // 各科 PR 與建議及箱型圖五數摘要 (Q1, Median, Q3, Min, Max)
+        let classTotalAvgSum = 0;
+
+        // 各科 PR 與建議及箱型圖五數摘要 (單科統計排除抽離生)
         const subjectsResult = subs.map(s => {
           const score = myEntry.scores[s] !== undefined ? myEntry.scores[s] : 0;
-          const cAvg = subAvgs[s];
-          const allS = rawList.map(st => st.scores[s] || 0);
+          const validRaw = rawList.filter(st => !isSubExcludedForSt(st.seat, st.name, s));
+          const poolRaw = validRaw.length > 0 ? validRaw : rawList;
+          const validCount = poolRaw.length;
+          const allS = poolRaw.map(st => st.scores[s] || 0);
+          const sum = allS.reduce((a, b) => a + b, 0);
+          const cAvg = Math.round((sum / validCount) * 100) / 100;
+          classTotalAvgSum += cAvg;
+
           const sortedS = allS.slice().sort((a, b) => a - b);
           const getPVal = (arr, p) => {
             const idx = (p / 100) * (arr.length - 1);
@@ -3717,9 +3888,36 @@
           const min = sortedS[0];
           const max = sortedS[sortedS.length - 1];
 
+          const isMyExcluded = isSubExcludedForSt(myEntry.seat, myEntry.name, s);
+          const advicePool = GRADE_INTERPR_ADVICE[s] || GRADE_INTERPR_ADVICE['國語'];
+
+          if (isMyExcluded) {
+            const exZoneType = score >= 80 ? 'leading' : 'improving';
+            const exList = advicePool[exZoneType];
+            const exPick = exList[(s.charCodeAt(0) + Math.floor(score)) % exList.length];
+            return {
+              name: s,
+              score: score,
+              isExcluded: true,
+              excludedNote: EXCLUDED_NOTE,
+              classAverage: null,
+              diff: null,
+              pr: null,
+              q1: null,
+              median: null,
+              q3: null,
+              min: null,
+              max: null,
+              allScores: [],
+              zone: '額外採計',
+              zoneStatus: '額外採計（僅呈現學生成績）',
+              advice: '📌 ' + EXCLUDED_NOTE + '。' + exPick
+            };
+          }
+
           const below = allS.filter(v => v < score).length;
           const equal = allS.filter(v => v === score).length;
-          const pr = Math.round(((below + 0.5 * equal) / totalCount) * 100);
+          const pr = Math.round(((below + 0.5 * equal) / validCount) * 100);
 
           let zone = '穩健', zoneStatus = '穩健發揮區間', zoneType = 'leading';
           if (score >= q3 || pr >= 75) { zone = '精熟'; zoneStatus = '精熟表現區間'; zoneType = 'leading'; }
@@ -3727,13 +3925,14 @@
           else if (score >= q1 || pr >= 25) { zone = '努力'; zoneStatus = '努力成長區間'; zoneType = 'improving'; }
           else { zone = '開發'; zoneStatus = '開發潛力區間'; zoneType = 'improving'; }
 
-          const advicePool = GRADE_INTERPR_ADVICE[s] || GRADE_INTERPR_ADVICE['國語'];
           const list = advicePool[zoneType];
           const pick = list[(s.charCodeAt(0) + Math.floor(score)) % list.length];
 
           return {
             name: s,
             score: score,
+            isExcluded: false,
+            excludedNote: '',
             classAverage: cAvg,
             diff: Math.round((score - cAvg) * 100) / 100,
             pr: pr,
@@ -3748,6 +3947,8 @@
             advice: pick
           };
         });
+
+        const classOverallAvg = Math.round((classTotalAvgSum / subs.length) * 100) / 100;
 
         return {
           examTitle: title,
@@ -3783,12 +3984,15 @@
             subjects: []
           };
         }
+        const isEx = !!r.isExcluded;
         examMap[key].subjects.push({
           name: r.subject,
           score: r.score,
-          classAverage: r.average,
-          diff: Math.round((r.score - r.average) * 10) / 10,
-          pr: r.pr,
+          isExcluded: isEx,
+          excludedNote: r.excludedNote || (isEx ? '該科目額外採計，該測驗不計入班級統計資料，僅呈現學生成績' : ''),
+          classAverage: isEx ? null : r.average,
+          diff: isEx ? null : Math.round((r.score - r.average) * 10) / 10,
+          pr: isEx ? null : r.pr,
           zone: r.zone,
           zoneStatus: r.zoneStatus,
           advice: r.diagnosis

@@ -19,6 +19,8 @@
  * • 2026-10-26：實施教師金鑰 PIN 防護與試算表雙向同步。
  * • 2026-10-27：導入試卷難易度指數 (P*) 與統計方法指南。
  * • 2026-10-29：整合 School LINE Hub 校園推播中樞、手機即時沙盒模擬與 0ms 家長端導向防護。
+ * • 2026-11-06：資安與個資全面加固、世代快取版本號與常模曲線智慧引線對話框升級。
+ * • 2026-11-12：新增「抽離考試／額外採計科目」統計隔離機制（單科排除班級統計、保留個人總平均與總排名、零標籤化個資防護）。
  */
 
 function onOpen() {
@@ -217,6 +219,181 @@ function maskStudentName_(name) {
   if (s.length === 2) return s.charAt(0) + '○';
   if (s.length === 3) return s.charAt(0) + '○' + s.charAt(2);
   return s.substring(0, s.length - 2) + '○' + s.charAt(s.length - 1);
+}
+
+/**
+ * =========================================================================
+ * 🌱 抽離考試／額外採計科目管理模組 (Pull-out / Excluded Subject Statistics)
+ * - 支援教師端視覺化勾選設定，雙向同步於 ScriptProperties 與【學生名冊】G 欄
+ * - 支援單格分數標記（如 *85、＊85、抽離:85）作為單次考試個別額外採計
+ * - 運算規則：該生仍列入個人總平均與班級總排名，但所設定之科目不計入該科班級統計資料
+ * =========================================================================
+ */
+var EXCLUDED_NOTE_TEXT_ = '該科目額外採計，該測驗不計入班級統計資料，僅呈現學生成績';
+
+function parseScoreCell_(rawVal) {
+  if (rawVal === '' || rawVal === null || rawVal === undefined) {
+    return { score: 0, hasValue: false, inlineExcluded: false };
+  }
+  if (typeof rawVal === 'number') {
+    return { score: isNaN(rawVal) ? 0 : rawVal, hasValue: !isNaN(rawVal), inlineExcluded: false };
+  }
+  var s = rawVal.toString().trim();
+  if (!s) return { score: 0, hasValue: false, inlineExcluded: false };
+
+  var isInlineEx = /^[\*＊]/.test(s) || s.indexOf('抽離') !== -1 || s.indexOf('額外') !== -1;
+  var cleaned = s.replace(/^[\*＊\s]+|(?:抽離|額外|採計)[：:\s]*|[()（）抽離額外採計分\s]/g, '');
+  var num = Number(cleaned);
+  if (!isNaN(num) && cleaned !== '') {
+    return { score: num, hasValue: true, inlineExcluded: isInlineEx };
+  }
+  return { score: 0, hasValue: false, inlineExcluded: false };
+}
+
+function getExcludedSubjectsMap_(ss) {
+  var map = {};
+  var props = PropertiesService.getScriptProperties();
+  try {
+    var rawJson = props.getProperty('EXCLUDED_SUBJECTS_MAP');
+    if (rawJson) {
+      var parsed = JSON.parse(rawJson);
+      if (parsed && typeof parsed === 'object') {
+        for (var k in parsed) {
+          if (parsed.hasOwnProperty(k) && Array.isArray(parsed[k]) && parsed[k].length > 0) {
+            map[normalizeSeatNumber(k)] = parsed[k];
+          }
+        }
+      }
+    }
+  } catch (e) {}
+
+  // 與【學生名冊】G 欄（第 7 欄）雙向讀取同步
+  try {
+    if (!ss) ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sSheet = ss ? ss.getSheetByName('學生名冊') : null;
+    if (sSheet && sSheet.getLastColumn() >= 7 && sSheet.getLastRow() >= 2) {
+      var sData = sSheet.getDataRange().getValues();
+      var gHeader = (sData[0][6] || '').toString();
+      if (gHeader.indexOf('額外') !== -1 || gHeader.indexOf('抽離') !== -1) {
+        var sheetMap = {};
+        var hasSheetConfig = false;
+        for (var i = 1; i < sData.length; i++) {
+          var seat = normalizeSeatNumber(sData[i][1]);
+          var gVal = (sData[i][6] || '').toString().trim();
+          if (seat && gVal) {
+            var subs = gVal.split(/[,，、;\s]+/).map(function(x) { return x.trim(); }).filter(function(x) { return !!x; });
+            if (subs.length > 0) {
+              sheetMap[seat] = subs;
+              hasSheetConfig = true;
+            }
+          }
+        }
+        if (hasSheetConfig) {
+          for (var sk in sheetMap) {
+            if (sheetMap.hasOwnProperty(sk)) {
+              map[sk] = sheetMap[sk];
+            }
+          }
+        }
+      }
+    }
+  } catch (e) {}
+
+  return map;
+}
+
+function saveExcludedSubjectsMap_(newMap, ss) {
+  var cleanMap = {};
+  if (newMap && typeof newMap === 'object') {
+    for (var k in newMap) {
+      if (newMap.hasOwnProperty(k)) {
+        var normSeat = normalizeSeatNumber(k);
+        var arr = Array.isArray(newMap[k]) ? newMap[k] : [];
+        var cleanSubs = [];
+        for (var i = 0; i < arr.length; i++) {
+          var sName = (arr[i] || '').toString().trim();
+          if (sName && cleanSubs.indexOf(sName) === -1) {
+            cleanSubs.push(sName);
+          }
+        }
+        if (normSeat && cleanSubs.length > 0) {
+          cleanMap[normSeat] = cleanSubs;
+        }
+      }
+    }
+  }
+
+  var props = PropertiesService.getScriptProperties();
+  props.setProperty('EXCLUDED_SUBJECTS_MAP', JSON.stringify(cleanMap));
+
+  // 同步寫入【學生名冊】G 欄，讓老師在試算表也能一眼查看與備份
+  try {
+    if (!ss) ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sSheet = ss ? ss.getSheetByName('學生名冊') : null;
+    if (sSheet && sSheet.getLastRow() >= 1) {
+      sSheet.getRange(1, 7).setValue('🌱 額外採計科目 (不計入單科統計)')
+        .setFontWeight('bold')
+        .setBackground('#e0e7ff')
+        .setFontColor('#312e81')
+        .setHorizontalAlignment('center');
+      sSheet.setColumnWidth(7, 210);
+
+      var lastRow = sSheet.getLastRow();
+      if (lastRow >= 2) {
+        var seatsRange = sSheet.getRange(2, 2, lastRow - 1, 1).getValues();
+        var outCol = [];
+        for (var r = 0; r < seatsRange.length; r++) {
+          var stSeat = normalizeSeatNumber(seatsRange[r][0]);
+          var stSubs = cleanMap[stSeat] || [];
+          outCol.push([stSubs.join(', ')]);
+        }
+        sSheet.getRange(2, 7, outCol.length, 1).setValues(outCol)
+          .setHorizontalAlignment('center')
+          .setFontColor('#4338ca')
+          .setFontWeight('bold');
+      }
+    }
+  } catch (e) {}
+
+  bumpCacheEpoch_();
+  return cleanMap;
+}
+
+function saveExcludedConfigFromApi(body) {
+  var payload = {};
+  try {
+    payload = typeof body === 'string' ? JSON.parse(body) : (body || {});
+  } catch (e) {
+    return { success: false, message: '設定資料格式錯誤: ' + e.toString() };
+  }
+  var targetMap = payload.excludedMap || payload || {};
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var saved = saveExcludedSubjectsMap_(targetMap, ss);
+  return {
+    success: true,
+    excludedMap: saved,
+    message: '✅ 已成功儲存「抽離考試／額外採計科目」設定並更新雲端統計快取！'
+  };
+}
+
+function isSubjectExcludedForStudent_(excludedMap, seat, name, subName, inlineExcluded) {
+  if (inlineExcluded) return true;
+  if (!excludedMap || !subName) return false;
+  var normSeat = normalizeSeatNumber(seat);
+  var list = excludedMap[normSeat] || (name ? excludedMap[name] : null);
+  if (!list || !Array.isArray(list) || list.length === 0) return false;
+
+  var cleanTarget = subName.toString().trim().replace(/科$/, '');
+  for (var i = 0; i < list.length; i++) {
+    var item = (list[i] || '').toString().trim().replace(/科$/, '');
+    if (!item) continue;
+    if (item === cleanTarget || item.indexOf(cleanTarget) !== -1 || cleanTarget.indexOf(item) !== -1) {
+      return true;
+    }
+    if ((item === '英文' || item === '英語') && (cleanTarget === '英文' || cleanTarget === '英語')) return true;
+    if ((item === '國語' || item === '國文' || item === '語文') && (cleanTarget === '國語' || cleanTarget === '國文' || cleanTarget === '語文')) return true;
+  }
+  return false;
 }
 
 function showTeacherKeyDialog() {
@@ -497,6 +674,11 @@ function doGet(e) {
       output = syncStudentsToLineHubFromGas();
     } else if (action === 'saveLineHubConfig') {
       output = saveLineHubConfigFromApi(params);
+    } else if (action === 'getExcludedConfig') {
+      output = { success: true, excludedMap: getExcludedSubjectsMap_(SpreadsheetApp.getActiveSpreadsheet()) };
+    } else if (action === 'saveExcludedConfig') {
+      var exPayload = params.payload || (e && e.postData && e.postData.contents ? e.postData.contents : '');
+      output = saveExcludedConfigFromApi(exPayload);
     } else {
       output = { success: false, message: '未知的操作請求' };
     }
@@ -779,7 +961,9 @@ function getStudentScoreByToken(token, isSimulation, seatParam, nameParam) {
           diagnosis: subItem.advice,
           difficulty: subItem.difficulty,
           difficultyBadge: subItem.difficultyBadge,
-          difficultyNote: subItem.difficultyNote
+          difficultyNote: subItem.difficultyNote,
+          isExcluded: !!subItem.isExcluded,
+          excludedNote: subItem.excludedNote || ''
         });
       }
     }
@@ -915,11 +1099,11 @@ function detectExamSheetColumns(data) {
     var isExcluded = excludeKeywords.some(function(k) { return cleanH.indexOf(k) !== -1; });
     if (isExcluded) continue;
 
-    // 檢查底下資料是否包含有效數值
+    // 檢查底下資料是否包含有效數值（相容抽離考試內嵌標記 *85）
     var hasNumbers = false;
     for (var rCheck = bestRowIdx + 1; rCheck < Math.min(bestRowIdx + 10, data.length); rCheck++) {
       var cellVal = data[rCheck][sc];
-      if (cellVal !== '' && cellVal !== null && cellVal !== undefined && !isNaN(Number(cellVal))) {
+      if (parseScoreCell_(cellVal).hasValue) {
         hasNumbers = true;
         break;
       }
@@ -941,6 +1125,9 @@ function detectExamSheetColumns(data) {
 
 /**
  * 深入解析單一考試分頁：全自動運算該次考試的全班平均、PR值、排名與個人診斷
+ * ★ 2026-11-12 新增「抽離考試／額外採計科目」雙軌分離運算：
+ *   - 個人總平均 (studentAverage)、全班總排名 (studentRank)、總平均 PR (studentAveragePr)：全員納入採計
+ *   - 單科全班統計 (classAverage, q1, median, q3, min, max, pr, difficulty)：排除該科抽離生，且該科對受設定學生回傳 isExcluded: true 與法定說明文字
  */
 function analyzeExamSheet(sheet, student) {
   var data = sheet.getDataRange().getValues();
@@ -964,6 +1151,9 @@ function analyzeExamSheet(sheet, student) {
     }
   }
 
+  // 讀取教師設定之抽離／額外採計科目對照表
+  var excludedMap = getExcludedSubjectsMap_(sheet.getParent());
+
   // 3. 收集所有學生的原始分數（自動排除底部的「平均」、「標準差」或空列）
   var studentsScores = [];
   var myStudentRow = null;
@@ -985,6 +1175,7 @@ function analyzeExamSheet(sheet, student) {
       seat: normalizeSeatNumber(seatVal),
       name: nameVal,
       scores: {},
+      excludedMap: {},
       total: 0,
       count: 0
     };
@@ -992,16 +1183,24 @@ function analyzeExamSheet(sheet, student) {
     for (var sIdx = 0; sIdx < subjectCols.length; sIdx++) {
       var colInfo = subjectCols[sIdx];
       var rawScore = row[colInfo.index];
-      var numScore = Number(rawScore);
-      if (!isNaN(numScore) && rawScore !== '') {
-        sObj.scores[colInfo.name] = numScore;
-        sObj.total += numScore;
+      var parsedCell = parseScoreCell_(rawScore);
+      if (parsedCell.hasValue) {
+        sObj.scores[colInfo.name] = parsedCell.score;
+        sObj.total += parsedCell.score;
         sObj.count++;
       } else {
         sObj.scores[colInfo.name] = 0;
       }
+      sObj.excludedMap[colInfo.name] = isSubjectExcludedForStudent_(
+        excludedMap,
+        sObj.seat,
+        sObj.name,
+        colInfo.name,
+        parsedCell.inlineExcluded
+      );
     }
 
+    // 個人總平均依然包含所有考科（含額外採計科目）並參與班級總排名
     sObj.average = sObj.count > 0 ? Math.round((sObj.total / sObj.count) * 100) / 100 : 0;
     studentsScores.push(sObj);
 
@@ -1017,7 +1216,7 @@ function analyzeExamSheet(sheet, student) {
 
   var totalStudents = studentsScores.length;
 
-  // 4. 計算全班排名 (依學生個人平均由高至低)
+  // 4. 計算全班排名 (依學生個人總平均由高至低，抽離生依然參與班級總排名)
   var sortedByAvg = studentsScores.slice().sort(function(a, b) {
     return b.average - a.average;
   });
@@ -1040,92 +1239,135 @@ function analyzeExamSheet(sheet, student) {
   var studentAveragePr = Math.round(((avgBelowCount + 0.5 * avgEqualCount) / totalStudents) * 100);
 
   // 5. 計算各科目的「班級平均」、「PR值」與「箱型圖四分位數 (Q1, Median, Q3)」
+  // ★ 單科統計嚴格排除受設定之抽離生分數
   var subjectsResult = [];
   var classTotalAvgSum = 0;
 
   for (var j = 0; j < subjectCols.length; j++) {
     var subName = subjectCols[j].name;
-    var allScoresForSub = [];
+    var validScoresForSub = [];
 
     for (var k = 0; k < studentsScores.length; k++) {
-      allScoresForSub.push(studentsScores[k].scores[subName] || 0);
+      var stRow = studentsScores[k];
+      if (!stRow.excludedMap[subName]) {
+        validScoresForSub.push(stRow.scores[subName] || 0);
+      }
     }
 
-    // 計算該科班級平均
-    var subSum = allScoresForSub.reduce(function(a, b) { return a + b; }, 0);
-    var subClassAvg = Math.round((subSum / totalStudents) * 100) / 100;
+    // 防護備援：若全班在該科皆被設為抽離，退回使用全體分數避免除以 0
+    if (validScoresForSub.length === 0) {
+      for (var kFallback = 0; kFallback < studentsScores.length; kFallback++) {
+        validScoresForSub.push(studentsScores[kFallback].scores[subName] || 0);
+      }
+    }
+
+    var validSubCount = validScoresForSub.length;
+
+    // 計算該科班級平均（已排除抽離生）
+    var subSum = validScoresForSub.reduce(function(a, b) { return a + b; }, 0);
+    var subClassAvg = Math.round((subSum / validSubCount) * 100) / 100;
     classTotalAvgSum += subClassAvg;
 
-    // 計算該名學生的 PR 值: (低於人數 + 0.5 * 同分人數) / 總人數 * 100
-    var mySubScore = myStudentRow.scores[subName] || 0;
-    var below = 0;
-    var equal = 0;
-
-    for (var p = 0; p < allScoresForSub.length; p++) {
-      if (allScoresForSub[p] < mySubScore) below++;
-      else if (allScoresForSub[p] === mySubScore) equal++;
-    }
-
-    var prVal = Math.round(((below + 0.5 * equal) / totalStudents) * 100);
-
-    // 計算該科箱型圖五數摘要 (Q1, Median, Q3, Min, Max)
-    var sortedSubScores = allScoresForSub.slice().sort(function(a, b) { return a - b; });
+    // 計算該科箱型圖五數摘要 (Q1, Median, Q3, Min, Max，已排除抽離生)
+    var sortedSubScores = validScoresForSub.slice().sort(function(a, b) { return a - b; });
     var q1Val = calculatePercentileValue(sortedSubScores, 25);
     var medianVal = calculatePercentileValue(sortedSubScores, 50);
     var q3Val = calculatePercentileValue(sortedSubScores, 75);
     var minVal = sortedSubScores[0];
     var maxVal = sortedSubScores[sortedSubScores.length - 1];
 
-    // 學習落點區間判定 (依楊家驊老師 GradeInterpr 標準)
-    var zone = '穩健';
-    var zoneStatus = '穩健發揮區間';
-    var zoneType = 'leading';
-
-    if (mySubScore >= q3Val || prVal >= 75) {
-      zone = '精熟';
-      zoneStatus = '精熟表現區間';
-      zoneType = 'leading';
-    } else if (mySubScore >= medianVal || prVal >= 50) {
-      zone = '穩健';
-      zoneStatus = '穩健發揮區間';
-      zoneType = 'leading';
-    } else if (mySubScore >= q1Val || prVal >= 25) {
-      zone = '努力';
-      zoneStatus = '努力成長區間';
-      zoneType = 'improving';
-    } else {
-      zone = '開發';
-      zoneStatus = '開發潛力區間';
-      zoneType = 'improving';
-    }
-
-    // 產生專家建議
-    var adviceText = getExpertSubjectAdvice(subName, zoneType, mySubScore);
-
-    // 計算試卷難易度 (方法三：加權抗極端值校正，*難易度以班級成績估計)
+    // 計算試卷難易度 (方法三：加權抗極端值校正，*難易度以班級成績估計，已排除抽離生)
     var diffInfo = calculateSubjectDifficulty(subClassAvg, medianVal);
 
-    subjectsResult.push({
-      name: subName,
-      score: mySubScore,
-      classAverage: subClassAvg,
-      diff: Math.round((mySubScore - subClassAvg) * 100) / 100,
-      pr: prVal,
-      q1: q1Val,
-      median: medianVal,
-      q3: q3Val,
-      min: minVal,
-      max: maxVal,
-      zone: zone,
-      zoneStatus: zoneStatus,
-      advice: adviceText,
-      difficulty: diffInfo.level,
-      difficultyBadge: diffInfo.badge,
-      difficultyColor: diffInfo.color,
-      difficultyIndex: diffInfo.index,
-      difficultyScore: diffInfo.score,
-      difficultyNote: diffInfo.note
-    });
+    var mySubScore = myStudentRow.scores[subName] || 0;
+    var isMySubExcluded = !!(myStudentRow.excludedMap && myStudentRow.excludedMap[subName]);
+
+    if (isMySubExcluded) {
+      // ★ 受設定學生之抽離科目：不計入單科班級統計，僅呈現學生成績與專屬說明
+      var exZoneType = mySubScore >= 80 ? 'leading' : 'improving';
+      var exAdvice = '📌 ' + EXCLUDED_NOTE_TEXT_ + '。' + getExpertSubjectAdvice(subName, exZoneType, mySubScore);
+      subjectsResult.push({
+        name: subName,
+        score: mySubScore,
+        isExcluded: true,
+        excludedNote: EXCLUDED_NOTE_TEXT_,
+        classAverage: null,
+        diff: null,
+        pr: null,
+        q1: null,
+        median: null,
+        q3: null,
+        min: null,
+        max: null,
+        zone: '額外採計',
+        zoneStatus: '額外採計（僅呈現學生成績）',
+        advice: exAdvice,
+        difficulty: null,
+        difficultyBadge: null,
+        difficultyColor: null,
+        difficultyIndex: null,
+        difficultyScore: null,
+        difficultyNote: null
+      });
+    } else {
+      // 一般採計科目：以排除抽離生後的有效母體計算 PR 值
+      var below = 0;
+      var equal = 0;
+      for (var p = 0; p < validScoresForSub.length; p++) {
+        if (validScoresForSub[p] < mySubScore) below++;
+        else if (validScoresForSub[p] === mySubScore) equal++;
+      }
+      var prVal = Math.round(((below + 0.5 * equal) / validSubCount) * 100);
+
+      // 學習落點區間判定 (依楊家驊老師 GradeInterpr 標準)
+      var zone = '穩健';
+      var zoneStatus = '穩健發揮區間';
+      var zoneType = 'leading';
+
+      if (mySubScore >= q3Val || prVal >= 75) {
+        zone = '精熟';
+        zoneStatus = '精熟表現區間';
+        zoneType = 'leading';
+      } else if (mySubScore >= medianVal || prVal >= 50) {
+        zone = '穩健';
+        zoneStatus = '穩健發揮區間';
+        zoneType = 'leading';
+      } else if (mySubScore >= q1Val || prVal >= 25) {
+        zone = '努力';
+        zoneStatus = '努力成長區間';
+        zoneType = 'improving';
+      } else {
+        zone = '開發';
+        zoneStatus = '開發潛力區間';
+        zoneType = 'improving';
+      }
+
+      var adviceText = getExpertSubjectAdvice(subName, zoneType, mySubScore);
+
+      subjectsResult.push({
+        name: subName,
+        score: mySubScore,
+        isExcluded: false,
+        excludedNote: '',
+        classAverage: subClassAvg,
+        diff: Math.round((mySubScore - subClassAvg) * 100) / 100,
+        pr: prVal,
+        q1: q1Val,
+        median: medianVal,
+        q3: q3Val,
+        min: minVal,
+        max: maxVal,
+        zone: zone,
+        zoneStatus: zoneStatus,
+        advice: adviceText,
+        difficulty: diffInfo.level,
+        difficultyBadge: diffInfo.badge,
+        difficultyColor: diffInfo.color,
+        difficultyIndex: diffInfo.index,
+        difficultyScore: diffInfo.score,
+        difficultyNote: diffInfo.note
+      });
+    }
   }
 
   var classOverallAvg = Math.round((classTotalAvgSum / subjectCols.length) * 100) / 100;
@@ -1282,12 +1524,16 @@ function getStudentListForTeacher() {
   return {
     success: true,
     students: students,
-    examList: examList
+    examList: examList,
+    excludedMap: getExcludedSubjectsMap_(ss)
   };
 }
 
 /**
  * 高速解析單一考試分頁內所有學生的統計摘要
+ * ★ 2026-11-12 支援「抽離考試／額外採計科目」：
+ *   - 個人總平均與班級排名維持全員納入
+ *   - 單科統計排除抽離生，並為抽離生之該科目加上 isExcluded: true 與法定說明文字
  */
 function getExamAllStudentsStats(sheet) {
   if (!sheet || !isExamSheetName(sheet.getName())) return null;
@@ -1312,6 +1558,8 @@ function getExamAllStudentsStats(sheet) {
     }
   }
 
+  var excludedMap = getExcludedSubjectsMap_(sheet.getParent());
+
   var studentsList = [];
   for (var r = headerRowIdx + 1; r < data.length; r++) {
     var row = data[r];
@@ -1324,20 +1572,28 @@ function getExamAllStudentsStats(sheet) {
       seat: normalizeSeatNumber(seatVal),
       name: nameVal,
       scores: {},
+      excludedMap: {},
       total: 0,
       count: 0
     };
     for (var sIdx = 0; sIdx < subjectCols.length; sIdx++) {
       var colInfo = subjectCols[sIdx];
       var rawScore = row[colInfo.index];
-      var numScore = Number(rawScore);
-      if (!isNaN(numScore) && rawScore !== '') {
-        sObj.scores[colInfo.name] = numScore;
-        sObj.total += numScore;
+      var parsedCell = parseScoreCell_(rawScore);
+      if (parsedCell.hasValue) {
+        sObj.scores[colInfo.name] = parsedCell.score;
+        sObj.total += parsedCell.score;
         sObj.count++;
       } else {
         sObj.scores[colInfo.name] = 0;
       }
+      sObj.excludedMap[colInfo.name] = isSubjectExcludedForStudent_(
+        excludedMap,
+        sObj.seat,
+        sObj.name,
+        colInfo.name,
+        parsedCell.inlineExcluded
+      );
     }
     sObj.average = sObj.count > 0 ? Math.round((sObj.total / sObj.count) * 100) / 100 : 0;
     studentsList.push(sObj);
@@ -1346,14 +1602,14 @@ function getExamAllStudentsStats(sheet) {
   var total = studentsList.length;
   if (total === 0) return null;
 
-  // 排序計算名次
+  // 排序計算名次（全員總平均參與班級總排名）
   var sorted = studentsList.slice().sort(function(a, b) { return b.average - a.average; });
   var rankMap = {};
   for (var k = 0; k < sorted.length; k++) {
     rankMap[sorted[k].seat] = k + 1;
   }
 
-  // 計算各科班均、各科箱型圖五數摘要與各生 PR
+  // 計算各科班均、各科箱型圖五數摘要與各生 PR（單科統計嚴格排除抽離生）
   var subAvgs = {};
   var subScoresPool = {};
   var subBoxStats = {};
@@ -1362,11 +1618,19 @@ function getExamAllStudentsStats(sheet) {
     var subName = subjectCols[j].name;
     var pList = [];
     for (var m = 0; m < total; m++) {
-      pList.push(studentsList[m].scores[subName] || 0);
+      if (!studentsList[m].excludedMap[subName]) {
+        pList.push(studentsList[m].scores[subName] || 0);
+      }
+    }
+    if (pList.length === 0) {
+      for (var mFallback = 0; mFallback < total; mFallback++) {
+        pList.push(studentsList[mFallback].scores[subName] || 0);
+      }
     }
     subScoresPool[subName] = pList;
+    var validCount = pList.length;
     var sum = pList.reduce(function(a, b) { return a + b; }, 0);
-    var avg = Math.round((sum / total) * 100) / 100;
+    var avg = Math.round((sum / validCount) * 100) / 100;
     subAvgs[subName] = avg;
     classTotalAvgSum += avg;
 
@@ -1390,32 +1654,57 @@ function getExamAllStudentsStats(sheet) {
     for (var p = 0; p < subjectCols.length; p++) {
       var sName = subjectCols[p].name;
       var myScore = st.scores[sName] || 0;
-      var pool = subScoresPool[sName];
-      var below = 0, equal = 0;
-      for (var q = 0; q < pool.length; q++) {
-        if (pool[q] < myScore) below++;
-        else if (pool[q] === myScore) equal++;
+      var isEx = !!(st.excludedMap && st.excludedMap[sName]);
+      if (isEx) {
+        subjectsResult.push({
+          name: sName,
+          score: myScore,
+          isExcluded: true,
+          excludedNote: EXCLUDED_NOTE_TEXT_,
+          classAverage: null,
+          pr: null,
+          q1: null,
+          median: null,
+          q3: null,
+          min: null,
+          max: null,
+          difficulty: null,
+          difficultyBadge: null,
+          difficultyColor: null,
+          difficultyIndex: null,
+          difficultyScore: null,
+          difficultyNote: null
+        });
+      } else {
+        var pool = subScoresPool[sName];
+        var below = 0, equal = 0;
+        for (var q = 0; q < pool.length; q++) {
+          if (pool[q] < myScore) below++;
+          else if (pool[q] === myScore) equal++;
+        }
+        var pr = Math.round(((below + 0.5 * equal) / pool.length) * 100);
+        var bStats = subBoxStats[sName] || { q1: 60, median: 75, q3: 88, min: 40, max: 100 };
+        var diffInfo = calculateSubjectDifficulty(subAvgs[sName], bStats.median);
+        subjectsResult.push({
+          name: sName,
+          score: myScore,
+          isExcluded: false,
+          excludedNote: '',
+          classAverage: subAvgs[sName],
+          pr: pr,
+          q1: bStats.q1,
+          median: bStats.median,
+          q3: bStats.q3,
+          min: bStats.min,
+          max: bStats.max,
+          difficulty: diffInfo.level,
+          difficultyBadge: diffInfo.badge,
+          difficultyColor: diffInfo.color,
+          difficultyIndex: diffInfo.index,
+          difficultyScore: diffInfo.score,
+          difficultyNote: diffInfo.note
+        });
       }
-      var pr = Math.round(((below + 0.5 * equal) / total) * 100);
-      var bStats = subBoxStats[sName] || { q1: 60, median: 75, q3: 88, min: 40, max: 100 };
-      var diffInfo = calculateSubjectDifficulty(subAvgs[sName], bStats.median);
-      subjectsResult.push({
-        name: sName,
-        score: myScore,
-        classAverage: subAvgs[sName],
-        pr: pr,
-        q1: bStats.q1,
-        median: bStats.median,
-        q3: bStats.q3,
-        min: bStats.min,
-        max: bStats.max,
-        difficulty: diffInfo.level,
-        difficultyBadge: diffInfo.badge,
-        difficultyColor: diffInfo.color,
-        difficultyIndex: diffInfo.index,
-        difficultyScore: diffInfo.score,
-        difficultyNote: diffInfo.note
-      });
     }
 
     // 計算學生個人總平均之 PR 值
@@ -2345,6 +2634,8 @@ var MPScoreEngine = {
   checkLineHubStatus: checkLineHubStatus,
   openLinePushDialog: openLinePushDialog,
   clearSystemCache: clearSystemCache,
+  getExcludedSubjectsMap_: getExcludedSubjectsMap_,
+  saveExcludedConfigFromApi: saveExcludedConfigFromApi,
   handleDoGet: doGet,
   handleDoPost: doPost
 };
