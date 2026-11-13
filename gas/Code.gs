@@ -679,6 +679,9 @@ function doGet(e) {
     } else if (action === 'saveExcludedConfig') {
       var exPayload = params.payload || (e && e.postData && e.postData.contents ? e.postData.contents : '');
       output = saveExcludedConfigFromApi(exPayload);
+    } else if (action === 'batchShortenUrls') {
+      var urlsPayload = params.payload || (e && e.postData && e.postData.contents ? e.postData.contents : '');
+      output = batchShortenUrlsFromGas(urlsPayload);
     } else {
       output = { success: false, message: '未知的操作請求' };
     }
@@ -2614,6 +2617,77 @@ function openLinePushDialog() {
   );
 }
 
+/**
+ * 批次產生短網址（供印出小卡或簡訊推播使用）
+ * 優先呼叫 TinyURL 免費公共 API，若失敗則回退至 is.gd；若皆失敗則安全降級回傳原始網址
+ */
+function batchShortenUrlsFromGas(payload) {
+  try {
+    var data = null;
+    if (typeof payload === 'string' && payload) {
+      data = JSON.parse(payload);
+    } else if (typeof payload === 'object' && payload) {
+      data = payload;
+    }
+    var urlsMap = (data && data.urls) ? data.urls : {};
+    var results = {};
+    var tokens = Object.keys(urlsMap);
+
+    for (var i = 0; i < tokens.length; i++) {
+      var tok = tokens[i];
+      var longUrl = urlsMap[tok];
+      if (!longUrl) continue;
+      var shortUrl = shortenSingleUrl_(longUrl);
+      results[tok] = shortUrl || longUrl;
+    }
+
+    return { success: true, shortUrls: results };
+  } catch (err) {
+    return { success: false, message: '批次縮網址異常: ' + err.toString() };
+  }
+}
+
+function shortenSingleUrl_(longUrl) {
+  if (!longUrl) return '';
+  // 1. 嘗試 is.gd (高速穩定)
+  try {
+    var isGdEndpoint = 'https://is.gd/create.php?format=simple&url=' + encodeURIComponent(longUrl);
+    var resp1 = UrlFetchApp.fetch(isGdEndpoint, { muteHttpExceptions: true });
+    if (resp1.getResponseCode() === 200) {
+      var txt1 = resp1.getContentText().trim();
+      if (txt1 && txt1.indexOf('http') === 0 && txt1.indexOf('Error') === -1) {
+        return txt1;
+      }
+    }
+  } catch (e1) {}
+
+  // 2. 備援嘗試 TinyURL
+  try {
+    var tinyEndpoint = 'https://tinyurl.com/api-create.php?url=' + encodeURIComponent(longUrl);
+    var resp2 = UrlFetchApp.fetch(tinyEndpoint, { muteHttpExceptions: true });
+    if (resp2.getResponseCode() === 200) {
+      var txt2 = resp2.getContentText().trim();
+      if (txt2 && txt2.indexOf('http') === 0) {
+        return txt2;
+      }
+    }
+  } catch (e2) {}
+
+  // 3. 備援嘗試 v.gd
+  try {
+    var vgdEndpoint = 'https://v.gd/create.php?format=simple&url=' + encodeURIComponent(longUrl);
+    var resp3 = UrlFetchApp.fetch(vgdEndpoint, { muteHttpExceptions: true });
+    if (resp3.getResponseCode() === 200) {
+      var txt3 = resp3.getContentText().trim();
+      if (txt3 && txt3.indexOf('http') === 0 && txt3.indexOf('Error') === -1) {
+        return txt3;
+      }
+    }
+  } catch (e3) {}
+
+  return longUrl;
+}
+
 var MPScoreEngine = {
   autoFormatAndResizeAllSheets: autoFormatAndResizeAllSheets,
   setupStandardSheets: setupStandardSheets,
@@ -2636,6 +2710,7 @@ var MPScoreEngine = {
   clearSystemCache: clearSystemCache,
   getExcludedSubjectsMap_: getExcludedSubjectsMap_,
   saveExcludedConfigFromApi: saveExcludedConfigFromApi,
+  batchShortenUrlsFromGas: batchShortenUrlsFromGas,
   handleDoGet: doGet,
   handleDoPost: doPost
 };
