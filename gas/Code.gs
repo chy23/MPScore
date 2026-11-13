@@ -33,6 +33,9 @@ function onOpen() {
     .addItem('🔄 用最新考試名單，更新「學生名冊」', 'syncStudentsFromExamSheet')
     .addItem('🔑 為全班產生「家長查詢代碼」', 'generateTokensForStudents')
     .addSeparator()
+    .addItem('🌱 新增「科目_班級測驗」對照欄位', 'addClassTestComparisonColumn')
+    .addItem('⚙️ 初始化／管理「抽離（額外採計）」名單', 'manageExcludedStudentsFromSheet')
+    .addSeparator()
     .addItem('📲 透過 School LINE Hub 發送成績推播', 'openLinePushDialog')
     .addItem('🔍 檢查 School LINE Hub 家長綁定概況', 'checkLineHubStatus')
     .addSeparator()
@@ -434,6 +437,143 @@ function saveExcludedConfigFromApi(body) {
     excludedMap: saved,
     message: '✅ 已成功儲存「抽離考試／額外採計科目」設定並更新雲端統計快取！'
   };
+}
+
+/**
+ * 🌱 試算表選單工具：一鍵於目前考試分頁新增「科目_班級測驗」對照欄位
+ */
+function addClassTestComparisonColumn() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ui = SpreadsheetApp.getUi();
+  var sheet = ss.getActiveSheet();
+  var sName = sheet.getName();
+
+  if (!isExamSheetName(sName)) {
+    ui.alert(
+      '📌 請先切換至「考試分頁」',
+      '目前所在分頁為【' + sName + '】。\n請先點選下方的任一考試分頁（例如：114-1期中考、114-1期末考），再點擊本功能！',
+      ui.ButtonSet.OK
+    );
+    return;
+  }
+
+  var data = sheet.getDataRange().getValues();
+  var colConfig = detectExamSheetColumns(data);
+  if (!colConfig || !colConfig.subjectCols || colConfig.subjectCols.length === 0) {
+    ui.alert('⚠️ 找不到科目欄位', '無法在此分頁偵測到科目欄位，請確認表格內已包含「座號、姓名、國語、數學...」等標題列。', ui.ButtonSet.OK);
+    return;
+  }
+
+  var subjectNames = colConfig.subjectCols.map(function(c) { return c.name; });
+  var existingCtNames = (colConfig.classTestCols || []).map(function(c) { return c.name; });
+
+  var promptMsg = '請輸入要新增「班級測驗」對照欄位的科目名稱：\n' +
+    '目前本分頁偵測到的科目：' + subjectNames.join('、') + '\n' +
+    (existingCtNames.length > 0 ? '目前已建立的對照欄位：' + existingCtNames.join('、') + '\n' : '') +
+    '\n（例如輸入：數學）';
+
+  var resp = ui.prompt('🌱 新增「科目_班級測驗」對照欄位', promptMsg, ui.ButtonSet.OK_CANCEL);
+  if (resp.getSelectedButton() !== ui.Button.OK) return;
+
+  var rawSub = (resp.getResponseText() || '').trim().replace(/_班級測驗$|_班測$/g, '');
+  if (!rawSub) {
+    ui.alert('⚠️ 未輸入科目名稱', '請輸入有效的科目名稱（例如：數學）。', ui.ButtonSet.OK);
+    return;
+  }
+
+  // 比對主科名稱（相容精確或去除「科」字）
+  var matchedSub = rawSub;
+  for (var i = 0; i < subjectNames.length; i++) {
+    if (matchSubjectName_(subjectNames[i], rawSub)) {
+      matchedSub = subjectNames[i];
+      break;
+    }
+  }
+
+  var targetColTitle = matchedSub + '_班級測驗';
+  var headerRow1Based = colConfig.headerRowIdx + 1;
+  var headerValues = data[colConfig.headerRowIdx] || [];
+
+  // 檢查是否已存在
+  for (var c = 0; c < headerValues.length; c++) {
+    var existingH = (headerValues[c] || '').toString().trim();
+    if (existingH === targetColTitle || matchSubjectName_(existingH.replace(/_班級測驗$|_班測$/g, ''), matchedSub) && (existingH.indexOf('班級測驗') !== -1 || existingH.indexOf('班測') !== -1)) {
+      sheet.setActiveSelection(sheet.getRange(headerRow1Based, c + 1));
+      ui.alert('ℹ️ 欄位已存在', '本分頁已有【' + existingH + '】欄位（已自動幫您定位至該欄），直接於對應學生列填入班級測驗分數即可！', ui.ButtonSet.OK);
+      return;
+    }
+  }
+
+  // 在最後一欄右側新增
+  var newColIdx = Math.max(sheet.getLastColumn(), headerValues.length) + 1;
+  var lastRow = Math.max(headerRow1Based, sheet.getLastRow());
+
+  var headerCell = sheet.getRange(headerRow1Based, newColIdx);
+  headerCell.setValue(targetColTitle)
+    .setBackground('#312e81') // 深靛紫，清楚區分參照欄
+    .setFontColor('#ffffff')
+    .setFontWeight('bold')
+    .setHorizontalAlignment('center')
+    .setVerticalAlignment('middle')
+    .setNote('📌 抽離考試／額外採計學生之「原班級測驗」參照分數欄。\n• 此欄不列入個人總平均，也不計入班級統計。\n• 僅填入有需要的學生即可，其餘學生留空。\n• 填寫後請點選「⚡ MPScore 工具 > 🚀 立即更新雲端資料」。');
+
+  if (lastRow > headerRow1Based) {
+    sheet.getRange(headerRow1Based + 1, newColIdx, lastRow - headerRow1Based, 1)
+      .setBackground('#eef2ff')
+      .setHorizontalAlignment('center')
+      .setVerticalAlignment('middle');
+  }
+
+  sheet.setColumnWidth(newColIdx, 135);
+  sheet.setActiveSelection(sheet.getRange(headerRow1Based + 1, newColIdx));
+  bumpCacheEpoch_();
+
+  ui.alert(
+    '✅ 已建立【' + targetColTitle + '】欄位！',
+    '已在【' + sName + '】右側成功新增「' + targetColTitle + '」對照欄位：\n\n' +
+    '1. 請只在「抽離／額外採計」學生的那一列填入原班級測驗分數（其餘同學留空）。\n' +
+    '2. 若尚未設定該生的抽離科目，請記得同步於【學生名冊】G 欄填寫科目名稱（或在主分數欄加星號如 *85）。\n' +
+    '3. 填寫完成後，點擊「⚡ MPScore 工具 > 🚀 立即更新雲端資料」即可即時同步至家長端！',
+    ui.ButtonSet.OK
+  );
+}
+
+/**
+ * ⚙️ 試算表選單工具：初始化／管理【學生名冊】G 欄「抽離（額外採計）」名單
+ */
+function manageExcludedStudentsFromSheet() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ui = SpreadsheetApp.getUi();
+  var sSheet = ss.getSheetByName('學生名冊');
+  if (!sSheet) {
+    ui.alert('⚠️ 找不到【學生名冊】', '請先執行「🛠️ 建立初始表格」建立學生名冊。', ui.ButtonSet.OK);
+    return;
+  }
+
+  var currentMap = getExcludedSubjectsMap_(ss);
+  saveExcludedSubjectsMap_(currentMap, ss); // 確保 G 欄標題、寬度與現有設定雙向同步到位
+
+  ss.setActiveSheet(sSheet);
+  if (sSheet.getLastRow() >= 2) {
+    sSheet.setActiveSelection(sSheet.getRange(2, 7));
+  } else {
+    sSheet.setActiveSelection(sSheet.getRange(1, 7));
+  }
+
+  var keys = Object.keys(currentMap);
+  var summary = keys.length > 0
+    ? '目前已有設定的學生（' + keys.length + ' 位）：\n' + keys.map(function(k) { return '• ' + k + ' 號：' + currentMap[k].join('、'); }).join('\n')
+    : '目前尚未設定任何抽離／額外採計學生。';
+
+  ui.alert(
+    '⚙️ 「抽離考試／額外採計」試算表管理已就緒',
+    summary + '\n\n' +
+    '💡 如何設定：\n' +
+    '1. 在【學生名冊】G 欄（已自動為您定位）對應學生列直接輸入科目名稱，多科請用逗號分隔（例如：數學 或 國語, 數學）。\n' +
+    '2. 若只需在「單次考試」暫時額外採計，也可直接在考試分頁分數前加星號（例如：*85）。\n' +
+    '3. 修改後請點擊「⚡ MPScore 工具 > 🚀 立即更新雲端資料」使統計立即生效！',
+    ui.ButtonSet.OK
+  );
 }
 
 function isSubjectExcludedForStudent_(excludedMap, seat, name, subName, inlineExcluded) {
@@ -2043,15 +2183,27 @@ function previewClassStatistics() {
     var sName = sh.getName();
     if (!isExamSheetName(sName)) continue;
 
-    var mockStudent = { seatNumber: '01', name: '' };
-    var result = analyzeExamSheet(sh, mockStudent);
-    if (result && result.examData) {
-      var d = result.examData;
-      report += '【' + d.examTitle + '】(學生 ' + d.totalStudents + ' 人，總平均 ' + d.classOverallAverage + ' 分)\n';
-      for (var s = 0; s < d.subjects.length; s++) {
-        report += '  • ' + d.subjects[s].name + ' 班平均: ' + d.subjects[s].classAverage + ' 分\n';
+    var statsObj = getExamAllStudentsStats(sh);
+    if (statsObj && statsObj.statsMap) {
+      var seats = Object.keys(statsObj.statsMap);
+      if (seats.length > 0) {
+        // 尋找各科非抽離樣本以取得純淨班級平均
+        var sampleExam = statsObj.statsMap[seats[0]];
+        report += '【' + sampleExam.examTitle + '】(學生 ' + sampleExam.totalStudents + ' 人，總平均 ' + sampleExam.classOverallAverage + ' 分)\n';
+        for (var s = 0; s < sampleExam.subjects.length; s++) {
+          var subName = sampleExam.subjects[s].name;
+          var pureAvg = null;
+          for (var k = 0; k < seats.length; k++) {
+            var subItem = statsObj.statsMap[seats[k]].subjects[s];
+            if (subItem && !subItem.isExcluded && subItem.classAverage !== null) {
+              pureAvg = subItem.classAverage;
+              break;
+            }
+          }
+          report += '  • ' + subName + ' 班平均: ' + (pureAvg !== null ? pureAvg + ' 分' : '（全員抽離／無班級平均）') + '\n';
+        }
+        report += '\n';
       }
-      report += '\n';
     }
   }
 
@@ -2307,7 +2459,9 @@ function autoFormatAndResizeAllSheets() {
 
       for (var c = 0; c < numCols; c++) {
         var hText = (headerRow[c] || '').toString().trim();
-        if (hText.indexOf('座號') !== -1) {
+        if (hText.indexOf('班級測驗') !== -1 || hText.indexOf('_班測') !== -1) {
+          sheet.setColumnWidth(c + 1, 135);
+        } else if (hText.indexOf('座號') !== -1) {
           sheet.setColumnWidth(c + 1, 80);
         } else if (hText.indexOf('姓名') !== -1) {
           sheet.setColumnWidth(c + 1, 120);
@@ -2790,6 +2944,8 @@ var MPScoreEngine = {
   clearSystemCache: clearSystemCache,
   getExcludedSubjectsMap_: getExcludedSubjectsMap_,
   saveExcludedConfigFromApi: saveExcludedConfigFromApi,
+  addClassTestComparisonColumn: addClassTestComparisonColumn,
+  manageExcludedStudentsFromSheet: manageExcludedStudentsFromSheet,
   batchShortenUrlsFromGas: batchShortenUrlsFromGas,
   handleDoGet: doGet,
   handleDoPost: doPost
