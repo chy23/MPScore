@@ -3797,6 +3797,11 @@
       const classAvgs = validExams.map(e => (typeof e.classOverallAverage === 'number' && e.classOverallAverage > 0) ? e.classOverallAverage : null);
       const cfg = getVisibilityConfig();
 
+      const plottedValues = avgs.concat(cfg.showClassAvg ? classAvgs : []).filter(v => typeof v === 'number' && !isNaN(v));
+      const minPlotted = plottedValues.length > 0 ? Math.min(...plottedValues) : 40;
+      const yMin = minPlotted < 45 ? Math.max(0, Math.floor((minPlotted - 5) / 20) * 20) : 40;
+      const yStepSize = yMin === 40 ? 15 : 20;
+
       const datasets = [{
         label: '個人平均成績',
         data: avgs,
@@ -3805,6 +3810,7 @@
         fill: true,
         tension: 0,
         spanGaps: false,
+        clip: false,
         pointRadius: 5,
         pointHoverRadius: 7,
         pointBackgroundColor: '#d97706',
@@ -3821,6 +3827,7 @@
           fill: false,
           tension: 0,
           spanGaps: false,
+          clip: false,
           pointRadius: 4,
           pointHoverRadius: 6,
           pointBackgroundColor: '#94a3b8',
@@ -3838,7 +3845,7 @@
           responsive: true,
           maintainAspectRatio: false,
           scales: {
-            y: { min: 40, max: 100, ticks: { stepSize: 15 } }
+            y: { min: yMin, max: 100, ticks: { stepSize: yStepSize } }
           },
           plugins: {
             legend: { 
