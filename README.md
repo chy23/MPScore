@@ -1,6 +1,6 @@
 # 📊 MPScore - 智慧學生成績與學習診斷引導平台
 
-[![Version](https://img.shields.io/badge/MPScore-v3.2.0%20最新版-amber.svg)](https://github.com/chy23/MPScore)
+[![Version](https://img.shields.io/badge/MPScore-v3.2.1%20最新版-amber.svg)](https://github.com/chy23/MPScore)
 [![Privacy](https://img.shields.io/badge/個資法-抽離科目零洩漏與去標籤化防護-emerald.svg)](https://github.com/chy23/MPScore)
 [![Design](https://img.shields.io/badge/Apple%20HIG-人因工藝落地-blue.svg)](https://github.com/chy23/MPScore)
 
@@ -8,7 +8,16 @@
 
 ---
 
-## 🌱 最新功能升級：單科抽離／額外採計雙軌精算引擎與個資去標籤化防護 (v3.2.0 - 2026-11-12)
+## 📊 最新功能升級：資源班與班級測驗雙成績對照 × 科目_班級測驗欄位 (v3.2.1 - 2026-11-13)
+
+1. **📑 支援「科目_班級測驗」附屬對照欄位 (`gas/Code.gs`, `parent.html`, `index.html`)**：
+   - **零誤判、零改表結構**：在試算表考試分頁右側新增欄位並命名為 `數學_班級測驗`（或 `國語_班級測驗` 等，亦相容 `_班測` / `(班級測驗)`），系統自動將其識別為附屬參照欄位，**不列入個人總平均科目數**，也**不計入任何班級統計資料**。
+   - **雙成績並陳與差異標註**：僅於受設定學生本人／家長端清晰呈現 **「資源班成績」**、**「班級測驗成績」** 與 **「成績差異（例如：差異 +26 分，資源班高於班級測驗）」**，並維持兩者皆不計入班級統計與他生零洩漏防護。
+   - **紙本通知小卡精簡標註**：於小卡該科呈現 `資88・班62` 精簡標籤，兼顧版面整潔。
+
+---
+
+## 🌱 功能里程碑：單科抽離／額外採計雙軌精算引擎與個資去標籤化防護 (v3.2.0 - 2026-11-12)
 
 1. **🌱 雙軌成績精算引擎（總平均與班級排名完整保留 × 單科統計精準排除） (`gas/Code.gs`, `index.html`, `parent.html`)**：
    - **個人總平均與班級排名完整保留**：受設定抽離考試之學生，其各科得分依然完整計入「個人總平均 (`studentAverage`)」並參與全班「總平均班級排名 (`studentRank`)」與總平均 PR 值。
