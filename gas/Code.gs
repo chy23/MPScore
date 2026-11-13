@@ -2638,7 +2638,11 @@ function batchShortenUrlsFromGas(payload) {
       var longUrl = urlsMap[tok];
       if (!longUrl) continue;
       var shortUrl = shortenSingleUrl_(longUrl);
-      results[tok] = shortUrl || longUrl;
+      if (shortUrl && shortUrl.indexOf('http') === 0 && shortUrl.length < 60) {
+        results[tok] = shortUrl;
+      } else {
+        results[tok] = '';
+      }
     }
 
     return { success: true, shortUrls: results };
@@ -2685,7 +2689,7 @@ function shortenSingleUrl_(longUrl) {
     }
   } catch (e3) {}
 
-  return longUrl;
+  return '';
 }
 
 var MPScoreEngine = {
