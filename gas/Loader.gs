@@ -103,7 +103,7 @@ function onOpen() {
     .addItem('🔄 用最新考試名單，更新「學生名冊」', 'syncStudentsFromExamSheet')
     .addItem('🔑 為全班產生「家長查詢代碼」', 'generateTokensForStudents')
     .addSeparator()
-    .addItem('🌱 新增「科目_班級測驗」對照欄位', 'addClassTestComparisonColumn')
+    .addItem('🌱 新增「科目_外加成績」欄位', 'addExtraScoreColumn')
     .addItem('⚙️ 初始化／管理「抽離（額外採計）」名單', 'manageExcludedStudentsFromSheet')
     .addSeparator()
     .addItem('🛡️ 查看 / 設定「教師管理金鑰」', 'showTeacherKeyDialog')
@@ -121,7 +121,8 @@ function setupStandardSheets() { getEngine().setupStandardSheets(); }
 function createNewExamSheetFromRoster() { getEngine().createNewExamSheetFromRoster(); }
 function syncStudentsFromExamSheet() { getEngine().syncStudentsFromExamSheet(); }
 function generateTokensForStudents() { getEngine().generateTokensForStudents(); }
-function addClassTestComparisonColumn() { getEngine().addClassTestComparisonColumn(); }
+function addExtraScoreColumn() { getEngine().addExtraScoreColumn(); }
+function addClassTestComparisonColumn() { getEngine().addExtraScoreColumn(); }
 function manageExcludedStudentsFromSheet() { getEngine().manageExcludedStudentsFromSheet(); }
 function showTeacherKeyDialog() { getEngine().showTeacherKeyDialog(); }
 function openParentAccessLogSheet() { getEngine().openParentAccessLogSheet(); }
