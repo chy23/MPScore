@@ -4883,7 +4883,7 @@
       }
     }
 
-    function buildPrintRadarSvgHtml(examData, showClassAvg, isCompact = false, isUltraCompact = false) {
+    function buildPrintRadarSvgHtml(examData, showClassAvg, isCompact = false, isUltraCompact = false, isSideBySide = false) {
       if (!examData || !examData.subjects || examData.subjects.length < 3) return '';
       const subs = examData.subjects;
       const n = subs.length;
@@ -4926,6 +4926,25 @@
       if (hasValidAvg) {
         const avgPts = subs.map((s, i) => pt(i, s.isExcluded ? s.score : s.classAverage).map(v => v.toFixed(1)).join(',')).join(' ');
         classAvgSvg = `<polygon points="${avgPts}" fill="rgba(5, 150, 105, 0.10)" stroke="#059669" stroke-width="1.3" stroke-dasharray="3,2" />`;
+      }
+
+      if (isSideBySide) {
+        const sideH = isUltraCompact ? 'h-[92px]' : (isCompact ? 'h-[104px]' : 'h-[116px]');
+        return `
+          <div class="w-full h-full bg-white/95 rounded-xl border border-amber-200/90 px-1.5 py-1 flex flex-col items-center justify-center shadow-2xs">
+            <svg viewBox="0 0 220 168" class="${sideH} w-auto max-w-full">
+              ${ringsSvg}
+              ${axesSvg}
+              ${classAvgSvg}
+              <polygon points="${studentPts}" fill="rgba(245, 158, 11, 0.28)" stroke="#d97706" stroke-width="1.8" />
+              ${studentDots}
+            </svg>
+            <div class="flex items-center justify-center gap-2 text-[7.5px] leading-none mt-0.5">
+              <span class="inline-flex items-center gap-0.5 text-amber-900 font-bold"><span class="w-2 h-0.5 bg-amber-600 inline-block rounded-full"></span>個人</span>
+              ${hasValidAvg ? `<span class="inline-flex items-center gap-0.5 text-emerald-800 font-bold"><span class="w-2 h-0.5 border-t border-dashed border-emerald-600 inline-block"></span>班均</span>` : ''}
+            </div>
+          </div>
+        `;
       }
 
       const svgHeightClass = isUltraCompact ? 'h-[98px]' : (isCompact ? 'h-[112px]' : 'h-[126px]');
@@ -4973,18 +4992,22 @@
       }
 
       let subjectsBarHtml = '';
+      const hasRadarAlongside = !!(pCfg.showRadar && examData && examData.subjects && examData.subjects.length >= 3);
       if (examData && pCfg.showSubjects && examData.subjects && examData.subjects.length > 0) {
         const subCount = examData.subjects.length;
-        const colStyle = `grid-template-columns: repeat(${subCount}, minmax(0, 1fr));`;
+        const sideCols = subCount <= 2 ? subCount : (subCount === 4 ? 2 : 3);
+        const colStyle = hasRadarAlongside
+          ? `grid-template-columns: repeat(${sideCols}, minmax(0, 1fr));`
+          : `grid-template-columns: repeat(${subCount}, minmax(0, 1fr));`;
         const fontName = isUltraCompact ? 'text-[10px]' : (isCompact ? 'text-[10.5px]' : 'text-xs');
         const fontScore = isUltraCompact ? 'text-xs' : (isCompact ? 'text-xs md:text-sm' : 'text-sm md:text-base');
         const padClass = isUltraCompact ? 'py-1 px-1' : (isCompact ? 'py-1 px-1' : 'py-1.5 px-1');
         const containerPad = isUltraCompact ? 'p-1' : (isCompact ? 'p-1' : 'p-1.5');
-        const gapClass = isUltraCompact ? 'gap-1' : 'gap-1.5';
+        const gapClass = isUltraCompact ? 'gap-1' : (hasRadarAlongside ? 'gap-1' : 'gap-1.5');
 
         subjectsBarHtml = `
-          <div class="w-full bg-amber-50/80 rounded-xl border border-amber-300 ${containerPad} shadow-2xs">
-            <div class="grid ${gapClass} text-center items-stretch" style="${colStyle}">
+          <div class="w-full ${hasRadarAlongside ? 'h-full flex items-center' : ''} bg-amber-50/80 rounded-xl border border-amber-300 ${containerPad} shadow-2xs">
+            <div class="grid ${gapClass} text-center items-stretch w-full" style="${colStyle}">
               ${examData.subjects.map(s => `
                 <div class="bg-white/95 rounded-lg border ${s.isExcluded ? 'border-amber-300/90' : 'border-amber-200/90'} ${padClass} flex flex-col items-center justify-center text-center shadow-2xs">
                   <span class="${fontName} font-bold text-slate-700 leading-tight">${s.name}</span>
@@ -5062,8 +5085,15 @@
 
           <!-- 動態呈現所勾選之紙本統計事項 -->
           ${statsBarHtml}
-          ${subjectsBarHtml}
-          ${pCfg.showRadar ? buildPrintRadarSvgHtml(examData, pCfg.showClassAvg, isCompact, isUltraCompact) : ''}
+          ${(subjectsBarHtml && hasRadarAlongside) ? `
+            <div class="grid grid-cols-12 gap-1.5 items-stretch">
+              <div class="col-span-7">${subjectsBarHtml}</div>
+              <div class="col-span-5">${buildPrintRadarSvgHtml(examData, pCfg.showClassAvg, isCompact, isUltraCompact, true)}</div>
+            </div>
+          ` : `
+            ${subjectsBarHtml}
+            ${pCfg.showRadar ? buildPrintRadarSvgHtml(examData, pCfg.showClassAvg, isCompact, isUltraCompact, false) : ''}
+          `}
 
           <!-- 頁腳備註說明 -->
           ${pCfg.showFootnote && footnote ? `
