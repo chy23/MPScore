@@ -848,6 +848,10 @@
                 <input type="checkbox" id="printOptPr" onchange="updatePrintCards()" class="rounded text-amber-700 focus:ring-amber-500 w-4 h-4">
                 <span class="font-bold text-amber-800">各科 PR 常模等級</span>
               </label>
+              <label class="flex items-center gap-2 bg-amber-50/60 px-3 py-2 rounded-xl border border-amber-200 cursor-pointer hover:bg-amber-100/60 shadow-2xs transition" title="於紙本小卡印出向量版多元學科能力探索雷達圖">
+                <input type="checkbox" id="printOptRadar" onchange="updatePrintCards()" class="rounded text-amber-700 focus:ring-amber-500 w-4 h-4">
+                <span class="font-bold text-amber-900">🎯 多元學科能力雷達圖</span>
+              </label>
               <label class="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200 cursor-pointer hover:bg-amber-50/50 shadow-2xs transition">
                 <input type="checkbox" id="printOptToken" onchange="updatePrintCards()" class="rounded text-amber-700 focus:ring-amber-500 w-4 h-4">
                 <span class="font-medium text-slate-700">文字查詢代碼</span>
@@ -3829,6 +3833,7 @@
           if (savedPaper.showStudentId !== undefined && document.getElementById('printOptStudentId')) document.getElementById('printOptStudentId').checked = savedPaper.showStudentId;
           if (savedPaper.showFootnote !== undefined && document.getElementById('printOptFootnote')) document.getElementById('printOptFootnote').checked = savedPaper.showFootnote;
           if (savedPaper.showShortUrl !== undefined && document.getElementById('printOptShortUrl')) document.getElementById('printOptShortUrl').checked = savedPaper.showShortUrl;
+          if (savedPaper.showRadar !== undefined && document.getElementById('printOptRadar')) document.getElementById('printOptRadar').checked = savedPaper.showRadar;
 
           if (typeof syncWebToSandboxControls === 'function') {
             syncWebToSandboxControls();
@@ -4878,6 +4883,78 @@
       }
     }
 
+    function buildPrintRadarSvgHtml(examData, showClassAvg, isCompact = false, isUltraCompact = false) {
+      if (!examData || !examData.subjects || examData.subjects.length < 3) return '';
+      const subs = examData.subjects;
+      const n = subs.length;
+      const cx = 110;
+      const cy = 84;
+      const maxR = 54;
+      const angleFor = idx => (-Math.PI / 2) + (2 * Math.PI * idx / n);
+      const pt = (idx, val) => {
+        const r = (Math.max(0, Math.min(100, Number(val) || 0)) / 100) * maxR;
+        const a = angleFor(idx);
+        return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+      };
+
+      const ringsSvg = [25, 50, 75, 100].map(level => {
+        const pts = subs.map((_, i) => pt(i, level).map(v => v.toFixed(1)).join(',')).join(' ');
+        return `<polygon points="${pts}" fill="none" stroke="#e2e8f0" stroke-width="${level === 100 ? '1.1' : '0.8'}" />`;
+      }).join('');
+
+      const axesSvg = subs.map((s, i) => {
+        const [x2, y2] = pt(i, 100);
+        const a = angleFor(i);
+        const lx = cx + (maxR + 13) * Math.cos(a);
+        const ly = cy + (maxR + 13) * Math.sin(a);
+        const anchor = Math.abs(Math.cos(a)) < 0.25 ? 'middle' : (Math.cos(a) > 0 ? 'start' : 'end');
+        const label = s.name.length > 4 ? s.name.slice(0, 4) : s.name;
+        return `
+          <line x1="${cx}" y1="${cy}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#e2e8f0" stroke-width="0.8" />
+          <text x="${lx.toFixed(1)}" y="${(ly + 3).toFixed(1)}" font-size="8.5" font-weight="800" fill="#334155" text-anchor="${anchor}">${label}</text>
+        `;
+      }).join('');
+
+      const studentPts = subs.map((s, i) => pt(i, s.score).map(v => v.toFixed(1)).join(',')).join(' ');
+      const studentDots = subs.map((s, i) => {
+        const [dx, dy] = pt(i, s.score);
+        return `<circle cx="${dx.toFixed(1)}" cy="${dy.toFixed(1)}" r="2.3" fill="#d97706" stroke="#ffffff" stroke-width="0.8" />`;
+      }).join('');
+
+      let classAvgSvg = '';
+      const hasValidAvg = showClassAvg && subs.some(s => !s.isExcluded && typeof s.classAverage === 'number');
+      if (hasValidAvg) {
+        const avgPts = subs.map((s, i) => pt(i, s.isExcluded ? s.score : s.classAverage).map(v => v.toFixed(1)).join(',')).join(' ');
+        classAvgSvg = `<polygon points="${avgPts}" fill="rgba(5, 150, 105, 0.10)" stroke="#059669" stroke-width="1.3" stroke-dasharray="3,2" />`;
+      }
+
+      const svgHeightClass = isUltraCompact ? 'h-[98px]' : (isCompact ? 'h-[112px]' : 'h-[126px]');
+      return `
+        <div class="w-full bg-white/95 rounded-xl border border-amber-200/90 px-2 py-1 flex items-center justify-between gap-2 shadow-2xs">
+          <div class="flex flex-col justify-center gap-1 text-[8.5px] shrink-0 pl-0.5">
+            <div class="font-black text-slate-800 text-[9.5px] flex items-center gap-1">
+              <span>🎯</span><span>能力雷達圖</span>
+            </div>
+            <div class="flex items-center gap-1 text-amber-900 font-bold">
+              <span class="w-2.5 h-1 bg-amber-600 rounded-full inline-block"></span><span>個人得分</span>
+            </div>
+            ${hasValidAvg ? `
+              <div class="flex items-center gap-1 text-emerald-800 font-bold">
+                <span class="w-2.5 h-0.5 border-t-2 border-dashed border-emerald-600 inline-block"></span><span>班級平均</span>
+              </div>
+            ` : ''}
+          </div>
+          <svg viewBox="0 0 220 168" class="${svgHeightClass} w-auto shrink-0 mx-auto">
+            ${ringsSvg}
+            ${axesSvg}
+            ${classAvgSvg}
+            <polygon points="${studentPts}" fill="rgba(245, 158, 11, 0.28)" stroke="#d97706" stroke-width="1.8" />
+            ${studentDots}
+          </svg>
+        </div>
+      `;
+    }
+
     function buildCardContentHtml(st, pCfg, examData, queryUrl, cardId, schoolTitle, noticeTitle, footnote, isCompact = false, isUltraCompact = false) {
       let statsBarHtml = '';
       const visibleCount = (pCfg.showAvg ? 1 : 0) + (pCfg.showRank ? 1 : 0) + (pCfg.showClassAvg ? 1 : 0);
@@ -4986,6 +5063,7 @@
           <!-- 動態呈現所勾選之紙本統計事項 -->
           ${statsBarHtml}
           ${subjectsBarHtml}
+          ${pCfg.showRadar ? buildPrintRadarSvgHtml(examData, pCfg.showClassAvg, isCompact, isUltraCompact) : ''}
 
           <!-- 頁腳備註說明 -->
           ${pCfg.showFootnote && footnote ? `
@@ -6309,6 +6387,7 @@
       const elId = document.getElementById('printOptStudentId');
       const elFn = document.getElementById('printOptFootnote');
       const elShortUrl = document.getElementById('printOptShortUrl');
+      const elRadar = document.getElementById('printOptRadar');
 
       if (elAvg && elRank && elClassAvg) {
         const cfg = {
@@ -6320,7 +6399,8 @@
           showToken: elTok ? elTok.checked : false,
           showStudentId: elId ? elId.checked : true,
           showFootnote: elFn ? elFn.checked : true,
-          showShortUrl: elShortUrl ? elShortUrl.checked : true
+          showShortUrl: elShortUrl ? elShortUrl.checked : true,
+          showRadar: elRadar ? elRadar.checked : false
         };
         try {
           localStorage.setItem('mpscore_paper_cfg', JSON.stringify(cfg));
