@@ -3921,9 +3921,9 @@
           document.getElementById('apiEndpointInput').value = activeApiUrl;
           runApiCheck(false);
         } else {
-          cachedStudents = DEMO_STUDENTS;
-          renderPrintCards(cachedStudents);
-          updatePreviewStudentOptions(cachedStudents);
+          cachedStudents = [];
+          renderPrintCards([]);
+          updatePreviewStudentOptions([]);
         }
         loadPreviewForSelectedStudent();
       }
@@ -4471,7 +4471,15 @@
     // 更新預覽下拉選單
     function updatePreviewStudentOptions(students) {
       const sel = document.getElementById('previewStudentSelect');
+      if (!sel) return;
       sel.innerHTML = '';
+      if (!students || students.length === 0) {
+        const opt = document.createElement('option');
+        opt.value = '';
+        opt.textContent = '（尚未同步學生名冊）';
+        sel.appendChild(opt);
+        return;
+      }
       students.forEach(st => {
         const opt = document.createElement('option');
         opt.value = st.token;
@@ -5339,17 +5347,17 @@
         if (m && m[1]) apiId = m[1];
       }
 
-      const pool = (students && students.length > 0) ? students : DEMO_STUDENTS;
-      pool.forEach(st => {
-        if (!st.examStats || Object.keys(st.examStats).length === 0) {
-          const comp = buildDemoExamsForStudent(st);
-          st.examStats = {};
-          comp.forEach(e => {
-            st.examStats[e.examTitle] = e;
-            if (e.sheetName) st.examStats[e.sheetName] = e;
-          });
-        }
-      });
+      if (!students || students.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full p-8 bg-slate-50 rounded-2xl border border-dashed border-slate-300 text-center space-y-2">
+            <div class="text-2xl">📋</div>
+            <div class="text-sm font-black text-slate-700">尚未載入班級學生名冊</div>
+            <div class="text-xs text-slate-500">請先於上方【步驟 2】貼上試算表 Web App 網址並同步名冊，系統將自動產生全班專屬成績單小卡。</div>
+          </div>
+        `;
+        return;
+      }
+      const pool = students;
 
       pool.forEach((st, idx) => {
         const queryUrl = parentBaseUrl + '?t=' + encodeURIComponent(st.token) + (apiId ? '&a=' + apiId : '') + (examSource && examSource !== 'none' ? '&e=' + encodeURIComponent(examSource) : '') + '&v=' + getVisibilityFlagString() + getModuleOrderParam();
@@ -5427,10 +5435,20 @@
     }
 
     function renderPrintModalPages() {
-      const pool = (cachedStudents && cachedStudents.length > 0) ? cachedStudents : DEMO_STUDENTS;
       const sheetsContainer = document.getElementById('printModalSheets');
       if (!sheetsContainer) return;
       sheetsContainer.innerHTML = '';
+      if (!cachedStudents || cachedStudents.length === 0) {
+        sheetsContainer.innerHTML = `
+          <div class="p-10 bg-white rounded-2xl border border-slate-200 text-center space-y-2 max-w-md mx-auto my-8">
+            <div class="text-3xl">📋</div>
+            <div class="text-base font-black text-slate-800">尚未載入班級學生名冊</div>
+            <div class="text-xs text-slate-500">請先連線並同步試算表學生名冊後，再開啟 A4 列印預覽。</div>
+          </div>
+        `;
+        return;
+      }
+      const pool = cachedStudents;
 
       const baseCfg = getPaperPrintConfig();
       const pCfg = Object.assign({}, baseCfg);
@@ -5451,17 +5469,6 @@
         const m = activeApiUrl.match(/macros\/s\/([^\/]+)/);
         if (m && m[1]) apiId = m[1];
       }
-
-      pool.forEach(st => {
-        if (!st.examStats || Object.keys(st.examStats).length === 0) {
-          const comp = buildDemoExamsForStudent(st);
-          st.examStats = {};
-          comp.forEach(e => {
-            st.examStats[e.examTitle] = e;
-            if (e.sheetName) st.examStats[e.sheetName] = e;
-          });
-        }
-      });
 
       const totalStudents = pool.length;
       const totalPages = Math.ceil(totalStudents / currentCardsPerPage);
