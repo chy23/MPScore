@@ -3281,29 +3281,8 @@
           box2Y = 22;
         }
 
-        // 跨次成長位移軌跡弧線 (以 PR 常模位移為基準，杜絕原始分數相減)
-        let trajectorySvg = '';
-        if (Math.abs(stX - compStX) >= 6 || Math.abs(diffPr) > 0) {
-          const midX = (stX + compStX) / 2;
-          const arcTopY = Math.max(85, Math.min(stY, compStY) - 18);
-          const strokeCol = isUp ? '#059669' : '#e11d48';
-          const badgeCol = isUp ? '#059669' : '#e11d48';
-
-          trajectorySvg = `
-            <defs>
-              <marker id="pGrowthArrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="${strokeCol}" />
-              </marker>
-            </defs>
-            <path d="M ${compStX} ${compStY} Q ${midX} ${arcTopY} ${stX} ${stY}" fill="none" stroke="${strokeCol}" stroke-width="2" stroke-dasharray="3,3" marker-end="url(#pGrowthArrow)" />
-            <g transform="translate(${midX}, ${arcTopY - 10})">
-              <rect x="-42" y="-8" width="84" height="17" rx="8.5" fill="${badgeCol}" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.15))" />
-              <text x="0" y="3.5" font-size="9" font-weight="900" fill="#ffffff" text-anchor="middle">
-                PR ${diffPr >= 0 ? '+' + diffPr : diffPr} ${isUp ? '▲' : '▼'}
-              </text>
-            </g>
-          `;
-        }
+        // 跨次成長位移軌跡弧線已依需求隱藏
+        const trajectorySvg = '';
 
         container.innerHTML = `
           <div class="relative w-full">
@@ -3396,13 +3375,10 @@
                 <span>對比：${compExam.sheetName || compExam.examTitle}</span>
               </div>
             </div>
-            <span class="font-black text-xs ${diffPr >= 0 ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-slate-700 bg-slate-50 border-slate-200'} border px-2.5 py-0.5 rounded-full">
-              常模位移 PR ${diffPr >= 0 ? '+' + diffPr : diffPr} ${isUp ? '▲' : '▼'}
-            </span>
           </div>
 
           <!-- 雙次關鍵指標對照卡片群 -->
-          <div class="grid grid-cols-3 gap-2 pt-1 text-slate-800">
+          <div class="grid grid-cols-2 gap-2 pt-1 text-slate-800">
             <div class="bg-amber-50/90 border border-amber-200/80 rounded-2xl p-2.5 text-center shadow-2xs">
               <div class="text-xs text-amber-900 font-bold">📍 本次考試</div>
               <div class="text-base font-black text-amber-950 mt-0.5">${score} <span class="text-xs font-normal">分</span></div>
@@ -3412,11 +3388,6 @@
               <div class="text-xs text-slate-600 font-bold">⏱️ 對比考試</div>
               <div class="text-base font-black text-slate-700 mt-0.5">${compScore} <span class="text-xs font-normal">分</span></div>
               <div class="text-[11px] text-slate-600 font-bold">PR ${compPr} ‧ 均 ${compCAvg}</div>
-            </div>
-            <div class="${diffPr >= 0 ? 'bg-emerald-50 border-emerald-200' : 'bg-slate-50 border-slate-200'} border rounded-2xl p-2.5 text-center shadow-2xs">
-              <div class="text-xs ${diffPr >= 0 ? 'text-emerald-900' : 'text-slate-700'} font-bold">🚀 常模位移</div>
-              <div class="text-base font-black ${diffPr >= 0 ? 'text-emerald-700' : 'text-slate-800'} mt-0.5">PR ${diffPr >= 0 ? '+' + diffPr : diffPr} ${isUp ? '▲' : '▼'}</div>
-              <div class="text-[11px] ${diffClassAvg >= 0 ? 'text-blue-700' : 'text-slate-500'} font-bold">班均差 ${diffClassAvg >= 0 ? '+' + diffClassAvg : diffClassAvg} 分</div>
             </div>
           </div>
 
