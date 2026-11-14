@@ -3362,6 +3362,32 @@
     }
 
     let cachedStudents = [];
+    let isRosterSyncing = false;
+    let rosterSyncStep = '';
+    let rosterSyncPct = 0;
+
+    function renderPrintCardsLoading(stepLabel, percent) {
+      rosterSyncStep = stepLabel || '正在同步班級學生名冊與成績資料...';
+      rosterSyncPct = typeof percent === 'number' ? Math.max(8, Math.min(100, percent)) : 45;
+      const grid = document.getElementById('cardsGrid');
+      if (!grid) return;
+      grid.innerHTML = `
+        <div class="col-span-full p-6 sm:p-8 bg-white rounded-2xl border border-amber-200/80 shadow-xs space-y-4">
+          <div class="flex items-center justify-center gap-3">
+            <span class="inline-block animate-spin rounded-full h-5 w-5 border-2 border-amber-500 border-t-transparent"></span>
+            <span class="text-sm font-black text-slate-800">${escapeHtml(rosterSyncStep)}</span>
+            <span class="text-xs font-mono font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">${rosterSyncPct}%</span>
+          </div>
+          <div class="max-w-md mx-auto w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200/70">
+            <div class="bg-gradient-to-r from-amber-400 via-amber-500 to-emerald-500 h-2 rounded-full transition-all duration-300" style="width: ${rosterSyncPct}%;"></div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 opacity-60">
+            <div class="h-28 bg-slate-100 rounded-xl animate-pulse"></div>
+            <div class="h-28 bg-slate-100 rounded-xl animate-pulse hidden sm:block"></div>
+          </div>
+        </div>
+      `;
+    }
     let activeApiUrl = localStorage.getItem('mpscore_gas_url') || '';
     let activeTeacherKey = localStorage.getItem('mpscore_teacher_key') || '';
     let currentStudentExams = [];
@@ -3924,6 +3950,8 @@
       } else {
         if (activeApiUrl) {
           document.getElementById('apiEndpointInput').value = activeApiUrl;
+          isRosterSyncing = true;
+          renderPrintCardsLoading('正在連線 Google 試算表驗證中...', 25);
           runApiCheck(false);
         } else {
           cachedStudents = [];
@@ -4285,6 +4313,9 @@
         return;
       }
 
+      isRosterSyncing = true;
+      renderPrintCardsLoading('連線檢測中，正在向 Google 試算表發送驗證請求...', 30);
+
       resBox.className = 'p-4 rounded-xl text-xs border mt-4 bg-slate-100 text-slate-700 flex items-center gap-2';
       resBox.innerHTML = '<span class="inline-block animate-spin rounded-full h-4 w-4 border-2 border-amber-600 border-t-transparent"></span> 連線檢測中，正在向 Google 試算表發送驗證請求...';
       resBox.classList.remove('hidden');
@@ -4374,12 +4405,15 @@
               </button>
             </div>
           `;
+          renderPrintCardsLoading('連線成功！正在同步全班名冊與考試統計...', 60);
           syncStudentsFromApi(false);
           fetchParentAccessLogs(false);
         } else {
           throw new Error(data.message || '連線測試失敗');
         }
       } catch (err) {
+        isRosterSyncing = false;
+        if (!cachedStudents || cachedStudents.length === 0) renderPrintCards([]);
         resBox.className = 'p-5 rounded-2xl text-xs border mt-4 bg-rose-50 border-rose-200 text-rose-900 space-y-3';
         
         if (err.message === "ERR_404_NOT_FOUND") {
@@ -4429,6 +4463,8 @@
     // 從 API 同步學生名單以供列印
     async function syncStudentsFromApi(alertSuccess = true) {
       if (!activeApiUrl) return;
+      isRosterSyncing = true;
+      renderPrintCardsLoading('正在下載班級名冊與計算各科常模統計...', 75);
       try {
         const keyParam = activeTeacherKey ? '&key=' + encodeURIComponent(activeTeacherKey) : '';
         const syncUrl = activeApiUrl + (activeApiUrl.includes('?') ? '&' : '?') + 'action=getStudentsForPrint' + keyParam;
@@ -4436,6 +4472,7 @@
         const data = await resp.json();
 
         if (data.success && data.students && data.students.length > 0) {
+          renderPrintCardsLoading(`已取得 ${data.students.length} 位學生資料，正在產生專屬小卡與 QR Code...`, 95);
           cachedStudents = data.students;
           if (data.excludedMap && typeof data.excludedMap === 'object') {
             saveExcludedSubjectsMapLocal(data.excludedMap);
@@ -4461,13 +4498,21 @@
               }
             }
           }
+          isRosterSyncing = false;
           renderPrintCards(cachedStudents);
           updatePreviewStudentOptions(cachedStudents);
           if (alertSuccess) showAppleToast(`✨ 成功同步 ${data.students.length} 位學生名冊與考試統計！`, 'success');
         } else if (data.code === 403 || (data.message && data.message.includes('教師管理安全金鑰'))) {
+          isRosterSyncing = false;
+          renderPrintCards(cachedStudents);
           if (alertSuccess) showAppleToast('⛔ 存取遭拒：請至【步驟 3】填入「教師管理安全金鑰」以解鎖名冊同步！', 'warning');
+        } else {
+          isRosterSyncing = false;
+          renderPrintCards(cachedStudents);
         }
       } catch(e) {
+        isRosterSyncing = false;
+        renderPrintCards(cachedStudents);
         console.error(e);
         if (alertSuccess) showAppleToast('同步失敗: ' + e.message, 'error');
       }
@@ -5353,6 +5398,10 @@
       }
 
       if (!students || students.length === 0) {
+        if (isRosterSyncing) {
+          renderPrintCardsLoading(rosterSyncStep || '正在同步班級學生名冊與成績資料...', rosterSyncPct || 45);
+          return;
+        }
         grid.innerHTML = `
           <div class="col-span-full p-8 bg-slate-50 rounded-2xl border border-dashed border-slate-300 text-center space-y-2">
             <div class="text-2xl">📋</div>
