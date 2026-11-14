@@ -4990,9 +4990,9 @@
       if (!examData || !examData.subjects || examData.subjects.length < 3) return '';
       const subs = examData.subjects;
       const n = subs.length;
-      const cx = 110;
-      const cy = 84;
-      const maxR = 54;
+      const cx = 130;
+      const cy = 96;
+      const maxR = 52;
       const angleFor = idx => (-Math.PI / 2) + (2 * Math.PI * idx / n);
       const pt = (idx, val) => {
         const r = (Math.max(0, Math.min(100, Number(val) || 0)) / 100) * maxR;
@@ -5008,13 +5008,13 @@
       const axesSvg = subs.map((s, i) => {
         const [x2, y2] = pt(i, 100);
         const a = angleFor(i);
-        const lx = cx + (maxR + 13) * Math.cos(a);
-        const ly = cy + (maxR + 13) * Math.sin(a);
+        const lx = cx + (maxR + 14) * Math.cos(a);
+        const ly = cy + (maxR + 14) * Math.sin(a);
         const anchor = Math.abs(Math.cos(a)) < 0.25 ? 'middle' : (Math.cos(a) > 0 ? 'start' : 'end');
-        const label = s.name.length > 4 ? s.name.slice(0, 4) : s.name;
+        const label = escapeHtml(s.name.length > 4 ? s.name.slice(0, 4) : s.name);
         return `
           <line x1="${cx}" y1="${cy}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#94a3b8" stroke-width="0.9" />
-          <text x="${lx.toFixed(1)}" y="${(ly + 3).toFixed(1)}" font-size="9" font-weight="800" fill="#0f172a" text-anchor="${anchor}">${label}</text>
+          <text x="${lx.toFixed(1)}" y="${(ly + 6).toFixed(1)}" font-size="18" font-weight="800" fill="#0f172a" text-anchor="${anchor}">${label}</text>
         `;
       }).join('');
 
@@ -5035,7 +5035,7 @@
         const sideH = isUltraCompact ? 'h-[92px]' : (isCompact ? 'h-[104px]' : 'h-[116px]');
         return `
           <div class="w-full h-full bg-white rounded-xl border border-slate-300 px-1.5 py-1 flex flex-col items-center justify-center shadow-2xs">
-            <svg viewBox="0 0 220 168" class="${sideH} w-auto max-w-full">
+            <svg viewBox="0 0 260 190" class="${sideH} w-auto max-w-full">
               ${ringsSvg}
               ${axesSvg}
               ${classAvgSvg}
@@ -5066,7 +5066,7 @@
               </div>
             ` : ''}
           </div>
-          <svg viewBox="0 0 220 168" class="${svgHeightClass} w-auto shrink-0 mx-auto">
+          <svg viewBox="0 0 260 190" class="${svgHeightClass} w-auto shrink-0 mx-auto">
             ${ringsSvg}
             ${axesSvg}
             ${classAvgSvg}
