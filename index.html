@@ -4608,6 +4608,20 @@
       shortUrlsCacheMap = {};
     }
     let isBatchShorteningInProgress = false;
+    let autoShortenTimer = null;
+
+    function getCachedShortUrl(tok, queryUrl) {
+      if (!tok) return '';
+      const entry = shortUrlsCacheMap[tok];
+      if (!entry) return '';
+      if (typeof entry === 'object' && entry.shortUrl) {
+        if (!queryUrl || entry.targetUrl === queryUrl) {
+          return entry.shortUrl;
+        }
+        return '';
+      }
+      return '';
+    }
 
     // 格式化縮網址顯示文字（去除 https:// 前綴，保持極簡俐落且易於手動鍵入）
     function formatShortUrlDisplay(url) {
@@ -4620,8 +4634,9 @@
     // 取得學生個人查詢完整網址 Tooltip 提示
     function getStudentShortUrlTitle(st, queryUrl) {
       const tok = st && st.token ? String(st.token).trim() : '';
-      if (tok && shortUrlsCacheMap[tok]) {
-        return shortUrlsCacheMap[tok];
+      const cached = getCachedShortUrl(tok, queryUrl);
+      if (cached) {
+        return cached;
       }
       return queryUrl;
     }
@@ -4629,8 +4644,9 @@
     // 取得學生個人查詢直達縮網址（若有快取則取快取，否則優先簡潔顯示）
     function getStudentShortUrlDisplay(st, queryUrl) {
       const tok = st && st.token ? String(st.token).trim() : '';
-      if (tok && shortUrlsCacheMap[tok]) {
-        return formatShortUrlDisplay(shortUrlsCacheMap[tok]);
+      const cached = getCachedShortUrl(tok, queryUrl);
+      if (cached) {
+        return formatShortUrlDisplay(cached);
       }
       if (isBatchShorteningInProgress) {
         return 'is.gd 產生中...';
@@ -4672,7 +4688,9 @@
     function updateShortUrlsInDOM() {
       for (const tok in shortUrlsCacheMap) {
         if (shortUrlsCacheMap.hasOwnProperty(tok) && shortUrlsCacheMap[tok]) {
-          updateSingleStudentShortUrlInDOM(tok, shortUrlsCacheMap[tok]);
+          const entry = shortUrlsCacheMap[tok];
+          const url = typeof entry === 'object' ? entry.shortUrl : '';
+          if (url) updateSingleStudentShortUrlInDOM(tok, url);
         }
       }
     }
@@ -4757,17 +4775,20 @@
       }
 
       const toShortenMap = {};
+      const studentQueryMap = {};
+      const vFlags = getVisibilityFlagString();
       pool.forEach(st => {
         if (!st || !st.token) return;
         const tok = String(st.token).trim();
-        if (forceRefresh || !shortUrlsCacheMap[tok]) {
-          const qUrl = parentBaseUrl + '?t=' + encodeURIComponent(tok) + (apiId ? '&a=' + apiId : '') + (examSource && examSource !== 'none' ? '&e=' + encodeURIComponent(examSource) : '') + '&v=' + getVisibilityFlagString();
+        const qUrl = parentBaseUrl + '?t=' + encodeURIComponent(tok) + (apiId ? '&a=' + apiId : '') + (examSource && examSource !== 'none' ? '&e=' + encodeURIComponent(examSource) : '') + '&v=' + vFlags;
+        studentQueryMap[tok] = qUrl;
+        if (forceRefresh || !getCachedShortUrl(tok, qUrl)) {
           toShortenMap[tok] = qUrl;
         }
       });
 
       const uncachedTokens = Object.keys(toShortenMap);
-      const readyInitial = pool.filter(s => !!shortUrlsCacheMap[s.token]).length;
+      const readyInitial = pool.filter(s => !!getCachedShortUrl(String(s.token || '').trim(), studentQueryMap[String(s.token || '').trim()])).length;
 
       if (uncachedTokens.length === 0) {
         updateShortUrlsInDOM();
@@ -4796,7 +4817,7 @@
               let addedCount = 0;
               for (const tok in json.shortUrls) {
                 if (json.shortUrls[tok] && json.shortUrls[tok].startsWith('http')) {
-                  shortUrlsCacheMap[tok] = json.shortUrls[tok];
+                  shortUrlsCacheMap[tok] = { shortUrl: json.shortUrls[tok], targetUrl: toShortenMap[tok] };
                   addedCount++;
                 }
               }
@@ -4817,18 +4838,18 @@
         try {
           for (let i = 0; i < uncachedTokens.length; i++) {
             const tok = uncachedTokens[i];
-            if (shortUrlsCacheMap[tok]) continue;
             const longUrl = toShortenMap[tok];
+            if (getCachedShortUrl(tok, longUrl)) continue;
             try {
               const shortUrl = await shortenWithIsGdJsonp(longUrl);
               if (shortUrl) {
-                shortUrlsCacheMap[tok] = shortUrl;
+                shortUrlsCacheMap[tok] = { shortUrl: shortUrl, targetUrl: longUrl };
                 updateSingleStudentShortUrlInDOM(tok, shortUrl);
               }
             } catch (e) {
               console.warn(`Shorten failed for ${tok}:`, e);
             }
-            const currentDone = pool.filter(s => !!shortUrlsCacheMap[s.token]).length;
+            const currentDone = pool.filter(s => !!getCachedShortUrl(String(s.token || '').trim(), studentQueryMap[String(s.token || '').trim()])).length;
             updateBatchShortenButtonStatus(currentDone, pool.length, true);
           }
           saveShortUrlsCache();
@@ -4839,7 +4860,7 @@
 
       isBatchShorteningInProgress = false;
       updateShortUrlsInDOM();
-      const readyFinal = pool.filter(s => !!shortUrlsCacheMap[s.token]).length;
+      const readyFinal = pool.filter(s => !!getCachedShortUrl(String(s.token || '').trim(), studentQueryMap[String(s.token || '').trim()])).length;
       updateBatchShortenButtonStatus(readyFinal, pool.length);
       if (forceRefresh) {
         showAppleToast(`🎉 已成功產生 ${readyFinal} / ${pool.length} 位學生的 is.gd 簡短網址！`, 'success');
@@ -4944,8 +4965,8 @@
               <div id="${cardId}" class="p-0.5 bg-white border border-slate-200 rounded shadow-2xs"></div>
               <span class="text-[8.5px] text-slate-400 mt-0.5 leading-tight text-center">相機掃描直達</span>
               ${pCfg.showShortUrl !== false ? `
-                <span class="qr-sub-caption text-[8px] font-mono font-bold text-amber-800/90 text-center leading-tight mt-0.5 select-all ${shortUrlsCacheMap[st.token] ? '' : 'hidden'}" data-token="${st.token}" title="${shortUrlsCacheMap[st.token] || ''}">
-                  ${shortUrlsCacheMap[st.token] ? formatShortUrlDisplay(shortUrlsCacheMap[st.token]) : ''}
+                <span class="qr-sub-caption text-[8px] font-mono font-bold text-amber-800/90 text-center leading-tight mt-0.5 select-all ${getCachedShortUrl(st.token, queryUrl) ? '' : 'hidden'}" data-token="${st.token}" title="${getCachedShortUrl(st.token, queryUrl) || ''}">
+                  ${getCachedShortUrl(st.token, queryUrl) ? formatShortUrlDisplay(getCachedShortUrl(st.token, queryUrl)) : ''}
                 </span>
               ` : ''}
             </div>
@@ -5250,9 +5271,10 @@
       });
 
       if (pCfg.showShortUrl !== false) {
-        setTimeout(() => {
+        if (autoShortenTimer) clearTimeout(autoShortenTimer);
+        autoShortenTimer = setTimeout(() => {
           generateShortUrlsForClass(false);
-        }, 150);
+        }, 900);
       }
 
       // 同時若 printModal 開啟中，刷新 modal 頁面
@@ -5389,9 +5411,10 @@
       }
 
       if (pCfg.showShortUrl !== false) {
-        setTimeout(() => {
+        if (autoShortenTimer) clearTimeout(autoShortenTimer);
+        autoShortenTimer = setTimeout(() => {
           generateShortUrlsForClass(false);
-        }, 150);
+        }, 900);
       }
     }
 
