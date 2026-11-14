@@ -370,16 +370,8 @@
             <!-- 科目切換頁籤 (Apple Segmented Control) -->
             <div id="pPrCurveTabs" class="flex flex-wrap gap-1 bg-slate-200/70 p-1 rounded-2xl border border-slate-300/40 shadow-inner"></div>
 
-            <!-- 跨次考試疊加控制列 (Apple HIG Segmented/Dropdown) -->
-            <div class="flex items-center justify-between gap-2 px-3 py-2 bg-slate-50/90 rounded-2xl border border-slate-200/60 text-xs">
-              <div class="flex items-center gap-1.5 font-bold text-slate-700">
-                <span class="text-sm">🔄</span>
-                <span>跨次曲線疊加：</span>
-              </div>
-              <select id="pPrCurveCompareSelect" onchange="onParentPrCurveOverlayChange(this.value)" class="text-xs bg-white border border-slate-200 font-bold text-slate-700 rounded-xl px-2.5 py-1 focus:ring-2 focus:ring-amber-400 focus:outline-none shadow-2xs cursor-pointer">
-                <option value="-1">📌 不疊加 (單次檢視)</option>
-              </select>
-            </div>
+            <!-- 跨次考試疊加控制列 (支援複選／全部疊合) -->
+            <div id="pPrCurveOverlayBar" class="hidden bg-slate-50/90 border border-slate-200/80 rounded-2xl p-2 space-y-1.5"></div>
 
             <!-- SVG 曲線圖容器 -->
             <div id="pPrCurveContainer" class="bg-slate-100/80 rounded-2xl p-4 border border-slate-200/80 space-y-3"></div>
@@ -2681,10 +2673,42 @@
       }, 120);
     }
 
-    function onParentPrCurveOverlayChange(val) {
-      parentPrCurveCompareExamIdx = parseInt(val, 10);
+    let parentPrCurveOverlayIndices = [];
+
+    const PR_CURVE_OVERLAY_PALETTE = [
+      { stroke: '#4f46e5', pill: 'bg-indigo-50 text-indigo-700 border-indigo-300', dotText: '#3730a3' },
+      { stroke: '#e11d48', pill: 'bg-rose-50 text-rose-700 border-rose-300', dotText: '#9f1239' },
+      { stroke: '#0891b2', pill: 'bg-cyan-50 text-cyan-700 border-cyan-300', dotText: '#155e75' },
+      { stroke: '#9333ea', pill: 'bg-purple-50 text-purple-700 border-purple-300', dotText: '#6b21a8' },
+      { stroke: '#0d9488', pill: 'bg-teal-50 text-teal-700 border-teal-300', dotText: '#115e59' },
+      { stroke: '#ea580c', pill: 'bg-orange-50 text-orange-700 border-orange-300', dotText: '#9a3412' }
+    ];
+
+    function matchPrSubject_(exam, targetName) {
+      if (!exam || !exam.subjects || !targetName) return null;
+      const s2 = targetName.trim();
+      return exam.subjects.find(s => {
+        if (!s || !s.name) return false;
+        const s1 = s.name.trim();
+        return s1 === s2 || s1.replace(/科$/, '') === s2.replace(/科$/, '') || s1.includes(s2) || s2.includes(s1);
+      }) || null;
+    }
+
+    function toggleParentPrCurveOverlay(examIdx) {
+      const pos = parentPrCurveOverlayIndices.indexOf(examIdx);
+      if (pos >= 0) parentPrCurveOverlayIndices.splice(pos, 1);
+      else parentPrCurveOverlayIndices.push(examIdx);
       const sel = document.getElementById('pExamSelect');
       const curIdx = sel ? parseInt(sel.value, 10) : 0;
+      const curExam = currentStudentExams[curIdx];
+      renderParentPrCurve(curExam);
+    }
+
+    function toggleParentPrCurveAllOverlays(enableAll) {
+      const sel = document.getElementById('pExamSelect');
+      const curIdx = sel ? parseInt(sel.value, 10) : 0;
+      const validList = getValidRadarExamsList().filter(item => item.idx !== curIdx);
+      parentPrCurveOverlayIndices = enableAll ? validList.map(item => item.idx) : [];
       const curExam = currentStudentExams[curIdx];
       renderParentPrCurve(curExam);
     }
@@ -2772,58 +2796,57 @@
 
       const activeSub = subs[parentPrCurveSubIdx];
 
-      // 2. 跨次考試疊加下拉選單處理
+      // 2. 跨次考試疊加複選列處理（支援複選／全部疊合）
       const sel = document.getElementById('pExamSelect');
       const curExamIdx = sel ? parseInt(sel.value, 10) : (currentStudentExams.indexOf(curExam) !== -1 ? currentStudentExams.indexOf(curExam) : 0);
-      if (parentPrCurveCompareExamIdx === curExamIdx) {
-        parentPrCurveCompareExamIdx = -1;
-      }
+      const validPrExams = getValidRadarExamsList();
+      const otherPrIndices = validPrExams.filter(item => item.idx !== curExamIdx).map(item => item.idx);
+      parentPrCurveOverlayIndices = parentPrCurveOverlayIndices.filter(i => otherPrIndices.includes(i));
 
-      const compSelect = document.getElementById('pPrCurveCompareSelect');
-      if (compSelect) {
-        compSelect.innerHTML = '';
-        const defOpt = document.createElement('option');
-        defOpt.value = '-1';
-        defOpt.innerText = '📌 不疊加 (單次檢視)';
-        compSelect.appendChild(defOpt);
-
-        let hasOther = false;
-        if (currentStudentExams && currentStudentExams.length > 1) {
-          currentStudentExams.forEach((ex, idx) => {
-            if (idx !== curExamIdx) {
-              hasOther = true;
-              const opt = document.createElement('option');
-              opt.value = idx;
-              opt.innerText = `🔄 疊加：${ex.sheetName || ex.examTitle}`;
-              if (idx === parentPrCurveCompareExamIdx) opt.selected = true;
-              compSelect.appendChild(opt);
+      const overlayBar = document.getElementById('pPrCurveOverlayBar');
+      if (overlayBar) {
+        if (otherPrIndices.length > 0) {
+          overlayBar.classList.remove('hidden');
+          const allSelected = otherPrIndices.every(i => parentPrCurveOverlayIndices.includes(i));
+          const chipsHtml = validPrExams.map(({ ex, idx }) => {
+            const name = ex.sheetName || ex.examTitle || `評量 ${idx + 1}`;
+            if (idx === curExamIdx) {
+              return `<span class="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs">● ${name} (本次)</span>`;
             }
-          });
+            const pos = parentPrCurveOverlayIndices.indexOf(idx);
+            const isActive = pos >= 0;
+            const pal = isActive ? PR_CURVE_OVERLAY_PALETTE[pos % PR_CURVE_OVERLAY_PALETTE.length] : null;
+            return `<button type="button" onclick="toggleParentPrCurveOverlay(${idx})" class="text-[10px] font-bold px-2 py-0.5 rounded-full border transition cursor-pointer ${isActive ? pal.pill + ' shadow-2xs' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-100'}">${isActive ? '✓ ' : '+ '}${name}</button>`;
+          }).join('');
+          overlayBar.innerHTML = `
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-[10px] font-bold text-slate-600">🔄 跨次曲線疊加（可複選／全部疊合）</span>
+              <button type="button" onclick="toggleParentPrCurveAllOverlays(${!allSelected})" class="text-[10px] font-bold px-2 py-0.5 rounded-lg border transition cursor-pointer shrink-0 ${allSelected ? 'bg-slate-200 text-slate-700 border-slate-300 hover:bg-slate-300' : 'bg-amber-500 text-white border-amber-600 hover:bg-amber-600'}">
+                ${allSelected ? '僅看本次' : '✨ 全部疊合'}
+              </button>
+            </div>
+            <div class="flex flex-wrap gap-1">${chipsHtml}</div>
+          `;
+        } else {
+          overlayBar.classList.add('hidden');
+          overlayBar.innerHTML = '';
         }
-        if (!hasOther) {
-          const opt = document.createElement('option');
-          opt.value = '-1';
-          opt.innerText = '💡 累積兩次以上考試即可開啟疊加';
-          opt.disabled = true;
-          compSelect.appendChild(opt);
-        }
-        compSelect.value = (parentPrCurveCompareExamIdx >= 0 && parentPrCurveCompareExamIdx < currentStudentExams.length && parentPrCurveCompareExamIdx !== curExamIdx)
-          ? parentPrCurveCompareExamIdx : '-1';
       }
 
-      const isComparing = parentPrCurveCompareExamIdx >= 0 && parentPrCurveCompareExamIdx < currentStudentExams.length && parentPrCurveCompareExamIdx !== curExamIdx;
-      const compExam = isComparing ? currentStudentExams[parentPrCurveCompareExamIdx] : null;
-      const compSub = (compExam && compExam.subjects) ? compExam.subjects.find(s => {
-        if (!s || !s.name || !activeSub || !activeSub.name) return false;
-        const s1 = s.name.trim();
-        const s2 = activeSub.name.trim();
-        return s1 === s2 || s1.replace(/科$/, '') === s2.replace(/科$/, '') || s1.includes(s2) || s2.includes(s1);
-      }) : null;
+      const overlayItems = parentPrCurveOverlayIndices.map((ovIdx, pIdx) => {
+        const ovExam = currentStudentExams[ovIdx];
+        const ovSub = matchPrSubject_(ovExam, activeSub.name);
+        return { ovIdx, ovExam, ovSub, pal: PR_CURVE_OVERLAY_PALETTE[pIdx % PR_CURVE_OVERLAY_PALETTE.length] };
+      }).filter(it => it.ovExam && it.ovSub);
+
+      const isComparing = overlayItems.length > 0;
+      const compExam = overlayItems.length === 1 ? overlayItems[0].ovExam : null;
+      const compSub = overlayItems.length === 1 ? overlayItems[0].ovSub : null;
 
       const badgeEl = document.getElementById('pPrCurveBadge');
 
-      if (activeSub.isExcluded || (isComparing && compSub && compSub.isExcluded)) {
-        const exNote = activeSub.excludedNote || (compSub && compSub.excludedNote) || '該科目額外採計，該測驗不計入班級統計資料，僅呈現學生成績';
+      if (activeSub.isExcluded || overlayItems.some(it => it.ovSub.isExcluded)) {
+        const exNote = activeSub.excludedNote || (overlayItems.find(it => it.ovSub.isExcluded)?.ovSub.excludedNote) || '該科目額外採計，該測驗不計入班級統計資料，僅呈現學生成績';
         if (badgeEl) {
           badgeEl.innerHTML = `<span class="text-indigo-800 font-bold">📌 ${activeSub.name}：${activeSub.score}分（額外採計）</span>`;
         }
@@ -2831,7 +2854,7 @@
           <div class="p-4 bg-gradient-to-r from-indigo-50/80 via-white to-indigo-50/60 rounded-2xl border border-indigo-200/80 text-center space-y-2.5 shadow-2xs">
             <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-100 text-indigo-900 text-xs font-black">
               <span>🌱</span>
-              <span>【${activeSub.name}】個人得分：${activeSub.score} 分${isComparing && compSub ? `（對比考試：${compSub.score} 分）` : ''}</span>
+              <span>【${activeSub.name}】個人得分：${activeSub.score} 分${isComparing ? `（疊加對比：${overlayItems.map(it => `${it.ovExam.sheetName || it.ovExam.examTitle} ${it.ovSub.score}分`).join('、')}）` : ''}</span>
             </div>
             <div class="text-xs font-bold text-indigo-950 leading-relaxed">
               📌 ${exNote}
@@ -2851,7 +2874,122 @@
       const med = activeSub.median !== undefined ? activeSub.median : cAvg;
       const pr = activeSub.pr !== undefined ? activeSub.pr : 50;
 
-      // 4. 若開啟疊加且找到對應科目，進入雙曲線渲染
+      // 4a. 多場考試疊加模式（2 場以上疊加）
+      if (overlayItems.length >= 2) {
+        const ovComputed = overlayItems.map(it => {
+          const samples = getSubjectScoreSamples(it.ovSub);
+          const kde = computeScoreKDE(samples);
+          return {
+            ...it,
+            kde,
+            score: it.ovSub.score !== undefined ? it.ovSub.score : 0,
+            cAvg: it.ovSub.classAverage !== undefined ? it.ovSub.classAverage : 75,
+            pr: it.ovSub.pr !== undefined ? it.ovSub.pr : 50,
+            title: it.ovExam.sheetName || it.ovExam.examTitle || `評量 ${it.ovIdx + 1}`
+          };
+        });
+
+        if (badgeEl) {
+          const diffBadgeHtml = (cfg.showDifficulty !== false && activeSub.difficultyBadge)
+            ? ` <span class="ml-1 px-2 py-0.5 rounded-full bg-white text-slate-800 border border-amber-200 font-bold shadow-2xs text-[10px]">${activeSub.difficultyBadge}</span>`
+            : '';
+          badgeEl.innerHTML = `<span>${activeSub.name}：已疊加 ${ovComputed.length + 1} 場評量</span>${diffBadgeHtml}`;
+        }
+
+        const maxDensity = Math.max(curKde.maxDensity, ...ovComputed.map(o => o.kde.maxDensity)) || 1;
+        const getX = s => 45 + (Math.max(0, Math.min(100, s)) / 100) * 510;
+        const getY = d => 175 - (d / maxDensity) * 125;
+
+        let pathCur = `M ${getX(0).toFixed(1)} 175`;
+        for (let s = 0; s <= 100; s += 1) {
+          pathCur += ` L ${getX(s).toFixed(1)} ${getY(curKde.points[s].density).toFixed(1)}`;
+        }
+        pathCur += ` L ${getX(100).toFixed(1)} 175 Z`;
+
+        const ovPathsSvg = ovComputed.map(o => {
+          let p = `M ${getX(0).toFixed(1)} 175`;
+          for (let s = 0; s <= 100; s += 1) {
+            p += ` L ${getX(s).toFixed(1)} ${getY(o.kde.points[s].density).toFixed(1)}`;
+          }
+          const ox = getX(o.score);
+          const oy = getY(o.kde.points[Math.round(o.score)] ? o.kde.points[Math.round(o.score)].density : maxDensity * 0.5);
+          return `
+            <path d="${p}" fill="none" stroke="${o.pal.stroke}" stroke-width="2.2" stroke-dasharray="5,3" stroke-linecap="round" opacity="0.9" />
+            <circle cx="${ox}" cy="${oy}" r="5.5" fill="#ffffff" stroke="${o.pal.stroke}" stroke-width="2.5"><title>${o.title}：${o.score}分 (PR ${o.pr}，班均 ${o.cAvg})</title></circle>
+          `;
+        }).join('');
+
+        const stX = getX(score);
+        const stY = getY(curKde.points[Math.round(score)] ? curKde.points[Math.round(score)].density : maxDensity * 0.5);
+        const curAvgX = getX(cAvg);
+        const curAvgY = getY(curKde.points[Math.round(cAvg)] ? curKde.points[Math.round(cAvg)].density : maxDensity * 0.6);
+        const box1X = Math.max(85, Math.min(stX, 515));
+        const curGradId = 'pPrMultiGrad_' + activeSub.name.replace(/[^a-zA-Z0-9]/g, '');
+
+        container.innerHTML = `
+          <div class="relative w-full overflow-hidden rounded-2xl bg-white/95 border border-slate-200/80 p-3 shadow-xs">
+            <svg viewBox="0 0 600 220" class="w-full h-auto drop-shadow-sm select-none">
+              <defs>
+                <linearGradient id="${curGradId}" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.25" />
+                  <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.02" />
+                </linearGradient>
+              </defs>
+              ${[0, 20, 40, 60, 80, 100].map(v => `
+                <line x1="${getX(v)}" y1="35" x2="${getX(v)}" y2="175" stroke="${v === 60 ? '#f59e0b' : '#cbd5e1'}" stroke-width="${v === 60 ? '1.5' : '1'}" stroke-dasharray="${v === 60 ? '3,3' : '2,2'}" />
+              `).join('')}
+              ${ovPathsSvg}
+              <path d="${pathCur}" fill="url(#${curGradId})" stroke="#d97706" stroke-width="3.2" stroke-linecap="round" />
+              <line x1="30" y1="175" x2="570" y2="175" stroke="#64748b" stroke-width="1.5" />
+              <text x="${getX(0)}" y="196" font-size="13" fill="#64748b" text-anchor="middle" font-weight="bold">0</text>
+              <text x="${getX(20)}" y="196" font-size="13" fill="#64748b" text-anchor="middle" font-weight="bold">20</text>
+              <text x="${getX(40)}" y="196" font-size="13" fill="#64748b" text-anchor="middle" font-weight="bold">40</text>
+              <g transform="translate(${getX(60)}, 183)">
+                <rect x="-28" y="-1" width="56" height="20" rx="6" fill="#fef3c7" stroke="#f59e0b" stroke-width="1" />
+                <text x="0" y="13" font-size="12" fill="#b45309" text-anchor="middle" font-weight="900">及格 60</text>
+              </g>
+              <text x="${getX(80)}" y="196" font-size="13" fill="#64748b" text-anchor="middle" font-weight="bold">80</text>
+              <g transform="translate(${getX(100)}, 183)">
+                <rect x="-22" y="-1" width="44" height="20" rx="6" fill="#dcfce7" stroke="#10b981" stroke-width="1" />
+                <text x="0" y="13" font-size="12" fill="#047857" text-anchor="middle" font-weight="900">100</text>
+              </g>
+              <line x1="${curAvgX}" y1="${curAvgY}" x2="${curAvgX}" y2="175" stroke="#d97706" stroke-width="2" stroke-dasharray="3,3" />
+              <g transform="translate(${curAvgX}, 152)">
+                <rect x="-35" y="-9" width="70" height="18" rx="9" fill="#fffbeb" stroke="#d97706" stroke-width="1.2" />
+                <text x="0" y="3" font-size="10" fill="#b45309" font-weight="900" text-anchor="middle">本次均 ${cAvg}</text>
+              </g>
+              <path d="M ${box1X} 34 Q ${(box1X + stX) / 2} ${(34 + stY) / 2} ${stX} ${stY}" fill="none" stroke="#d97706" stroke-width="2" stroke-dasharray="3,2" />
+              <circle cx="${stX}" cy="${stY}" r="7" fill="#fef3c7" stroke="#d97706" stroke-width="3" />
+              <g transform="translate(${box1X}, 18)">
+                <rect x="-72" y="-16" width="144" height="32" rx="16" fill="#d97706" filter="drop-shadow(0 3px 8px rgba(217,119,6,0.35))" />
+                <text x="0" y="-1" font-size="12" font-weight="900" fill="#ffffff" text-anchor="middle">📍 本次得分 ${score}分</text>
+                <text x="0" y="11" font-size="10" font-weight="bold" fill="#fef3c7" text-anchor="middle">常模落點 PR ${pr}</text>
+              </g>
+            </svg>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pt-1 text-xs">
+            <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-amber-50 border border-amber-300">
+              <div class="flex items-center gap-1.5 font-black text-amber-950">
+                <span class="w-3 h-1 bg-amber-600 rounded-full inline-block"></span>
+                <span>${curExam.sheetName || curExam.examTitle} (本次)</span>
+              </div>
+              <span class="font-black text-amber-900">${score} 分 · PR ${pr} <span class="text-[10px] font-normal text-amber-700">(均 ${cAvg})</span></span>
+            </div>
+            ${ovComputed.map(o => `
+              <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-white border border-slate-200">
+                <div class="flex items-center gap-1.5 font-bold text-slate-700">
+                  <span class="w-3 h-0.5 border-t-2 border-dashed inline-block" style="border-color: ${o.pal.stroke}"></span>
+                  <span>${o.title}</span>
+                </div>
+                <span class="font-black" style="color: ${o.pal.dotText}">${o.score} 分 · PR ${o.pr} <span class="text-[10px] font-normal text-slate-400">(均 ${o.cAvg})</span></span>
+              </div>
+            `).join('')}
+          </div>
+        `;
+        return;
+      }
+
+      // 4b. 單場對比雙曲線渲染
       if (isComparing && compSub) {
         const compSamples = getSubjectScoreSamples(compSub);
         const compKde = computeScoreKDE(compSamples);
