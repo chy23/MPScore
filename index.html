@@ -83,7 +83,7 @@
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Chart.js 圖表庫 -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <!-- QRCode.js 本機快速生成 QR Code -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <!-- HTML5 QR Code 相機掃描與相片解碼辨識 -->
@@ -354,7 +354,7 @@
           <span>系統更新紀錄</span>
           <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
         </button>
-        <a href="parent.html" target="_blank" class="text-xs font-bold bg-amber-50 hover:bg-amber-100 text-amber-900 px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 border border-amber-200 shadow-2xs active:scale-95">
+        <a href="parent.html" target="_blank" rel="noopener noreferrer" class="text-xs font-bold bg-amber-50 hover:bg-amber-100 text-amber-900 px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 border border-amber-200 shadow-2xs active:scale-95">
           <span>👨‍👩‍👧 開啟家長查詢獨立前台</span> ↗
         </a>
       </div>
@@ -532,7 +532,7 @@
             <button onclick="downloadCsvTemplates()" class="text-xs font-semibold bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 px-3 py-2 rounded-lg transition shadow-sm">
               下載空白 CSV 範本檔
             </button>
-            <a href="https://sheets.new" target="_blank" class="text-xs font-bold bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black px-4 py-2 rounded-lg transition shadow-sm shadow-amber-500/20 flex items-center gap-1">
+            <a href="https://sheets.new" target="_blank" rel="noopener noreferrer" class="text-xs font-bold bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black px-4 py-2 rounded-lg transition shadow-sm shadow-amber-500/20 flex items-center gap-1">
               <span>👉 開啟全新空白 Google 試算表</span> ↗
             </a>
           </div>
@@ -701,7 +701,7 @@
                 <span class="font-bold text-slate-800">✅ 系統已內建楊家驊老師 GradeInterpr 專家學習診斷資料庫！</span>
                 <div class="text-[11px] text-slate-500 mt-0.5">自動依各科落點（精熟、穩健、努力、開發四區間）提供國、數、社、英、自五大學科的專家精進建議。</div>
               </div>
-              <a href="https://chy23.github.io/GradeInterpr/" target="_blank" class="text-amber-800 hover:underline font-bold text-xs whitespace-nowrap">
+              <a href="https://chy23.github.io/GradeInterpr/" target="_blank" rel="noopener noreferrer" class="text-amber-800 hover:underline font-bold text-xs whitespace-nowrap">
                 參觀 GradeInterpr 平台 ↗
               </a>
             </div>
@@ -2327,7 +2327,7 @@
               </div>
               <div class="text-[10px] text-slate-400 mt-0.5">親師陪伴引導 ‧ 點亮下一次突破的信心</div>
             </div>
-            <a href="https://chy23.github.io/GradeInterpr/" target="_blank" class="text-[10px] text-amber-700 hover:text-amber-900 font-semibold bg-amber-50 px-2.5 py-0.5 rounded-full flex items-center gap-1 border border-amber-200/50">
+            <a href="https://chy23.github.io/GradeInterpr/" target="_blank" rel="noopener noreferrer" class="text-[10px] text-amber-700 hover:text-amber-900 font-semibold bg-amber-50 px-2.5 py-0.5 rounded-full flex items-center gap-1 border border-amber-200/50">
               <span>GradeInterpr 平台</span> ↗
             </a>
           </div>
@@ -6917,7 +6917,7 @@
       if (selIdx > 0) {
         const prevExam = currentStudentExams[selIdx - 1];
         prevName.innerText = `(與【${prevExam.sheetName || prevExam.examTitle}】對比)`;
-        compList.innerHTML = '';
+        const compRows = [];
 
         let curTotal = 0, prevTotal = 0, matched = 0;
         curExam.subjects.forEach(cSub => {
@@ -6931,17 +6931,18 @@
               ? `<span class="text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded">+${delta} 分 📈</span>`
               : (delta === 0 ? `<span class="text-slate-500 font-bold bg-slate-100 px-1.5 py-0.5 rounded">持平 ➖</span>` : `<span class="text-rose-600 font-bold bg-rose-50 px-1.5 py-0.5 rounded">${delta} 分 📉</span>`);
 
-            compList.innerHTML += `
+            compRows.push(`
               <div class="p-2 bg-slate-50 rounded-lg flex items-center justify-between border border-slate-200">
-                <span class="font-bold text-slate-700">${cSub.name}</span>
+                <span class="font-bold text-slate-700">${escapeHtml(cSub.name)}</span>
                 <div class="flex items-center gap-1.5">
                   ${cfg.showSubjects ? `<span class="text-slate-400 text-[11px]">${pSub.score} ➔ ${cSub.score}</span>` : ''}
                   ${tag}
                 </div>
               </div>
-            `;
+            `);
           }
         });
+        compList.innerHTML = compRows.join('');
 
         if (matched > 0 && cfg.showAvg) {
           const avgDelta = ((curTotal - prevTotal) / matched).toFixed(1);
@@ -6987,8 +6988,8 @@
 
       const table = document.getElementById('pScoreTable');
       const diagList = document.getElementById('pDiagnosisList');
-      table.innerHTML = '';
-      diagList.innerHTML = '';
+      const tableRows = [];
+      const diagRows = [];
 
       function buildWebExcludedDualBadgeHtml(sub) {
         if (!sub || sub.classTestScore === null || sub.classTestScore === undefined) return '';
@@ -7010,15 +7011,16 @@
       }
 
       curExam.subjects.forEach(sub => {
+        const safeSubName = escapeHtml(sub.name);
         if (sub.isExcluded) {
-          const exNote = sub.excludedNote || EXCLUDED_NOTE_TEXT;
+          const exNote = escapeHtml(sub.excludedNote || EXCLUDED_NOTE_TEXT);
           const dualHtml = cfg.showSubjects ? buildWebExcludedDualBadgeHtml(sub) : '';
           const extraCols = (cfg.showClassAvg ? 1 : 0) + (cfg.showPr ? 1 : 0) + (cfg.showClassAvg ? 1 : 0);
-          table.innerHTML += `
+          tableRows.push(`
             <tr class="bg-amber-50/40 hover:bg-amber-50/70">
               <td class="py-2.5 px-3 font-bold text-slate-800">
                 <div class="flex items-center gap-1 flex-wrap">
-                  <span>${sub.name}</span>
+                  <span>${safeSubName}</span>
                   <span class="text-[9px] font-black px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-900 border border-amber-300">額外採計</span>
                 </div>
               </td>
@@ -7032,13 +7034,13 @@
                 </td>
               ` : ''}
             </tr>
-          `;
+          `);
 
-          diagList.innerHTML += `
+          diagRows.push(`
             <div class="p-3 bg-amber-50/60 rounded-xl border border-amber-200 shadow-sm space-y-1.5">
               <div class="flex items-center justify-between flex-wrap gap-1">
                 <span class="font-bold text-xs text-slate-800">
-                  【${sub.name}】
+                  【${safeSubName}】
                   ${cfg.showSubjects ? `正式採計 <span class="text-amber-700 font-black">${sub.score}</span> 分` : ''}
                 </span>
                 <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border bg-amber-100 text-amber-900 border-amber-300">🌱 該科額外採計</span>
@@ -7047,9 +7049,9 @@
               <div class="text-[11px] font-bold text-amber-900 bg-white/90 px-2.5 py-1.5 rounded-lg border border-amber-200/80">
                 📌 ${exNote}
               </div>
-              ${sub.advice ? `<div class="text-slate-600 leading-relaxed text-[11px]">${sub.advice}</div>` : ''}
+              ${sub.advice ? `<div class="text-slate-600 leading-relaxed text-[11px]">${escapeHtml(sub.advice)}</div>` : ''}
             </div>
-          `;
+          `);
           return;
         }
 
@@ -7059,16 +7061,16 @@
 
         const prBadge = sub.pr ? `<span class="inline-flex items-center whitespace-nowrap bg-amber-50 text-amber-800 font-bold px-1.5 py-0.5 rounded text-[11px]">PR ${sub.pr}</span>` : '-';
 
-        table.innerHTML += `
+        tableRows.push(`
           <tr class="hover:bg-slate-50">
-            <td class="py-2.5 px-3 font-bold text-slate-800">${sub.name}</td>
+            <td class="py-2.5 px-3 font-bold text-slate-800">${safeSubName}</td>
             ${cfg.showSubjects ? `<td class="py-2.5 px-3 text-center font-black text-amber-700 text-sm">${sub.score}</td>` : ''}
             ${cfg.showClassAvg ? `
               <td class="py-2.5 px-3 text-center text-slate-600">
                 <div>${sub.classAverage}</div>
                 ${(cfg.showDifficulty !== false && sub.difficultyBadge) ? `
                   <div class="mt-0.5">
-                    <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200 inline-block" title="*難易度以班級成績估計">${sub.difficultyBadge}</span>
+                    <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200 inline-block" title="*難易度以班級成績估計">${escapeHtml(sub.difficultyBadge)}</span>
                   </div>
                 ` : ''}
               </td>
@@ -7076,33 +7078,33 @@
             ${cfg.showPr ? `<td class="py-2.5 px-3 text-center">${prBadge}</td>` : ''}
             ${cfg.showClassAvg ? `<td class="py-2.5 px-3 text-center">${diffBadge}</td>` : ''}
           </tr>
-        `;
+        `);
 
         let zoneBadgeClass = 'bg-blue-50 text-blue-700 border-blue-200';
         if (sub.zone === '精熟') zoneBadgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
         else if (sub.zone === '努力') zoneBadgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
         else if (sub.zone === '開發') zoneBadgeClass = 'bg-rose-50 text-rose-700 border-rose-200';
 
-        diagList.innerHTML += `
+        diagRows.push(`
           <div class="p-3 bg-white rounded-xl border border-slate-200 shadow-sm space-y-1.5">
             <div class="flex items-center justify-between">
               <span class="font-bold text-xs text-slate-800">
-                【${sub.name}】
+                【${safeSubName}】
                 ${cfg.showSubjects ? `得分 <span class="text-amber-700 font-black">${sub.score}</span> 分` : ''}
                 ${cfg.showClassAvg ? `<span class="text-slate-400 font-normal text-[11px]">(班均 ${sub.classAverage})</span>` : ''}
                 ${(cfg.showDifficulty !== false && sub.difficultyBadge) ? `
                   <span class="inline-flex items-center gap-1 bg-slate-100 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-slate-200" title="*難易度以班級成績估計">
-                    <span>${sub.difficultyBadge}</span>
+                    <span>${escapeHtml(sub.difficultyBadge)}</span>
                     <span class="text-[9px] text-slate-400 font-normal hidden sm:inline">*以班級估計</span>
                   </span>
                 ` : ''}
               </span>
-              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border ${zoneBadgeClass}">${sub.zoneStatus || sub.zone}</span>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border ${zoneBadgeClass}">${escapeHtml(sub.zoneStatus || sub.zone)}</span>
             </div>
-            <div class="text-slate-600 leading-relaxed text-[11px]">${sub.advice}</div>
+            <div class="text-slate-600 leading-relaxed text-[11px]">${escapeHtml(sub.advice)}</div>
             ${(cfg.showDifficulty !== false && sub.difficultyBadge) ? `<div class="text-[9px] text-slate-400 text-right pr-1">*難易度以班級成績估計</div>` : ''}
           </div>
-        `;
+        `);
       });
 
       // 4b. 增加【個人總平均】彙總列 (若有勾選個人總平均)
@@ -7115,7 +7117,7 @@
           ? `<span class="inline-flex items-center whitespace-nowrap bg-amber-500 text-slate-950 font-black px-2 py-0.5 rounded text-[11px] shadow-2xs">PR ${curExam.studentAveragePr}</span>` 
           : '-';
 
-        table.innerHTML += `
+        tableRows.push(`
           <tr class="bg-amber-50/90 font-bold border-t-2 border-amber-200">
             <td class="py-2.5 px-3 font-black text-amber-950 flex items-center gap-1.5">
               <span class="w-2 h-2 rounded-full bg-amber-500 inline-block"></span>
@@ -7126,8 +7128,11 @@
             ${cfg.showPr ? `<td class="py-2.5 px-3 text-center">${avgPrBadge}</td>` : ''}
             ${cfg.showClassAvg ? `<td class="py-2.5 px-3 text-center">${avgDiffTag}</td>` : ''}
           </tr>
-        `;
+        `);
       }
+
+      table.innerHTML = tableRows.join('');
+      diagList.innerHTML = diagRows.join('');
 
       // 成績明細表最下方注記開關
       const tableFootnote = document.getElementById('sbScoreTableFootnote');
@@ -8585,16 +8590,17 @@
       const container = document.getElementById(isSb ? 'sbTScoreContainer' : 'pTScoreContainer');
       if (!container) return;
 
-      container.innerHTML = '';
+      const rows = [];
       curExam.subjects.forEach(sub => {
+        const safeSubName = escapeHtml(sub.name);
         const score = sub.score !== undefined ? sub.score : 0;
         if (sub.isExcluded) {
-          const exNote = sub.excludedNote || EXCLUDED_NOTE_TEXT;
-          container.innerHTML += `
+          const exNote = escapeHtml(sub.excludedNote || EXCLUDED_NOTE_TEXT);
+          rows.push(`
             <div class="p-2.5 bg-amber-50/70 rounded-2xl border border-amber-200/80 space-y-1">
               <div class="flex items-center justify-between text-xs flex-wrap gap-1">
                 <div class="flex items-center gap-1.5 font-bold text-slate-800">
-                  <span class="font-black text-slate-900">【${sub.name}】</span>
+                  <span class="font-black text-slate-900">【${safeSubName}】</span>
                   <span class="text-[11px] text-slate-600 font-medium">原始得分: <b class="text-amber-800">${score}</b>分</span>
                 </div>
                 <span class="text-[9px] font-black px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">🌱 額外採計</span>
@@ -8603,7 +8609,7 @@
                 ${exNote}
               </div>
             </div>
-          `;
+          `);
           return;
         }
         const samples = getSubjectScoreSamples(sub);
@@ -8636,11 +8642,11 @@
           barColor = 'bg-rose-400';
         }
 
-        container.innerHTML += `
+        rows.push(`
           <div class="p-2.5 bg-slate-50/80 rounded-2xl border border-slate-200/80 space-y-1.5">
             <div class="flex items-center justify-between text-xs">
               <div class="flex items-center gap-1.5 font-bold text-slate-800">
-                <span class="font-black text-slate-900">【${sub.name}】</span>
+                <span class="font-black text-slate-900">【${safeSubName}】</span>
                 <span class="text-[11px] text-slate-500 font-medium">原始得分: <b class="text-amber-800">${score}</b>分 (班均 ${cAvg})</span>
               </div>
               <div class="flex items-center gap-1.5">
@@ -8669,8 +8675,9 @@
               </div>
             </div>
           </div>
-        `;
+        `);
       });
+      container.innerHTML = rows.join('');
     }
 
     // ==========================================
@@ -9438,6 +9445,7 @@
               }
             }
 
+            const sbCompRows = [];
             curExam.subjects.forEach(sub => {
               const prevSub = prevExam.subjects.find(p => p.name === sub.name);
               const pScore = prevSub ? prevSub.score : sub.score;
@@ -9446,16 +9454,17 @@
               if (diff > 0) diffTag = `<span class="text-emerald-600 font-bold">+${diff} ▲</span>`;
               else if (diff < 0) diffTag = `<span class="text-rose-500 font-bold">${diff} ▼</span>`;
 
-              compList.innerHTML += `
+              sbCompRows.push(`
                 <div class="p-2 bg-slate-50 rounded-lg flex items-center justify-between border border-slate-100">
-                  <span class="font-bold text-slate-700">${sub.name}</span>
+                  <span class="font-bold text-slate-700">${escapeHtml(sub.name)}</span>
                   <div class="flex items-center gap-1">
                     ${cfg.showSubjects ? `<span class="text-slate-400 text-[10px]">${pScore}➔${sub.score}</span>` : ''}
                     ${diffTag}
                   </div>
                 </div>
-              `;
+              `);
             });
+            compList.innerHTML = sbCompRows.join('');
           } else {
             if (prevNameEl) prevNameEl.innerText = '(首筆考試基準)';
             if (badgeEl) {
@@ -9499,16 +9508,17 @@
             </tr>
           `;
           const tbody = document.getElementById('sbScoreTable');
-          tbody.innerHTML = '';
+          const sbTableRows = [];
           curExam.subjects.forEach(sub => {
+            const safeSubName = escapeHtml(sub.name);
             if (sub.isExcluded) {
-              const exNote = sub.excludedNote || EXCLUDED_NOTE_TEXT;
+              const exNote = escapeHtml(sub.excludedNote || EXCLUDED_NOTE_TEXT);
               const extraCols = (cfg.showClassAvg ? 1 : 0) + (cfg.showPr ? 1 : 0) + (cfg.showClassAvg ? 1 : 0);
-              tbody.innerHTML += `
+              sbTableRows.push(`
                 <tr class="bg-amber-50/40 hover:bg-amber-50/70">
                   <td class="py-2 px-2.5 font-bold text-slate-800">
                     <div class="flex items-center gap-1 flex-wrap">
-                      <span>${sub.name}</span>
+                      <span>${safeSubName}</span>
                       <span class="text-[8.5px] font-black px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-900 border border-amber-300">額外採計</span>
                     </div>
                   </td>
@@ -9521,7 +9531,7 @@
                     </td>
                   ` : ''}
                 </tr>
-              `;
+              `);
               return;
             }
             const diffVal = Math.round((sub.score - sub.classAverage) * 10) / 10;
@@ -9530,12 +9540,12 @@
               : `<span class="text-rose-500 font-bold">${diffVal}</span>`;
             const prBadge = sub.pr ? `<span class="inline-flex items-center whitespace-nowrap bg-amber-50 text-amber-800 font-bold px-1.5 py-0.5 rounded text-[10px]">PR ${sub.pr}</span>` : '-';
             const diffBadgeHtml = (cfg.showDifficulty !== false && sub.difficultyBadge)
-              ? `<div class="text-[9px] font-bold text-amber-900 bg-amber-50 rounded-full px-1.5 py-0.2 mt-0.5 inline-block border border-amber-200" title="*難易度以班級成績估計">${sub.difficultyBadge}</div>`
+              ? `<div class="text-[9px] font-bold text-amber-900 bg-amber-50 rounded-full px-1.5 py-0.2 mt-0.5 inline-block border border-amber-200" title="*難易度以班級成績估計">${escapeHtml(sub.difficultyBadge)}</div>`
               : '';
 
-            tbody.innerHTML += `
+            sbTableRows.push(`
               <tr class="hover:bg-slate-50">
-                <td class="py-2 px-2.5 font-bold text-slate-800">${sub.name}</td>
+                <td class="py-2 px-2.5 font-bold text-slate-800">${safeSubName}</td>
                 <td class="py-2 px-2 text-center font-black text-amber-700">${sub.score}</td>
                 ${cfg.showClassAvg ? `
                   <td class="py-2 px-2 text-center text-slate-500 font-medium">
@@ -9545,7 +9555,7 @@
                 ${cfg.showPr ? `<td class="py-2 px-2 text-center">${prBadge}</td>` : ''}
                 ${cfg.showClassAvg ? `<td class="py-2 px-2 text-center">${diffTag}</td>` : ''}
               </tr>
-            `;
+            `);
           });
 
           // 增加【個人總平均】彙總列 (若有勾選個人總平均)
@@ -9558,7 +9568,7 @@
               ? `<span class="inline-flex items-center whitespace-nowrap bg-amber-500 text-slate-950 font-black px-1.5 py-0.5 rounded text-[10px] shadow-2xs">PR ${curExam.studentAveragePr}</span>`
               : '-';
 
-            tbody.innerHTML += `
+            sbTableRows.push(`
               <tr class="bg-amber-50/90 font-bold border-t-2 border-amber-200">
                 <td class="py-2 px-2.5 font-black text-amber-950 flex items-center gap-1">
                   <span class="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block"></span>
@@ -9569,8 +9579,9 @@
                 ${cfg.showPr ? `<td class="py-2 px-2 text-center">${avgPrBadge}</td>` : ''}
                 ${cfg.showClassAvg ? `<td class="py-2 px-2 text-center">${avgDiffTag}</td>` : ''}
               </tr>
-            `;
+            `);
           }
+          tbody.innerHTML = sbTableRows.join('');
 
           // 沙盒成績表格最下方注記連動
           const sbFootnote = document.getElementById('sbScoreTableFootnote');
@@ -9592,15 +9603,16 @@
         if (cfg.showDiagnosis) {
           diagCard.classList.remove('hidden');
           const diagList = document.getElementById('sbDiagnosisList');
-          diagList.innerHTML = '';
+          const sbDiagRows = [];
           curExam.subjects.forEach(sub => {
+            const safeSubName = escapeHtml(sub.name);
             if (sub.isExcluded) {
-              const exNote = sub.excludedNote || EXCLUDED_NOTE_TEXT;
-              diagList.innerHTML += `
+              const exNote = escapeHtml(sub.excludedNote || EXCLUDED_NOTE_TEXT);
+              sbDiagRows.push(`
                 <div class="p-2.5 bg-amber-50/70 rounded-xl border border-amber-200 space-y-1">
                   <div class="flex items-center justify-between flex-wrap gap-1">
                     <span class="font-bold text-[11px] text-slate-800">
-                      【${sub.name}】
+                      【${safeSubName}】
                       ${cfg.showSubjects ? `得分 <span class="text-amber-700 font-black">${sub.score}</span> 分` : ''}
                     </span>
                     <span class="text-[9px] font-bold px-2 py-0.5 rounded-full border bg-amber-100 text-amber-900 border-amber-300">🌱 該科額外採計</span>
@@ -9608,9 +9620,9 @@
                   <div class="text-[10px] font-bold text-amber-900 bg-white/90 px-2 py-1 rounded-lg border border-amber-200/80">
                     📌 ${exNote}
                   </div>
-                  ${sub.advice ? `<div class="text-slate-600 leading-relaxed text-[10px]">${sub.advice}</div>` : ''}
+                  ${sub.advice ? `<div class="text-slate-600 leading-relaxed text-[10px]">${escapeHtml(sub.advice)}</div>` : ''}
                 </div>
-              `;
+              `);
               return;
             }
             let zoneBadge = 'bg-blue-50 text-blue-700 border-blue-200';
@@ -9618,19 +9630,20 @@
             else if (sub.zone === '努力') zoneBadge = 'bg-amber-50 text-amber-700 border-amber-200';
             else if (sub.zone === '開發') zoneBadge = 'bg-rose-50 text-rose-700 border-rose-200';
 
-            diagList.innerHTML += `
+            sbDiagRows.push(`
               <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200/80 space-y-1">
                 <div class="flex items-center justify-between">
                   <span class="font-bold text-[11px] text-slate-800">
-                    【${sub.name}】
+                    【${safeSubName}】
                     ${cfg.showSubjects ? `得分 <span class="text-amber-700 font-black">${sub.score}</span> 分` : ''}
                   </span>
-                  <span class="text-[9px] font-bold px-2 py-0.5 rounded-full border ${zoneBadge}">${sub.zoneStatus || sub.zone || '穩健'}</span>
+                  <span class="text-[9px] font-bold px-2 py-0.5 rounded-full border ${zoneBadge}">${escapeHtml(sub.zoneStatus || sub.zone || '穩健')}</span>
                 </div>
-                <div class="text-slate-600 leading-relaxed text-[10px]">${sub.advice}</div>
+                <div class="text-slate-600 leading-relaxed text-[10px]">${escapeHtml(sub.advice)}</div>
               </div>
-            `;
+            `);
           });
+          diagList.innerHTML = sbDiagRows.join('');
         } else {
           diagCard.classList.add('hidden');
         }
@@ -10504,10 +10517,10 @@
           return `
             <tr class="hover:bg-sky-50/60 transition">
               <td class="py-2 px-3 font-mono font-bold text-slate-700">${seat}</td>
-              <td class="py-2 px-3 font-black text-slate-800">${st.name}</td>
-              <td class="py-2 px-3 font-mono font-bold text-amber-800">${st.token}</td>
+              <td class="py-2 px-3 font-black text-slate-800">${escapeHtml(st.name)}</td>
+              <td class="py-2 px-3 font-mono font-bold text-amber-800">${escapeHtml(st.token)}</td>
               <td class="py-2 px-3 font-mono text-[11px] text-sky-700 break-all">
-                <a href="${url}" target="_blank" class="hover:underline">${url}</a>
+                <a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" class="hover:underline">${escapeHtml(url)}</a>
               </td>
               <td class="py-2 px-3 text-right whitespace-nowrap">
                 <button type="button" onclick="copySingleStudentParentLink('${st.token}', '${st.name}', '${seat}')"
@@ -11037,7 +11050,7 @@
               <span>📋</span>
               <span>複製全班共用查詢總連結</span>
             </button>
-            <a id="sharedParentPortalOpenBtn" href="parent.html" target="_blank"
+            <a id="sharedParentPortalOpenBtn" href="parent.html" target="_blank" rel="noopener noreferrer"
               class="min-h-[38px] px-3 py-2 rounded-xl bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 font-black text-xs transition flex items-center gap-1 shrink-0">
               <span>↗ 預覽開啟</span>
             </a>
