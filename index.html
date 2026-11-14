@@ -5001,7 +5001,7 @@
       const titleFont = isUltraCompact ? 'text-xs' : (isCompact ? 'text-xs md:text-sm' : 'text-sm md:text-base');
       const examBadge = examData ? `<span class="inline-flex items-center justify-center text-[9px] font-bold text-amber-900 bg-amber-100/90 px-1.5 py-0.5 rounded leading-none shrink-0 align-middle">【${examData.sheetName || examData.examTitle}】</span>` : '';
       const nameFont = isUltraCompact ? 'text-sm' : (isCompact ? 'text-sm md:text-base' : 'text-base');
-      const footClass = isUltraCompact ? 'text-[9px] pt-1' : 'text-[9.5px] pt-1';
+      const footClass = isUltraCompact ? 'text-[18px] pt-1.5' : 'text-[19px] pt-1.5';
 
       return `
         <div class="flex flex-col justify-between h-full space-y-1">
@@ -5067,9 +5067,9 @@
 
           <!-- 頁腳備註說明 -->
           ${pCfg.showFootnote && footnote ? `
-            <div class="${footClass} text-slate-400 border-t flex items-center gap-1 shrink-0">
-              <span class="text-[10px]">ℹ️</span>
-              <span class="leading-normal">${footnote}</span>
+            <div class="${footClass} text-slate-900 font-bold border-t border-slate-300 flex items-start gap-1.5 shrink-0">
+              <span class="text-[18px] text-amber-700 leading-snug shrink-0">ℹ️</span>
+              <span class="leading-snug">${footnote}</span>
             </div>
           ` : ''}
         </div>
