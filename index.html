@@ -1412,6 +1412,7 @@
                   </span>
                   <span class="text-slate-400 font-normal text-[10px]">發現優勢形狀</span>
                 </div>
+                <div id="sbRadarOverlayBar" class="hidden bg-slate-50/90 border border-slate-200/80 rounded-2xl p-1.5 space-y-1"></div>
                 <div class="max-w-[220px] mx-auto aspect-square pt-1">
                   <canvas id="sbRadarCanvas"></canvas>
                 </div>
@@ -2105,6 +2106,7 @@
             </div>
             <span class="text-[10px] text-slate-400 font-medium">看見強項與發展形狀</span>
           </div>
+          <div id="pRadarOverlayBar" class="hidden bg-slate-50/90 border border-slate-200/80 rounded-2xl p-2 space-y-1.5"></div>
           <div class="max-w-[260px] mx-auto aspect-square pt-1">
             <canvas id="pRadarChart"></canvas>
           </div>
@@ -6786,11 +6788,8 @@
         }
       }
 
-      // 2. 雷達圖更新 (若全班平均未勾選，雷達圖自動隱藏全班平均線；額外採計科目不畫班級平均對照點)
-      const labels = curExam.subjects.map(s => s.isExcluded ? `${s.name}(額外採計)` : s.name);
-      const scores = curExam.subjects.map(s => s.score);
-      const avgs = curExam.subjects.map(s => s.isExcluded ? null : s.classAverage);
-      renderParentRadar(labels, scores, avgs);
+      // 2. 雷達圖更新 (支援跨次考試成績疊加，最多可全部疊合)
+      renderWebPreviewRadarWithOverlays(curExam, curIdx);
 
       // 3. 跨次考試成長對比
       const compCard = document.getElementById('pComparisonCard');
@@ -7046,6 +7045,169 @@
 
       const scoreCard = table.closest('.bg-white');
       if (scoreCard) scoreCard.classList.toggle('hidden', !cfg.showSubjects);
+    }
+
+    const INDEX_RADAR_PALETTE = [
+      { border: 'rgba(79, 70, 229, 0.95)', bg: 'rgba(99, 102, 241, 0.16)', pill: 'bg-indigo-50 text-indigo-700 border-indigo-300' },
+      { border: 'rgba(225, 29, 72, 0.95)', bg: 'rgba(244, 63, 94, 0.14)', pill: 'bg-rose-50 text-rose-700 border-rose-300' },
+      { border: 'rgba(8, 145, 178, 0.95)', bg: 'rgba(6, 182, 212, 0.14)', pill: 'bg-cyan-50 text-cyan-700 border-cyan-300' },
+      { border: 'rgba(147, 51, 234, 0.95)', bg: 'rgba(168, 85, 247, 0.14)', pill: 'bg-purple-50 text-purple-700 border-purple-300' },
+      { border: 'rgba(13, 148, 136, 0.95)', bg: 'rgba(20, 184, 166, 0.14)', pill: 'bg-teal-50 text-teal-700 border-teal-300' },
+      { border: 'rgba(234, 88, 12, 0.95)', bg: 'rgba(249, 115, 22, 0.14)', pill: 'bg-orange-50 text-orange-700 border-orange-300' }
+    ];
+    let pRadarOverlayIndices = [];
+    let sbRadarOverlayIndices = [];
+
+    function filterValidRadarExams_(exams) {
+      return (exams || []).map((ex, idx) => ({ ex, idx })).filter(({ ex }) => {
+        const title = (ex.sheetName || ex.examTitle || '').trim();
+        if (!title || title.startsWith('_')) return false;
+        const low = title.toLowerCase();
+        if (low.includes('名冊') || low.includes('閱覽') || low.includes('瀏覽') || low.includes('紀錄') || low.includes('記錄') || low.includes('日誌') || low.includes('log')) {
+          return false;
+        }
+        return Array.isArray(ex.subjects) && ex.subjects.length > 0;
+      });
+    }
+
+    function buildRadarOverlayBarHtml_(validList, curIdx, selectedIndices, toggleFnName, toggleAllFnName) {
+      const otherIndices = validList.filter(item => item.idx !== curIdx).map(item => item.idx);
+      const allSelected = otherIndices.length > 0 && otherIndices.every(i => selectedIndices.includes(i));
+      const chips = validList.map(({ ex, idx }) => {
+        const name = ex.sheetName || ex.examTitle || `評量 ${idx + 1}`;
+        if (idx === curIdx) {
+          return `<span class="text-[9.5px] font-black px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">● ${name}</span>`;
+        }
+        const pos = selectedIndices.indexOf(idx);
+        const isActive = pos >= 0;
+        const pal = isActive ? INDEX_RADAR_PALETTE[pos % INDEX_RADAR_PALETTE.length] : null;
+        return `<button type="button" onclick="${toggleFnName}(${idx})" class="text-[9.5px] font-bold px-1.5 py-0.5 rounded-full border transition cursor-pointer ${isActive ? pal.pill : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-100'}">${isActive ? '✓ ' : '+ '}${name}</button>`;
+      }).join('');
+      return `
+        <div class="flex items-center justify-between gap-1.5">
+          <span class="text-[9.5px] font-bold text-slate-600">🔄 跨次疊加（可全部疊合）</span>
+          <button type="button" onclick="${toggleAllFnName}(${!allSelected})" class="text-[9.5px] font-bold px-1.5 py-0.5 rounded-md border transition cursor-pointer shrink-0 ${allSelected ? 'bg-slate-200 text-slate-700 border-slate-300' : 'bg-amber-500 text-white border-amber-600'}">
+            ${allSelected ? '僅看本次' : '✨ 全部疊合'}
+          </button>
+        </div>
+        <div class="flex flex-wrap gap-1">${chips}</div>
+      `;
+    }
+
+    function toggleWebRadarOverlay(examIdx) {
+      const pos = pRadarOverlayIndices.indexOf(examIdx);
+      if (pos >= 0) pRadarOverlayIndices.splice(pos, 1);
+      else pRadarOverlayIndices.push(examIdx);
+      const sel = document.getElementById('pExamSelect');
+      const curIdx = sel ? parseInt(sel.value, 10) : 0;
+      const curExam = currentStudentExams[curIdx];
+      if (curExam) renderWebPreviewRadarWithOverlays(curExam, curIdx);
+    }
+
+    function toggleWebRadarAllOverlays(enableAll) {
+      const sel = document.getElementById('pExamSelect');
+      const curIdx = sel ? parseInt(sel.value, 10) : 0;
+      const others = filterValidRadarExams_(currentStudentExams).filter(i => i.idx !== curIdx).map(i => i.idx);
+      pRadarOverlayIndices = enableAll ? others : [];
+      const curExam = currentStudentExams[curIdx];
+      if (curExam) renderWebPreviewRadarWithOverlays(curExam, curIdx);
+    }
+
+    function toggleSbRadarOverlay(examIdx) {
+      const pos = sbRadarOverlayIndices.indexOf(examIdx);
+      if (pos >= 0) sbRadarOverlayIndices.splice(pos, 1);
+      else sbRadarOverlayIndices.push(examIdx);
+      renderSandboxSelectedExamView();
+    }
+
+    function toggleSbRadarAllOverlays(enableAll) {
+      const sel = document.getElementById('sbExamSelect');
+      const curIdx = sel ? parseInt(sel.value, 10) : 0;
+      const others = filterValidRadarExams_(sbStudentExams).filter(i => i.idx !== curIdx).map(i => i.idx);
+      sbRadarOverlayIndices = enableAll ? others : [];
+      renderSandboxSelectedExamView();
+    }
+
+    function buildRadarDatasetsWithOverlays_(allExams, curExam, curIdx, selectedIndices, showClassAvg, isSb) {
+      const rawNames = curExam.subjects.map(s => s.name);
+      const scores = curExam.subjects.map(s => s.score);
+      const avgs = curExam.subjects.map(s => s.isExcluded ? null : s.classAverage);
+      const curName = curExam.sheetName || curExam.examTitle || '本次';
+      const hasOv = selectedIndices.length > 0;
+
+      const datasets = [{
+        label: hasOv ? `${curName} (本次)` : '個人得分',
+        data: scores,
+        backgroundColor: hasOv ? 'rgba(245, 158, 11, 0.25)' : (isSb ? 'rgba(99, 102, 241, 0.25)' : 'rgba(245, 158, 11, 0.35)'),
+        borderColor: 'rgba(217, 119, 6, 1)',
+        borderWidth: hasOv ? 2.5 : 2,
+        pointBackgroundColor: 'rgba(217, 119, 6, 1)'
+      }];
+
+      selectedIndices.forEach((ovIdx, pIdx) => {
+        const ovExam = allExams[ovIdx];
+        if (!ovExam || !ovExam.subjects) return;
+        const pal = INDEX_RADAR_PALETTE[pIdx % INDEX_RADAR_PALETTE.length];
+        const ovData = rawNames.map(sName => {
+          const found = ovExam.subjects.find(sub => sub.name === sName);
+          return found ? found.score : null;
+        });
+        datasets.push({
+          label: ovExam.sheetName || ovExam.examTitle || `評量 ${ovIdx + 1}`,
+          data: ovData,
+          backgroundColor: pal.bg,
+          borderColor: pal.border,
+          borderWidth: 2,
+          pointBackgroundColor: pal.border,
+          spanGaps: true
+        });
+      });
+
+      if (showClassAvg) {
+        datasets.push({
+          label: hasOv ? `班均 (${curName})` : '班級各科平均',
+          data: avgs,
+          backgroundColor: hasOv ? 'transparent' : 'rgba(5, 150, 105, 0.2)',
+          borderColor: 'rgba(5, 150, 105, 1)',
+          borderWidth: 1.5,
+          borderDash: [3, 3]
+        });
+      }
+      return datasets;
+    }
+
+    function renderWebPreviewRadarWithOverlays(curExam, curIdx) {
+      if (!curExam || !curExam.subjects) return;
+      const cfg = getActiveVisibilityConfig();
+      const validList = filterValidRadarExams_(currentStudentExams);
+      const otherIndices = validList.filter(i => i.idx !== curIdx).map(i => i.idx);
+      pRadarOverlayIndices = pRadarOverlayIndices.filter(i => otherIndices.includes(i));
+
+      const bar = document.getElementById('pRadarOverlayBar');
+      if (bar) {
+        if (otherIndices.length > 0) {
+          bar.classList.remove('hidden');
+          bar.innerHTML = buildRadarOverlayBarHtml_(validList, curIdx, pRadarOverlayIndices, 'toggleWebRadarOverlay', 'toggleWebRadarAllOverlays');
+        } else {
+          bar.classList.add('hidden');
+          bar.innerHTML = '';
+        }
+      }
+
+      const labels = curExam.subjects.map(s => s.isExcluded ? `${s.name}(額外採計)` : s.name);
+      const datasets = buildRadarDatasetsWithOverlays_(currentStudentExams, curExam, curIdx, pRadarOverlayIndices, cfg.showClassAvg, false);
+      const ctx = document.getElementById('pRadarChart').getContext('2d');
+      if (pRadarInst) pRadarInst.destroy();
+      pRadarInst = new Chart(ctx, {
+        type: 'radar',
+        data: { labels, datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          scales: { r: { min: 0, max: 100, ticks: { display: false, stepSize: 25 } } },
+          plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } }
+        }
+      });
     }
 
     function renderParentRadar(labels, scores, avgs) {
@@ -8867,31 +9029,22 @@
             const ctx = canvas.getContext('2d');
             if (sbRadarInst) sbRadarInst.destroy();
 
-            const labels = curExam.subjects.map(s => s.isExcluded ? `${s.name}(額外採計)` : s.name);
-            const scores = curExam.subjects.map(s => s.score);
-            const avgs = curExam.subjects.map(s => s.isExcluded ? null : s.classAverage);
-
-            const datasets = [
-              {
-                label: '個人得分',
-                data: scores,
-                backgroundColor: 'rgba(99, 102, 241, 0.25)',
-                borderColor: 'rgba(217, 119, 6, 1)',
-                borderWidth: 2,
-                pointBackgroundColor: 'rgba(217, 119, 6, 1)'
+            const validRadarList = filterValidRadarExams_(sbStudentExams);
+            const otherRadarIndices = validRadarList.filter(i => i.idx !== curIdx).map(i => i.idx);
+            sbRadarOverlayIndices = sbRadarOverlayIndices.filter(i => otherRadarIndices.includes(i));
+            const sbBar = document.getElementById('sbRadarOverlayBar');
+            if (sbBar) {
+              if (otherRadarIndices.length > 0) {
+                sbBar.classList.remove('hidden');
+                sbBar.innerHTML = buildRadarOverlayBarHtml_(validRadarList, curIdx, sbRadarOverlayIndices, 'toggleSbRadarOverlay', 'toggleSbRadarAllOverlays');
+              } else {
+                sbBar.classList.add('hidden');
+                sbBar.innerHTML = '';
               }
-            ];
-
-            if (cfg.showClassAvg) {
-              datasets.push({
-                label: '班級各科平均',
-                data: avgs,
-                backgroundColor: 'rgba(5, 150, 105, 0.2)',
-                borderColor: 'rgba(5, 150, 105, 1)',
-                borderWidth: 1.5,
-                borderDash: [3, 3]
-              });
             }
+
+            const labels = curExam.subjects.map(s => s.isExcluded ? `${s.name}(額外採計)` : s.name);
+            const datasets = buildRadarDatasetsWithOverlays_(sbStudentExams, curExam, curIdx, sbRadarOverlayIndices, cfg.showClassAvg, true);
 
             sbRadarInst = new Chart(ctx, {
               type: 'radar',
