@@ -279,11 +279,8 @@
         </div>
       </div>
 
-      <!-- 響應式雙欄圖表與數據網格 (桌機與平板雙欄排版，手機單欄流暢滾動) -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 md:gap-6 items-start">
-        
-        <!-- 左欄：歷程縱向軌跡與雷達圖 -->
-        <div class="space-y-5 md:space-y-6">
+      <!-- 響應式雙欄圖表與數據網格 (支援教師自訂模組排列順序，桌機雙欄、手機單欄) -->
+      <div id="pModulesGrid" class="grid grid-cols-1 lg:grid-cols-2 gap-5 md:gap-6 items-start">
           <!-- 📈 歷次成長趨勢圖 -->
           <div id="pTrendCard" class="apple-glass p-5 sm:p-6 rounded-3xl space-y-3">
             <div class="font-bold text-xs text-slate-700 flex justify-between items-center border-b border-slate-100 pb-2.5">
@@ -350,10 +347,7 @@
             <div class="text-[11px] text-slate-400">橫軸表現 PR × 縱軸成長動能 Δ ‧ 看見亮點與突破動能</div>
             <div id="pStrengthsMatrixContainer" class="pt-1"></div>
           </div>
-        </div>
 
-        <!-- 右欄：單科分佈 KDE 曲線 (含跨次疊加) 與 箱型圖 -->
-        <div class="space-y-5 md:space-y-6">
           <!-- 🔔 當次單科成績分佈曲線圖 (核密度 KDE) -->
           <div id="pPrCurveCard" class="apple-glass rounded-3xl p-5 sm:p-6 space-y-3.5">
             <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
@@ -448,13 +442,9 @@
               💡 <b>T 分數導讀</b>：50 為班級均標，大於 50 代表高於全班平均（+10 代表超越 1 個標準差），能客觀跨科橫向比較。
             </div>
           </div>
-        </div>
 
-      </div>
-
-      <!-- 下方全寬區域：成績明細表與學習成長小錦囊 -->
-      <!-- 📋 各科成績與成長常模明細 -->
-      <div class="apple-glass rounded-3xl overflow-hidden shadow-sm">
+          <!-- 📋 各科成績與成長常模明細 -->
+          <div id="pScoreCard" class="lg:col-span-2 apple-glass rounded-3xl overflow-hidden shadow-sm">
         <div class="p-4 border-b border-slate-100 font-bold text-xs text-slate-800 flex justify-between items-center">
           <span class="font-black text-slate-900 text-sm flex items-center gap-2">
             <span>📋</span>
@@ -489,7 +479,7 @@
       </div>
 
       <!-- 🗺️ 學習歷程成長足跡地圖 -->
-      <div id="pMilestoneJourneyCard" class="hidden apple-glass rounded-3xl p-5 sm:p-6 space-y-3.5">
+      <div id="pMilestoneJourneyCard" class="hidden lg:col-span-2 apple-glass rounded-3xl p-5 sm:p-6 space-y-3.5">
         <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
           <div>
             <div class="font-black text-sm text-slate-900 flex items-center gap-2">
@@ -504,7 +494,7 @@
       </div>
 
       <!-- 🌱 學習成長小錦囊 (適性精進指引) -->
-      <div id="pDiagnosisCard" class="apple-glass rounded-3xl p-5 sm:p-6 space-y-4">
+      <div id="pDiagnosisCard" class="lg:col-span-2 apple-glass rounded-3xl p-5 sm:p-6 space-y-4">
         <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
           <div>
             <div class="font-black text-sm text-slate-900 flex items-center gap-2">
@@ -518,6 +508,7 @@
           </span>
         </div>
         <div id="pDiagnosisList" class="grid grid-cols-1 md:grid-cols-2 gap-3.5 text-xs"></div>
+      </div>
       </div>
 
       <!-- ==================== 📐 全面教育測驗統計方法與計算原理說明專區 ==================== -->
@@ -1139,6 +1130,60 @@
         showMilestoneJourney: true,
         showDifficulty: true
       };
+    }
+
+    const DEFAULT_PARENT_MODULE_ORDER = '0123456789ab';
+    const PARENT_MODULE_CARD_IDS = {
+      '0': 'pTrendCard',
+      '1': 'pComparisonCard',
+      '2': 'pRadarCard',
+      '3': 'pDumbbellCard',
+      '4': 'pStrengthsMatrixCard',
+      '5': 'pPrCurveCard',
+      '6': 'pBoxplotCard',
+      '7': 'pBeeswarmCard',
+      '8': 'pTScoreCard',
+      '9': 'pScoreCard',
+      'a': 'pMilestoneJourneyCard',
+      'b': 'pDiagnosisCard'
+    };
+
+    function parseModuleOrderString(rawStr) {
+      const valid = Object.keys(PARENT_MODULE_CARD_IDS);
+      const result = [];
+      if (rawStr && typeof rawStr === 'string') {
+        for (const ch of rawStr.toLowerCase()) {
+          if (valid.includes(ch) && !result.includes(ch)) {
+            result.push(ch);
+          }
+        }
+      }
+      for (const ch of DEFAULT_PARENT_MODULE_ORDER) {
+        if (!result.includes(ch)) result.push(ch);
+      }
+      return result;
+    }
+
+    function getParentModuleOrder() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const oStr = urlParams.get('o');
+      if (oStr) return parseModuleOrderString(oStr);
+      try {
+        const saved = localStorage.getItem('mpscore_module_order');
+        if (saved) return parseModuleOrderString(saved);
+      } catch (e) {}
+      return parseModuleOrderString(DEFAULT_PARENT_MODULE_ORDER);
+    }
+
+    function applyParentModuleOrder() {
+      const orderArr = getParentModuleOrder();
+      orderArr.forEach((code, idx) => {
+        const cardId = PARENT_MODULE_CARD_IDS[code];
+        const el = cardId ? document.getElementById(cardId) : null;
+        if (el) {
+          el.style.order = String(idx);
+        }
+      });
     }
 
     let queryProgressInterval = null;
@@ -1932,6 +1977,7 @@
     }
 
     function renderSelectedExamView() {
+      applyParentModuleOrder();
       const cfg = getVisibilityConfig();
       const sel = document.getElementById('pExamSelect');
       const curIdx = parseInt(sel.value, 10);

@@ -976,6 +976,23 @@
                 </label>
               </div>
             </div>
+
+            <!-- ↕️ 家長端模組顯示排列順序設定 -->
+            <div class="pt-3 border-t border-amber-100">
+              <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-[11px] font-bold text-slate-600">↕️ 家長端模組顯示排列順序：</span>
+                  <span class="text-[10px] text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full font-semibold">可拖曳或點 ▲▼ 調整（含成績明細表）</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <button type="button" onclick="resetModuleOrder()" class="text-[11px] font-bold text-amber-800 hover:text-amber-950 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-2.5 py-1 rounded-lg transition cursor-pointer">↺ 恢復預設順序</button>
+                  <button type="button" onclick="toggleModuleOrderPanel()" id="btnToggleModuleOrder" class="text-[11px] font-bold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 border border-slate-200 px-2.5 py-1 rounded-lg transition cursor-pointer">▼ 展開排序</button>
+                </div>
+              </div>
+              <div id="moduleOrderPanel" class="hidden bg-slate-50/90 border border-slate-200 rounded-2xl p-2.5">
+                <div id="moduleOrderList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1.5"></div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -1357,6 +1374,8 @@
                 </div>
               </div>
 
+              <!-- 模組排序容器（手機沙盒預覽） -->
+              <div id="sbModulesContainer" class="flex flex-col gap-3.5">
               <!-- 📈 歷次成長趨勢圖 (與家長端完全一致排版) -->
               <div id="sbTrendCard" class="bg-white p-4 rounded-3xl shadow-sm border border-slate-200/80 space-y-1.5">
                 <div class="font-bold text-[11px] text-slate-700 flex justify-between items-center border-b border-slate-100 pb-1.5">
@@ -1558,6 +1577,7 @@
                   </span>
                 </div>
                 <div id="sbDiagnosisList" class="space-y-2 text-[11px]"></div>
+              </div>
               </div>
 
               <!-- 📐 全面教育測驗統計方法與計算原理說明專區 (沙盒手機預覽，預設收折) -->
@@ -2075,6 +2095,7 @@
           </div>
         </div>
 
+        <div id="pModulesContainer" class="flex flex-col gap-5">
         <!-- 🎯 各科能力探索雷達圖 -->
         <div id="pRadarCard" class="bg-white/90 backdrop-blur-md p-5 rounded-3xl shadow-sm border border-slate-200/80 space-y-2">
           <div class="font-bold text-xs text-slate-700 flex justify-between items-center border-b border-slate-100 pb-2">
@@ -2251,7 +2272,7 @@
         </div>
 
         <!-- 📋 各科成績與表現常模明細 -->
-        <div class="bg-white/90 backdrop-blur-md rounded-3xl shadow-sm border border-slate-200/80 overflow-hidden">
+        <div id="pScoreCard" class="bg-white/90 backdrop-blur-md rounded-3xl shadow-sm border border-slate-200/80 overflow-hidden">
           <div class="p-3.5 border-b border-slate-100 font-bold text-xs text-slate-800 flex justify-between items-center">
             <span class="font-black text-slate-900 flex items-center gap-1.5">
               <span>📋</span>
@@ -2298,6 +2319,7 @@
             </a>
           </div>
           <div id="pDiagnosisList" class="space-y-2.5 text-xs"></div>
+        </div>
         </div>
 
         <!-- 📐 全面教育測驗統計方法與計算原理說明專區 (沙盒手機預覽，預設收折) -->
@@ -3826,6 +3848,9 @@
             syncWebToSandboxControls();
           }
         }
+        if (typeof initModuleOrder === 'function') {
+          initModuleOrder();
+        }
       } catch(e) {}
 
       if (typeof checkComparisonDumbbellRecommendation === 'function') {
@@ -4780,7 +4805,7 @@
       pool.forEach(st => {
         if (!st || !st.token) return;
         const tok = String(st.token).trim();
-        const qUrl = parentBaseUrl + '?t=' + encodeURIComponent(tok) + (apiId ? '&a=' + apiId : '') + (examSource && examSource !== 'none' ? '&e=' + encodeURIComponent(examSource) : '') + '&v=' + vFlags;
+        const qUrl = parentBaseUrl + '?t=' + encodeURIComponent(tok) + (apiId ? '&a=' + apiId : '') + (examSource && examSource !== 'none' ? '&e=' + encodeURIComponent(examSource) : '') + '&v=' + vFlags + getModuleOrderParam();
         studentQueryMap[tok] = qUrl;
         if (forceRefresh || !getCachedShortUrl(tok, qUrl)) {
           toShortenMap[tok] = qUrl;
@@ -5210,7 +5235,7 @@
       });
 
       pool.forEach((st, idx) => {
-        const queryUrl = parentBaseUrl + '?t=' + encodeURIComponent(st.token) + (apiId ? '&a=' + apiId : '') + (examSource && examSource !== 'none' ? '&e=' + encodeURIComponent(examSource) : '') + '&v=' + getVisibilityFlagString();
+        const queryUrl = parentBaseUrl + '?t=' + encodeURIComponent(st.token) + (apiId ? '&a=' + apiId : '') + (examSource && examSource !== 'none' ? '&e=' + encodeURIComponent(examSource) : '') + '&v=' + getVisibilityFlagString() + getModuleOrderParam();
         const cardId = 'qrcode-' + idx;
 
         let examData = null;
@@ -5372,7 +5397,7 @@
 
         pageStudents.forEach((st, sIdx) => {
           const globalIdx = start + sIdx;
-          const queryUrl = parentBaseUrl + '?t=' + encodeURIComponent(st.token) + (apiId ? '&a=' + apiId : '') + (examSource && examSource !== 'none' ? '&e=' + encodeURIComponent(examSource) : '') + '&v=' + getVisibilityFlagString();
+          const queryUrl = parentBaseUrl + '?t=' + encodeURIComponent(st.token) + (apiId ? '&a=' + apiId : '') + (examSource && examSource !== 'none' ? '&e=' + encodeURIComponent(examSource) : '') + '&v=' + getVisibilityFlagString() + getModuleOrderParam();
           const modalQrId = 'modal-qrcode-' + globalIdx;
 
           let examData = null;
@@ -5432,6 +5457,12 @@
       getActiveVisibilityConfig();
       if (typeof syncWebToSandboxControls === 'function') {
         syncWebToSandboxControls();
+      }
+      if (typeof renderModuleOrderList === 'function') {
+        renderModuleOrderList();
+      }
+      if (typeof applyPreviewModuleOrder === 'function') {
+        applyPreviewModuleOrder();
       }
       checkComparisonDumbbellRecommendation();
       renderPrintCards(cachedStudents);
@@ -6455,6 +6486,158 @@
         cfg.showMilestoneJourney,
         cfg.showDifficulty
       ].map(v => v ? 1 : 0).join('');
+    }
+
+    // ==========================================
+    // ↕️ 家長端模組顯示排列順序設定
+    // ==========================================
+    const DEFAULT_MODULE_ORDER = '0123456789ab';
+    const MODULE_ORDER_DEFS = {
+      '0': { label: '📈 歷次成長曲線圖', sbId: 'sbTrendCard', pId: 'pTrendCard', optId: 'webOptTrend' },
+      '1': { label: '🚀 跨次進退步對比卡', sbId: 'sbComparisonCard', pId: 'pComparisonCard', optId: 'webOptComparison' },
+      '2': { label: '🎯 各科能力雷達圖', sbId: 'sbRadarCard', pId: 'pRadarCard', optId: 'webOptRadar' },
+      '3': { label: '🏋️ 跨次進退步啞鈴圖', sbId: 'sbDumbbellCard', pId: 'pDumbbellCard', optId: 'webOptDumbbell' },
+      '4': { label: '🧭 優勢與動能四象限', sbId: 'sbStrengthsMatrixCard', pId: 'pStrengthsMatrixCard', optId: 'webOptStrengthsMatrix' },
+      '5': { label: '🔔 單科成績分佈曲線', sbId: 'sbPrCurveCard', pId: 'pPrCurveCard', optId: 'webOptPrCurve' },
+      '6': { label: '📦 建議箱型圖 (盒鬚圖)', sbId: 'sbBoxplotCard', pId: 'pBoxplotCard', optId: 'webOptBoxplot' },
+      '7': { label: '🐝 蜜蜂聚落散佈圖', sbId: 'sbBeeswarmCard', pId: 'pBeeswarmCard', optId: 'webOptBeeswarm' },
+      '8': { label: '⚖️ 標準化 T 分數離差尺', sbId: 'sbTScoreCard', pId: 'pTScoreCard', optId: 'webOptTScore' },
+      '9': { label: '📋 各科成績明細表', sbId: 'sbScoreCard', pId: 'pScoreCard', optId: null },
+      'a': { label: '🗺️ 學習歷程足跡地圖', sbId: 'sbMilestoneJourneyCard', pId: 'pMilestoneJourneyCard', optId: 'webOptMilestoneJourney' },
+      'b': { label: '🌱 學習成長小錦囊', sbId: 'sbDiagnosisCard', pId: 'pDiagnosisCard', optId: 'webOptDiagnosis' }
+    };
+
+    let currentModuleOrder = DEFAULT_MODULE_ORDER.split('');
+    let draggingModuleCode = null;
+
+    function parseModuleOrderString(rawStr) {
+      const valid = Object.keys(MODULE_ORDER_DEFS);
+      const res = [];
+      if (rawStr && typeof rawStr === 'string') {
+        for (const ch of rawStr.toLowerCase()) {
+          if (valid.includes(ch) && !res.includes(ch)) res.push(ch);
+        }
+      }
+      for (const ch of DEFAULT_MODULE_ORDER) {
+        if (!res.includes(ch)) res.push(ch);
+      }
+      return res;
+    }
+
+    function initModuleOrder() {
+      try {
+        const saved = localStorage.getItem('mpscore_module_order');
+        if (saved) currentModuleOrder = parseModuleOrderString(saved);
+      } catch (e) {}
+      renderModuleOrderList();
+      applyPreviewModuleOrder();
+    }
+
+    function saveModuleOrder() {
+      try {
+        localStorage.setItem('mpscore_module_order', currentModuleOrder.join(''));
+      } catch (e) {}
+    }
+
+    function getModuleOrderParam() {
+      const str = currentModuleOrder.join('');
+      return str === DEFAULT_MODULE_ORDER ? '' : ('&o=' + str);
+    }
+
+    function applyPreviewModuleOrder() {
+      currentModuleOrder.forEach((code, idx) => {
+        const def = MODULE_ORDER_DEFS[code];
+        if (!def) return;
+        const sbEl = def.sbId ? document.getElementById(def.sbId) : null;
+        if (sbEl) sbEl.style.order = String(idx);
+        const pEl = def.pId ? document.getElementById(def.pId) : null;
+        if (pEl) pEl.style.order = String(idx);
+      });
+    }
+
+    function toggleModuleOrderPanel() {
+      const panel = document.getElementById('moduleOrderPanel');
+      const btn = document.getElementById('btnToggleModuleOrder');
+      if (!panel) return;
+      const isHidden = panel.classList.contains('hidden');
+      panel.classList.toggle('hidden', !isHidden);
+      if (btn) btn.textContent = isHidden ? '▲ 收折排序' : '▼ 展開排序';
+      if (isHidden) renderModuleOrderList();
+    }
+
+    function moveModuleOrder(code, delta) {
+      const idx = currentModuleOrder.indexOf(code);
+      if (idx === -1) return;
+      const nextIdx = idx + delta;
+      if (nextIdx < 0 || nextIdx >= currentModuleOrder.length) return;
+      const copy = currentModuleOrder.slice();
+      const tmp = copy[idx];
+      copy[idx] = copy[nextIdx];
+      copy[nextIdx] = tmp;
+      currentModuleOrder = copy;
+      saveModuleOrder();
+      updatePrintCards();
+    }
+
+    function resetModuleOrder() {
+      currentModuleOrder = DEFAULT_MODULE_ORDER.split('');
+      saveModuleOrder();
+      updatePrintCards();
+      showAppleToast('↺ 已恢復家長端預設模組排列順序', 'success');
+    }
+
+    function onModuleDragStart(e, code) {
+      draggingModuleCode = code;
+      if (e && e.dataTransfer) {
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', code);
+      }
+    }
+
+    function onModuleDragOver(e) {
+      if (e) e.preventDefault();
+      if (e && e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+    }
+
+    function onModuleDrop(e, targetCode) {
+      if (e) e.preventDefault();
+      const srcCode = draggingModuleCode || (e && e.dataTransfer ? e.dataTransfer.getData('text/plain') : '');
+      draggingModuleCode = null;
+      if (!srcCode || srcCode === targetCode) return;
+      const fromIdx = currentModuleOrder.indexOf(srcCode);
+      const toIdx = currentModuleOrder.indexOf(targetCode);
+      if (fromIdx === -1 || toIdx === -1) return;
+      const copy = currentModuleOrder.slice();
+      copy.splice(fromIdx, 1);
+      copy.splice(toIdx, 0, srcCode);
+      currentModuleOrder = copy;
+      saveModuleOrder();
+      updatePrintCards();
+    }
+
+    function renderModuleOrderList() {
+      const listEl = document.getElementById('moduleOrderList');
+      if (!listEl) return;
+      listEl.innerHTML = currentModuleOrder.map((code, idx) => {
+        const def = MODULE_ORDER_DEFS[code];
+        if (!def) return '';
+        const optEl = def.optId ? document.getElementById(def.optId) : null;
+        const isEnabled = optEl ? optEl.checked : true;
+        return `
+          <div draggable="true" ondragstart="onModuleDragStart(event, '${code}')" ondragover="onModuleDragOver(event)" ondrop="onModuleDrop(event, '${code}')" class="flex items-center justify-between gap-1.5 px-2.5 py-1.5 rounded-xl border ${isEnabled ? 'bg-white border-amber-200 text-slate-800 shadow-2xs' : 'bg-slate-100/80 border-slate-200 text-slate-400'} cursor-grab active:cursor-grabbing select-none">
+            <div class="flex items-center gap-1.5 min-w-0">
+              <span class="text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center shrink-0 ${isEnabled ? 'bg-amber-500 text-white' : 'bg-slate-300 text-white'}">${idx + 1}</span>
+              <span class="text-slate-400 text-xs shrink-0" title="拖曳調整順序">⋮⋮</span>
+              <span class="text-[11px] font-bold truncate">${def.label}</span>
+              ${!isEnabled ? '<span class="text-[9px] px-1 py-0.2 rounded bg-slate-200 text-slate-500 shrink-0">未勾選</span>' : ''}
+            </div>
+            <div class="flex items-center gap-0.5 shrink-0">
+              <button type="button" onclick="moveModuleOrder('${code}', -1)" ${idx === 0 ? 'disabled' : ''} class="w-5 h-5 rounded-md text-[10px] font-black border border-slate-200 bg-white hover:bg-amber-50 text-slate-700 disabled:opacity-30 cursor-pointer disabled:cursor-default">▲</button>
+              <button type="button" onclick="moveModuleOrder('${code}', 1)" ${idx === currentModuleOrder.length - 1 ? 'disabled' : ''} class="w-5 h-5 rounded-md text-[10px] font-black border border-slate-200 bg-white hover:bg-amber-50 text-slate-700 disabled:opacity-30 cursor-pointer disabled:cursor-default">▼</button>
+            </div>
+          </div>
+        `;
+      }).join('');
     }
 
     function syncWebCheckbox(targetId, checked) {
@@ -9789,7 +9972,7 @@
         if (m && m[1]) apiId = m[1];
       }
       const cleanToken = encodeURIComponent(String(token || '').trim());
-      return parentBaseUrl + '?t=' + cleanToken + (apiId ? '&a=' + apiId : '') + (examSource && examSource !== 'none' ? '&e=' + encodeURIComponent(examSource) : '') + (typeof getVisibilityFlagString === 'function' ? '&v=' + getVisibilityFlagString() : '');
+      return parentBaseUrl + '?t=' + cleanToken + (apiId ? '&a=' + apiId : '') + (examSource && examSource !== 'none' ? '&e=' + encodeURIComponent(examSource) : '') + (typeof getVisibilityFlagString === 'function' ? '&v=' + getVisibilityFlagString() : '') + (typeof getModuleOrderParam === 'function' ? getModuleOrderParam() : '');
     }
 
     async function openAllParentLinksModal() {
