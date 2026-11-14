@@ -1486,6 +1486,27 @@ function parseExamStudentsRows_(data, colConfig, excludedMap) {
 }
 
 /**
+ * 計算單科班級分數級距人數分佈：
+ * 100分、99.5-90分、89.5-80分、79.5-70分、69.5-60分、60分以下
+ */
+function calculateScoreBands_(scores) {
+  var bands = { b100: 0, b90: 0, b80: 0, b70: 0, b60: 0, bUnder60: 0, total: 0 };
+  if (!scores || !scores.length) return bands;
+  for (var i = 0; i < scores.length; i++) {
+    var s = Number(scores[i]);
+    if (isNaN(s)) continue;
+    bands.total++;
+    if (s >= 100) bands.b100++;
+    else if (s >= 90) bands.b90++;
+    else if (s >= 80) bands.b80++;
+    else if (s >= 70) bands.b70++;
+    else if (s >= 60) bands.b60++;
+    else bands.bUnder60++;
+  }
+  return bands;
+}
+
+/**
  * 深入解析單一考試分頁：全自動運算該次考試的全班平均、PR值、排名與個人診斷
  * ★ 2026-11-12 新增「抽離考試／額外採計科目」雙軌分離運算：
  *   - 個人總平均 (studentAverage)、全班總排名 (studentRank)、總平均 PR (studentAveragePr)：全員納入採計
@@ -1654,6 +1675,7 @@ function analyzeExamSheet(sheet, student) {
         q3: q3Val,
         min: minVal,
         max: maxVal,
+        scoreBands: calculateScoreBands_(validScoresForSub),
         zone: zone,
         zoneStatus: zoneStatus,
         advice: adviceText,
@@ -1941,6 +1963,7 @@ function getExamAllStudentsStats(sheet) {
           q3: bStats.q3,
           min: bStats.min,
           max: bStats.max,
+          scoreBands: calculateScoreBands_(pool),
           difficulty: diffInfo.level,
           difficultyBadge: diffInfo.badge,
           difficultyColor: diffInfo.color,
