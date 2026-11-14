@@ -1097,7 +1097,8 @@
           showDumbbell: vStr.length > 15 ? vStr[15] === '1' : false,
           showStrengthsMatrix: vStr.length > 16 ? vStr[16] === '1' : false,
           showMilestoneJourney: vStr.length > 17 ? vStr[17] === '1' : false,
-          showDifficulty: vStr.length > 18 ? vStr[18] === '1' : true
+          showDifficulty: vStr.length > 18 ? vStr[18] === '1' : true,
+          showScoreBands: vStr.length > 19 ? vStr[19] === '1' : true
         };
       }
 
@@ -1126,7 +1127,8 @@
         showDumbbell: true,
         showStrengthsMatrix: true,
         showMilestoneJourney: true,
-        showDifficulty: true
+        showDifficulty: true,
+        showScoreBands: true
       };
     }
 
@@ -3451,7 +3453,7 @@
           </div>
         </div>
 
-        ${cfg.showClassAvg !== false ? buildScoreBandsHtml(activeSub, score) : ''}
+        ${(cfg.showClassAvg !== false && cfg.showScoreBands !== false) ? buildScoreBandsHtml(activeSub, score) : ''}
 
         <!-- 該科當次分佈正向成長解讀卡 -->
         <div class="p-3.5 bg-gradient-to-r from-amber-50/80 via-white to-amber-50/70 rounded-2xl border border-amber-200/60 text-xs text-slate-700 leading-relaxed space-y-1.5 shadow-2xs">

@@ -913,7 +913,7 @@
             <!-- 數值與列表類 -->
             <div>
               <div class="text-[10px] font-bold text-slate-500 mb-1.5">數值與列表項目：</div>
-              <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 text-xs text-slate-700">
+              <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 text-xs text-slate-700">
                 <label class="flex items-center gap-2 bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-200 cursor-pointer hover:bg-amber-50/50 transition">
                   <input type="checkbox" id="webOptAvg" checked onchange="updatePrintCards()" class="rounded text-amber-700 focus:ring-amber-500 w-3.5 h-3.5">
                   <span class="font-bold text-slate-800">個人總平均</span>
@@ -937,6 +937,10 @@
                 <label class="flex items-center gap-2 bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-200 cursor-pointer hover:bg-amber-50/50 transition" title="*難易度以班級成績估計">
                   <input type="checkbox" id="webOptDifficulty" checked onchange="updatePrintCards()" class="rounded text-amber-700 focus:ring-amber-500 w-3.5 h-3.5">
                   <span class="font-bold text-slate-800">🎯 考卷難易度</span>
+                </label>
+                <label class="flex items-center gap-2 bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-200 cursor-pointer hover:bg-amber-50/50 transition" title="顯示 100分、99.5-90分、89.5-80分、79.5-70分、69.5-60分、60分以下 各級距人數">
+                  <input type="checkbox" id="webOptScoreBands" checked onchange="updatePrintCards()" class="rounded text-amber-700 focus:ring-amber-500 w-3.5 h-3.5">
+                  <span class="font-bold text-slate-800 whitespace-nowrap">📊 分數級距</span>
                 </label>
               </div>
             </div>
@@ -3845,6 +3849,7 @@
           if (savedCfg.showStrengthsMatrix !== undefined && document.getElementById('webOptStrengthsMatrix')) document.getElementById('webOptStrengthsMatrix').checked = savedCfg.showStrengthsMatrix;
           if (savedCfg.showMilestoneJourney !== undefined && document.getElementById('webOptMilestoneJourney')) document.getElementById('webOptMilestoneJourney').checked = savedCfg.showMilestoneJourney;
           if (savedCfg.showDifficulty !== undefined && document.getElementById('webOptDifficulty')) document.getElementById('webOptDifficulty').checked = savedCfg.showDifficulty;
+          if (savedCfg.showScoreBands !== undefined && document.getElementById('webOptScoreBands')) document.getElementById('webOptScoreBands').checked = savedCfg.showScoreBands;
 
           const savedPaper = JSON.parse(localStorage.getItem('mpscore_paper_cfg') || '{}');
           if (savedPaper.showAvg !== undefined && document.getElementById('printOptAvg')) document.getElementById('printOptAvg').checked = savedPaper.showAvg;
@@ -6509,7 +6514,8 @@
           showDumbbell: vStr.length > 15 ? vStr[15] === '1' : false,
           showStrengthsMatrix: vStr.length > 16 ? vStr[16] === '1' : false,
           showMilestoneJourney: vStr.length > 17 ? vStr[17] === '1' : false,
-          showDifficulty: vStr.length > 18 ? vStr[18] === '1' : true
+          showDifficulty: vStr.length > 18 ? vStr[18] === '1' : true,
+          showScoreBands: vStr.length > 19 ? vStr[19] === '1' : true
         };
       }
 
@@ -6531,6 +6537,7 @@
       const elStrengthsMatrix = document.getElementById('webOptStrengthsMatrix');
       const elMilestoneJourney = document.getElementById('webOptMilestoneJourney');
       const elDiff = document.getElementById('webOptDifficulty');
+      const elScoreBands = document.getElementById('webOptScoreBands');
 
       if (elAvg && elRank && elClassAvg) {
         const cfg = {
@@ -6552,7 +6559,8 @@
           showDumbbell: elDumbbell ? elDumbbell.checked : true,
           showStrengthsMatrix: elStrengthsMatrix ? elStrengthsMatrix.checked : true,
           showMilestoneJourney: elMilestoneJourney ? elMilestoneJourney.checked : true,
-          showDifficulty: elDiff ? elDiff.checked : true
+          showDifficulty: elDiff ? elDiff.checked : true,
+          showScoreBands: elScoreBands ? elScoreBands.checked : true
         };
         try {
           localStorage.setItem('mpscore_visibility_cfg', JSON.stringify(cfg));
@@ -6586,7 +6594,8 @@
         showDumbbell: true,
         showStrengthsMatrix: true,
         showMilestoneJourney: true,
-        showDifficulty: true
+        showDifficulty: true,
+        showScoreBands: true
       };
     }
 
@@ -6611,7 +6620,8 @@
         cfg.showDumbbell,
         cfg.showStrengthsMatrix,
         cfg.showMilestoneJourney,
-        cfg.showDifficulty
+        cfg.showDifficulty,
+        cfg.showScoreBands !== false
       ].map(v => v ? 1 : 0).join('');
     }
 
@@ -8434,7 +8444,7 @@
           </div>
         </div>
 
-        ${cfg.showClassAvg !== false ? buildScoreBandsHtml(activeSub, score) : ''}
+        ${(cfg.showClassAvg !== false && cfg.showScoreBands !== false) ? buildScoreBandsHtml(activeSub, score) : ''}
 
         <!-- 該科當次分佈正向成長解讀卡 -->
         <div class="p-3.5 bg-gradient-to-r from-amber-50/80 via-white to-amber-50/70 rounded-2xl border border-amber-200/60 text-xs text-slate-700 leading-relaxed space-y-1.5 shadow-2xs">
