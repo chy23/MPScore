@@ -228,6 +228,29 @@
       #printModalSheets > * {
         margin: 0 !important;
       }
+      /* 黑白雷射列印高對比強化：確保淺灰字、細框線與雷達圖在黑白/省碳列印下依然清晰完整 */
+      #printModalSheets .text-slate-400,
+      #printModalSheets .text-slate-500,
+      #printModalSheets .text-slate-600 {
+        color: #1e293b !important;
+      }
+      #printModalSheets .text-amber-700,
+      #printModalSheets .text-amber-800,
+      #printModalSheets .text-amber-900,
+      #printModalSheets .text-amber-950 {
+        color: #0f172a !important;
+      }
+      #printModalSheets .border-slate-200,
+      #printModalSheets .border-slate-300,
+      #printModalSheets .border-amber-200,
+      #printModalSheets .border-amber-300 {
+        border-color: #475569 !important;
+      }
+      #printModalSheets svg circle,
+      #printModalSheets svg polygon,
+      #printModalSheets svg line {
+        shape-rendering: geometricPrecision;
+      }
       .a4-print-sheet {
         width: 210mm !important;
         max-width: 210mm !important;
@@ -4899,7 +4922,7 @@
 
       const ringsSvg = [25, 50, 75, 100].map(level => {
         const pts = subs.map((_, i) => pt(i, level).map(v => v.toFixed(1)).join(',')).join(' ');
-        return `<polygon points="${pts}" fill="none" stroke="#e2e8f0" stroke-width="${level === 100 ? '1.1' : '0.8'}" />`;
+        return `<polygon points="${pts}" fill="none" stroke="${level === 100 ? '#475569' : '#94a3b8'}" stroke-width="${level === 100 ? '1.2' : '0.9'}" />`;
       }).join('');
 
       const axesSvg = subs.map((s, i) => {
@@ -4910,38 +4933,38 @@
         const anchor = Math.abs(Math.cos(a)) < 0.25 ? 'middle' : (Math.cos(a) > 0 ? 'start' : 'end');
         const label = s.name.length > 4 ? s.name.slice(0, 4) : s.name;
         return `
-          <line x1="${cx}" y1="${cy}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#e2e8f0" stroke-width="0.8" />
-          <text x="${lx.toFixed(1)}" y="${(ly + 3).toFixed(1)}" font-size="8.5" font-weight="800" fill="#334155" text-anchor="${anchor}">${label}</text>
+          <line x1="${cx}" y1="${cy}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#94a3b8" stroke-width="0.9" />
+          <text x="${lx.toFixed(1)}" y="${(ly + 3).toFixed(1)}" font-size="9" font-weight="800" fill="#0f172a" text-anchor="${anchor}">${label}</text>
         `;
       }).join('');
 
       const studentPts = subs.map((s, i) => pt(i, s.score).map(v => v.toFixed(1)).join(',')).join(' ');
       const studentDots = subs.map((s, i) => {
         const [dx, dy] = pt(i, s.score);
-        return `<circle cx="${dx.toFixed(1)}" cy="${dy.toFixed(1)}" r="2.3" fill="#d97706" stroke="#ffffff" stroke-width="0.8" />`;
+        return `<circle cx="${dx.toFixed(1)}" cy="${dy.toFixed(1)}" r="2.5" fill="#b45309" stroke="#ffffff" stroke-width="0.9" />`;
       }).join('');
 
       let classAvgSvg = '';
       const hasValidAvg = showClassAvg && subs.some(s => !s.isExcluded && typeof s.classAverage === 'number');
       if (hasValidAvg) {
         const avgPts = subs.map((s, i) => pt(i, s.isExcluded ? s.score : s.classAverage).map(v => v.toFixed(1)).join(',')).join(' ');
-        classAvgSvg = `<polygon points="${avgPts}" fill="rgba(5, 150, 105, 0.10)" stroke="#059669" stroke-width="1.3" stroke-dasharray="3,2" />`;
+        classAvgSvg = `<polygon points="${avgPts}" fill="none" stroke="#047857" stroke-width="1.6" stroke-dasharray="4,2.5" />`;
       }
 
       if (isSideBySide) {
         const sideH = isUltraCompact ? 'h-[92px]' : (isCompact ? 'h-[104px]' : 'h-[116px]');
         return `
-          <div class="w-full h-full bg-white/95 rounded-xl border border-amber-200/90 px-1.5 py-1 flex flex-col items-center justify-center shadow-2xs">
+          <div class="w-full h-full bg-white rounded-xl border border-slate-300 px-1.5 py-1 flex flex-col items-center justify-center shadow-2xs">
             <svg viewBox="0 0 220 168" class="${sideH} w-auto max-w-full">
               ${ringsSvg}
               ${axesSvg}
               ${classAvgSvg}
-              <polygon points="${studentPts}" fill="rgba(245, 158, 11, 0.28)" stroke="#d97706" stroke-width="1.8" />
+              <polygon points="${studentPts}" fill="rgba(245, 158, 11, 0.22)" stroke="#b45309" stroke-width="2.1" />
               ${studentDots}
             </svg>
-            <div class="flex items-center justify-center gap-2 text-[7.5px] leading-none mt-0.5">
-              <span class="inline-flex items-center gap-0.5 text-amber-900 font-bold"><span class="w-2 h-0.5 bg-amber-600 inline-block rounded-full"></span>個人</span>
-              ${hasValidAvg ? `<span class="inline-flex items-center gap-0.5 text-emerald-800 font-bold"><span class="w-2 h-0.5 border-t border-dashed border-emerald-600 inline-block"></span>班均</span>` : ''}
+            <div class="flex items-center justify-center gap-2 text-[8px] leading-none mt-0.5 text-slate-900">
+              <span class="inline-flex items-center gap-0.5 font-bold"><span class="w-2.5 h-0.5 bg-amber-700 inline-block rounded-full"></span>個人</span>
+              ${hasValidAvg ? `<span class="inline-flex items-center gap-0.5 font-bold"><span class="w-2.5 h-0.5 border-t-2 border-dashed border-emerald-700 inline-block"></span>班均</span>` : ''}
             </div>
           </div>
         `;
@@ -4949,17 +4972,17 @@
 
       const svgHeightClass = isUltraCompact ? 'h-[98px]' : (isCompact ? 'h-[112px]' : 'h-[126px]');
       return `
-        <div class="w-full bg-white/95 rounded-xl border border-amber-200/90 px-2 py-1 flex items-center justify-between gap-2 shadow-2xs">
-          <div class="flex flex-col justify-center gap-1 text-[8.5px] shrink-0 pl-0.5">
-            <div class="font-black text-slate-800 text-[9.5px] flex items-center gap-1">
+        <div class="w-full bg-white rounded-xl border border-slate-300 px-2 py-1 flex items-center justify-between gap-2 shadow-2xs">
+          <div class="flex flex-col justify-center gap-1 text-[8.5px] shrink-0 pl-0.5 text-slate-900">
+            <div class="font-black text-slate-900 text-[9.5px] flex items-center gap-1">
               <span>🎯</span><span>能力雷達圖</span>
             </div>
-            <div class="flex items-center gap-1 text-amber-900 font-bold">
-              <span class="w-2.5 h-1 bg-amber-600 rounded-full inline-block"></span><span>個人得分</span>
+            <div class="flex items-center gap-1 font-bold">
+              <span class="w-2.5 h-1 bg-amber-700 rounded-full inline-block"></span><span>個人得分</span>
             </div>
             ${hasValidAvg ? `
-              <div class="flex items-center gap-1 text-emerald-800 font-bold">
-                <span class="w-2.5 h-0.5 border-t-2 border-dashed border-emerald-600 inline-block"></span><span>班級平均</span>
+              <div class="flex items-center gap-1 font-bold">
+                <span class="w-2.5 h-0.5 border-t-2 border-dashed border-emerald-700 inline-block"></span><span>班級平均</span>
               </div>
             ` : ''}
           </div>
@@ -4967,7 +4990,7 @@
             ${ringsSvg}
             ${axesSvg}
             ${classAvgSvg}
-            <polygon points="${studentPts}" fill="rgba(245, 158, 11, 0.28)" stroke="#d97706" stroke-width="1.8" />
+            <polygon points="${studentPts}" fill="rgba(245, 158, 11, 0.22)" stroke="#b45309" stroke-width="2.1" />
             ${studentDots}
           </svg>
         </div>
@@ -5022,9 +5045,9 @@
 
       const schoolFont = isUltraCompact ? 'text-[10px]' : 'text-xs';
       const titleFont = isUltraCompact ? 'text-xs' : (isCompact ? 'text-xs md:text-sm' : 'text-sm md:text-base');
-      const examBadge = examData ? `<span class="inline-flex items-center justify-center text-[9px] font-bold text-amber-900 bg-amber-100/90 px-1.5 py-0.5 rounded leading-none shrink-0 align-middle">【${examData.sheetName || examData.examTitle}】</span>` : '';
+      const examBadge = examData ? `<span class="inline-flex items-center justify-center text-[9px] font-bold text-amber-900 bg-amber-100/90 border border-amber-300 px-1.5 py-0.5 rounded leading-none shrink-0 align-middle">【${examData.sheetName || examData.examTitle}】</span>` : '';
       const nameFont = isUltraCompact ? 'text-sm' : (isCompact ? 'text-sm md:text-base' : 'text-base');
-      const footClass = isUltraCompact ? 'text-[18px] pt-1.5' : 'text-[19px] pt-1.5';
+      const footClass = isUltraCompact ? 'text-[11px] pt-1' : (isCompact ? 'text-[13px] pt-1' : 'text-[17px] pt-1.5');
 
       return `
         <div class="flex flex-col justify-between h-full space-y-1">
@@ -5038,7 +5061,7 @@
               </div>
             </div>
             <div class="text-right shrink-0 ml-2">
-              <span class="inline-flex items-center justify-center text-[10px] font-bold bg-slate-100 text-slate-700 px-2 py-0.5 rounded leading-none">${st.className} 班</span>
+              <span class="inline-flex items-center justify-center text-[10px] font-bold bg-slate-100 text-slate-800 border border-slate-300 px-2 py-0.5 rounded leading-none">${st.className} 班</span>
             </div>
           </div>
 
@@ -5046,11 +5069,11 @@
           <div class="flex items-center justify-between gap-2 py-0.5">
             <div class="space-y-0.5 flex-1 min-w-0">
               <div class="${nameFont} font-black text-slate-900 leading-tight">
-                ${st.name} <span class="text-[10.5px] font-normal text-slate-500">(${st.seatNumber}號)</span>
+                ${st.name} <span class="text-[10.5px] font-semibold text-slate-700">(${st.seatNumber}號)</span>
               </div>
               ${pCfg.showStudentId && (st.studentId || (st.className && st.seatNumber)) ? `
-                <div class="text-[10px] text-slate-500 font-medium leading-tight">
-                  班級-座號：<span class="font-mono text-slate-700 font-bold">${st.studentId || (st.className + '-' + st.seatNumber)}</span>
+                <div class="text-[10px] text-slate-700 font-semibold leading-tight">
+                  班級-座號：<span class="font-mono text-slate-900 font-bold">${st.studentId || (st.className + '-' + st.seatNumber)}</span>
                 </div>
               ` : ''}
               
@@ -5073,8 +5096,8 @@
 
             <!-- QR Code 容器 -->
             <div class="flex flex-col items-center justify-center shrink-0">
-              <div id="${cardId}" class="p-0.5 bg-white border border-slate-200 rounded shadow-2xs"></div>
-              <span class="text-[8.5px] text-slate-400 mt-0.5 leading-tight text-center">相機掃描直達</span>
+              <div id="${cardId}" class="p-0.5 bg-white border border-slate-400 rounded shadow-2xs"></div>
+              <span class="text-[8.5px] text-slate-700 font-semibold mt-0.5 leading-tight text-center">相機掃描直達</span>
               ${pCfg.showShortUrl !== false ? `
                 <span class="qr-sub-caption text-[8px] font-mono font-bold text-amber-800/90 text-center leading-tight mt-0.5 select-all ${getCachedShortUrl(st.token, queryUrl) ? '' : 'hidden'}" data-token="${st.token}" title="${getCachedShortUrl(st.token, queryUrl) || ''}">
                   ${getCachedShortUrl(st.token, queryUrl) ? formatShortUrlDisplay(getCachedShortUrl(st.token, queryUrl)) : ''}
@@ -5098,7 +5121,7 @@
           <!-- 頁腳備註說明 -->
           ${pCfg.showFootnote && footnote ? `
             <div class="${footClass} text-slate-900 font-bold border-t border-slate-300 flex items-start gap-1.5 shrink-0">
-              <span class="text-[18px] text-amber-700 leading-snug shrink-0">ℹ️</span>
+              <span class="${isUltraCompact ? 'text-[11px]' : (isCompact ? 'text-[13px]' : 'text-[17px]')} text-amber-700 leading-snug shrink-0">ℹ️</span>
               <span class="leading-snug">${footnote}</span>
             </div>
           ` : ''}
