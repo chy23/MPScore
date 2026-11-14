@@ -4764,6 +4764,23 @@
       } catch (e) {}
     }
 
+    function renderCardQrCode(qrEl, text, size, isShort = false) {
+      if (!qrEl || typeof QRCode === 'undefined' || !QRCode.CorrectLevel) return;
+      qrEl.innerHTML = '';
+      try {
+        new QRCode(qrEl, {
+          text: text,
+          width: size,
+          height: size,
+          colorDark: '#000000',
+          colorLight: '#ffffff',
+          correctLevel: isShort ? QRCode.CorrectLevel.M : QRCode.CorrectLevel.L
+        });
+      } catch (e) {
+        console.warn(e);
+      }
+    }
+
     function updateSingleStudentShortUrlInDOM(tok, shortUrl) {
       if (!tok || !shortUrl) return;
       const cleanDisplay = formatShortUrlDisplay(shortUrl);
@@ -4779,6 +4796,11 @@
         el.textContent = cleanDisplay;
         el.title = shortUrl;
         el.classList.remove('hidden');
+      });
+      const qrTargets = document.querySelectorAll(`[data-qr-token="${tok}"]`);
+      qrTargets.forEach(qrEl => {
+        const size = parseInt(qrEl.dataset.qrSize || '84', 10) || 84;
+        renderCardQrCode(qrEl, shortUrl, size, true);
       });
     }
 
@@ -5457,19 +5479,10 @@
         setTimeout(() => {
           const qrEl = document.getElementById(cardId);
           if (qrEl) {
-            qrEl.innerHTML = '';
-            if (typeof QRCode !== 'undefined' && QRCode.CorrectLevel) {
-              try {
-                new QRCode(qrEl, {
-                  text: queryUrl,
-                  width: 90,
-                  height: 90,
-                  correctLevel: QRCode.CorrectLevel.L
-                });
-              } catch(e) {
-                console.warn(e);
-              }
-            }
+            const cachedShort = getCachedShortUrl(st.token, queryUrl);
+            qrEl.dataset.qrToken = st.token || '';
+            qrEl.dataset.qrSize = '90';
+            renderCardQrCode(qrEl, cachedShort || queryUrl, 90, !!cachedShort);
           }
         }, 50);
       });
@@ -5539,11 +5552,11 @@
 
       if (currentCardsPerPage === 6) {
         gridClass = 'grid-cols-2 grid-rows-3 gap-2.5';
-        qrSize = 64;
+        qrSize = 68;
         isCompact = true;
       } else if (currentCardsPerPage === 8) {
         gridClass = 'grid-cols-2 grid-rows-4 gap-1.5';
-        qrSize = 48;
+        qrSize = 54;
         isCompact = true;
         isUltraCompact = true;
       } else if (currentCardsPerPage === 2) {
@@ -5595,19 +5608,10 @@
           setTimeout(() => {
             const qrEl = document.getElementById(modalQrId);
             if (qrEl) {
-              qrEl.innerHTML = '';
-              if (typeof QRCode !== 'undefined' && QRCode.CorrectLevel) {
-                try {
-                  new QRCode(qrEl, {
-                    text: queryUrl,
-                    width: qrSize,
-                    height: qrSize,
-                    correctLevel: QRCode.CorrectLevel.L
-                  });
-                } catch(e) {
-                  console.warn(e);
-                }
-              }
+              const cachedShort = getCachedShortUrl(st.token, queryUrl);
+              qrEl.dataset.qrToken = st.token || '';
+              qrEl.dataset.qrSize = String(qrSize);
+              renderCardQrCode(qrEl, cachedShort || queryUrl, qrSize, !!cachedShort);
             }
           }, 30);
         });
