@@ -279,8 +279,8 @@
         </div>
       </div>
 
-      <!-- 響應式雙欄圖表與數據網格 (支援教師自訂模組排列順序，桌機雙欄、手機單欄) -->
-      <div id="pModulesGrid" class="grid grid-cols-1 lg:grid-cols-2 gap-5 md:gap-6 items-start">
+      <!-- 響應式雙欄圖表與數據網格 (支援教師自訂模組排列順序，桌機雙欄緊密瀑布流、手機單欄) -->
+      <div id="pModulesGrid" class="space-y-5 md:space-y-6">
           <!-- 📈 歷次成長趨勢圖 -->
           <div id="pTrendCard" class="apple-glass p-5 sm:p-6 rounded-3xl space-y-3">
             <div class="font-bold text-xs text-slate-700 flex justify-between items-center border-b border-slate-100 pb-2.5">
@@ -1175,16 +1175,95 @@
       return parseModuleOrderString(DEFAULT_PARENT_MODULE_ORDER);
     }
 
+    const PARENT_FULL_WIDTH_CODES = { '9': true, 'a': true, 'b': true };
+    let lastParentIsDesktop = null;
+
     function applyParentModuleOrder() {
+      const grid = document.getElementById('pModulesGrid');
+      if (!grid) return;
+
       const orderArr = getParentModuleOrder();
-      orderArr.forEach((code, idx) => {
+      const cardsByCode = {};
+      orderArr.forEach(code => {
         const cardId = PARENT_MODULE_CARD_IDS[code];
         const el = cardId ? document.getElementById(cardId) : null;
         if (el) {
-          el.style.order = String(idx);
+          el.style.order = '';
+          cardsByCode[code] = el;
         }
       });
+
+      const isDesktop = window.innerWidth >= 1024;
+      lastParentIsDesktop = isDesktop;
+
+      // 先將所有卡片暫時移出舊的雙欄包裝，並清空暫存包裝容器
+      const oldRows = grid.querySelectorAll(':scope > .masonry-pair-row');
+      orderArr.forEach(code => {
+        if (cardsByCode[code]) grid.appendChild(cardsByCode[code]);
+      });
+      oldRows.forEach(row => row.remove());
+
+      if (!isDesktop) {
+        orderArr.forEach(code => {
+          if (cardsByCode[code]) grid.appendChild(cardsByCode[code]);
+        });
+      } else {
+        let currentRow = null;
+        let leftCol = null;
+        let rightCol = null;
+
+        const flushRow = () => {
+          currentRow = null;
+          leftCol = null;
+          rightCol = null;
+        };
+
+        orderArr.forEach(code => {
+          const el = cardsByCode[code];
+          if (!el) return;
+          if (el.classList.contains('hidden')) {
+            grid.appendChild(el);
+            return;
+          }
+          if (PARENT_FULL_WIDTH_CODES[code]) {
+            flushRow();
+            grid.appendChild(el);
+            return;
+          }
+          if (!currentRow) {
+            currentRow = document.createElement('div');
+            currentRow.className = 'masonry-pair-row grid grid-cols-2 gap-5 md:gap-6 items-start';
+            leftCol = document.createElement('div');
+            leftCol.className = 'space-y-5 md:space-y-6 min-w-0';
+            rightCol = document.createElement('div');
+            rightCol.className = 'space-y-5 md:space-y-6 min-w-0';
+            currentRow.appendChild(leftCol);
+            currentRow.appendChild(rightCol);
+            grid.appendChild(currentRow);
+          }
+          // 優先放入目前較矮的欄位，徹底消除上下空白
+          if (leftCol.offsetHeight <= rightCol.offsetHeight) {
+            leftCol.appendChild(el);
+          } else {
+            rightCol.appendChild(el);
+          }
+        });
+      }
+
+      if (typeof pTrendInst !== 'undefined' && pTrendInst) pTrendInst.resize();
+      if (typeof pRadarInst !== 'undefined' && pRadarInst) pRadarInst.resize();
     }
+
+    let parentLayoutResizeTimer = null;
+    window.addEventListener('resize', () => {
+      if (parentLayoutResizeTimer) clearTimeout(parentLayoutResizeTimer);
+      parentLayoutResizeTimer = setTimeout(() => {
+        const isDesktop = window.innerWidth >= 1024;
+        if (lastParentIsDesktop !== null && lastParentIsDesktop !== isDesktop) {
+          applyParentModuleOrder();
+        }
+      }, 150);
+    });
 
     let queryProgressInterval = null;
 
@@ -1977,7 +2056,6 @@
     }
 
     function renderSelectedExamView() {
-      applyParentModuleOrder();
       const cfg = getVisibilityConfig();
       const sel = document.getElementById('pExamSelect');
       const curIdx = parseInt(sel.value, 10);
@@ -2377,6 +2455,8 @@
           diagCard.classList.add('hidden');
         }
       }
+
+      applyParentModuleOrder();
     }
 
     let parentBoxplotSubIdx = 0;
