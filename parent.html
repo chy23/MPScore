@@ -1213,6 +1213,10 @@
         let rightCol = null;
 
         const flushRow = () => {
+          if (currentRow && rightCol && rightCol.children.length === 0) {
+            currentRow.className = 'masonry-pair-row grid grid-cols-1 gap-5 md:gap-6 items-start';
+            rightCol.remove();
+          }
           currentRow = null;
           leftCol = null;
           rightCol = null;
@@ -1248,6 +1252,7 @@
             rightCol.appendChild(el);
           }
         });
+        flushRow();
       }
 
       if (typeof pTrendInst !== 'undefined' && pTrendInst) pTrendInst.resize();
