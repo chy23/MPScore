@@ -1473,21 +1473,36 @@
       closeQrScannerModal();
       if (!scannedText) return;
 
+      const cleanText = String(scannedText).trim();
       let extractedToken = '';
       let extractedApi = '';
 
-      // 1. 若掃出的是完整網址 (例如：https://chy23.github.io/MPScore/parent.html?token=DEMO01&api=...)
-      try {
-        if (scannedText.startsWith('http://') || scannedText.startsWith('https://')) {
-          const u = new URL(scannedText);
+      // 1. 若掃出的是網址 (完整網址或 is.gd / tinyurl 等短網址)
+      if (/^https?:\/\//i.test(cleanText)) {
+        try {
+          const u = new URL(cleanText);
           extractedToken = u.searchParams.get('token') || u.searchParams.get('t') || u.searchParams.get('id');
           extractedApi = u.searchParams.get('api') || u.searchParams.get('a');
+        } catch (e) {}
+
+        // 若為短網址（如 https://is.gd/xxxx），網址本身不含 ?t= 參數，直接導轉讓瀏覽器解析真實目標網址
+        if (!extractedToken) {
+          const errBox = document.getElementById('parentErrorMsg');
+          const loadBox = document.getElementById('parentLoadingState');
+          const loginGate = document.getElementById('parentLoginGate');
+          const dashBox = document.getElementById('parentDashboard');
+          if (errBox) errBox.classList.add('hidden');
+          if (loginGate) loginGate.classList.add('hidden');
+          if (dashBox) dashBox.classList.add('hidden');
+          if (loadBox) loadBox.classList.remove('hidden');
+          window.location.href = cleanText;
+          return;
         }
-      } catch (e) {}
+      }
 
       // 2. 若為純代碼文字
       if (!extractedToken) {
-        extractedToken = scannedText.trim();
+        extractedToken = cleanText;
       }
 
       // 若有夾帶 API 網址，更新全域設定
