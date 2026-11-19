@@ -2076,12 +2076,14 @@
 
       const sel = document.getElementById('pExamSelect');
       sel.innerHTML = '';
-      exams.forEach((ex, idx) => {
+      // 最新考試主動排在最上層，並預設選取最新考試（底層 currentStudentExams 仍保留時間先後順序供折線圖繪製）
+      for (let idx = exams.length - 1; idx >= 0; idx--) {
+        const ex = exams[idx];
         const opt = document.createElement('option');
         opt.value = idx;
         opt.innerText = ex.sheetName || ex.examTitle;
         sel.appendChild(opt);
-      });
+      }
       sel.value = exams.length - 1;
 
       renderSelectedExamView();

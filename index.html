@@ -4481,14 +4481,20 @@
             window.cachedExamList = data.examList;
             const exSel = document.getElementById('cardExamSource');
             if (exSel) {
-              exSel.innerHTML = '<option value="none">純 QR Code 查詢通知卡 (不呈現考試成績)</option>';
-              data.examList.forEach((exName, idx) => {
+              exSel.innerHTML = '';
+              // 最新考試主動排在下拉選單最上層並預設選取
+              for (let idx = data.examList.length - 1; idx >= 0; idx--) {
+                const exName = data.examList[idx];
                 const opt = document.createElement('option');
                 opt.value = exName;
                 opt.innerText = exName;
                 if (idx === data.examList.length - 1) opt.selected = true;
                 exSel.appendChild(opt);
-              });
+              }
+              const noneOpt = document.createElement('option');
+              noneOpt.value = 'none';
+              noneOpt.innerText = '純 QR Code 查詢通知卡 (不呈現考試成績)';
+              exSel.appendChild(noneOpt);
             }
             const latestExName = data.examList[data.examList.length - 1];
             if (!noticeTitleManuallyEdited) {
@@ -9975,13 +9981,15 @@
       }));
 
       sel.innerHTML = '';
-      cachedLineExamsList.forEach((ex, idx) => {
+      // 最新考試主動排在最上層並預設選取
+      for (let idx = cachedLineExamsList.length - 1; idx >= 0; idx--) {
+        const ex = cachedLineExamsList[idx];
         const opt = document.createElement('option');
         opt.value = idx;
         opt.textContent = ex.sheetName || ex.examTitle;
         if (idx === cachedLineExamsList.length - 1) opt.selected = true;
         sel.appendChild(opt);
-      });
+      }
     }
 
     function onLinePushExamChange() {
