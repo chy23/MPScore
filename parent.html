@@ -1329,8 +1329,10 @@
     let html5QrScannerInstance = null;
     let availableVideoDevices = [];
     let activeCameraDeviceIdx = 0;
+    let isQrScanHandling = false;
 
     function openQrScannerModal() {
+      isQrScanHandling = false;
       const modal = document.getElementById('qrScannerModal');
       const errBox = document.getElementById('qrScanError');
       if (errBox) errBox.classList.add('hidden');
@@ -1338,10 +1340,10 @@
       startCameraScanner();
     }
 
-    function closeQrScannerModal() {
+    async function closeQrScannerModal() {
       const modal = document.getElementById('qrScannerModal');
       if (modal) modal.classList.add('hidden');
-      stopCameraScanner();
+      await stopCameraScanner();
     }
 
     async function startCameraScanner() {
@@ -1469,18 +1471,26 @@
       }
     }
 
-    function handleScannedResult(scannedText) {
-      closeQrScannerModal();
-      if (!scannedText) return;
+    async function handleScannedResult(scannedText) {
+      if (isQrScanHandling) return;
+      isQrScanHandling = true;
+      await closeQrScannerModal();
+      if (!scannedText) {
+        isQrScanHandling = false;
+        return;
+      }
 
-      const cleanText = String(scannedText).trim();
+      const rawText = String(scannedText).trim();
+      const bareShortenerMatch = /^(is\.gd|v\.gd|tinyurl\.com|bit\.ly|reurl\.cc)\/\S+/i.test(rawText);
+      const normalizedUrlText = bareShortenerMatch ? ('https://' + rawText) : rawText;
+
       let extractedToken = '';
       let extractedApi = '';
 
       // 1. 若掃出的是網址 (完整網址或 is.gd / tinyurl 等短網址)
-      if (/^https?:\/\//i.test(cleanText)) {
+      if (/^https?:\/\//i.test(normalizedUrlText)) {
         try {
-          const u = new URL(cleanText);
+          const u = new URL(normalizedUrlText);
           extractedToken = u.searchParams.get('token') || u.searchParams.get('t') || u.searchParams.get('id');
           extractedApi = u.searchParams.get('api') || u.searchParams.get('a');
         } catch (e) {}
@@ -1495,15 +1505,17 @@
           if (loginGate) loginGate.classList.add('hidden');
           if (dashBox) dashBox.classList.add('hidden');
           if (loadBox) loadBox.classList.remove('hidden');
-          window.location.href = cleanText;
+          window.location.assign(normalizedUrlText);
           return;
         }
       }
 
       // 2. 若為純代碼文字
       if (!extractedToken) {
-        extractedToken = cleanText;
+        extractedToken = rawText;
       }
+
+      isQrScanHandling = false;
 
       // 若有夾帶 API 網址，更新全域設定
       if (extractedApi) {
@@ -1801,7 +1813,7 @@
             return;
           }
         } catch (e) {
-          console.warn('API 連線超時或失敗，切換為本地比對', e);
+          console.warn('API 連線超時或失敗', e);
           setQueryLoading(false);
           if (hasRenderedCache) {
             if (cacheNotice) {
@@ -1809,6 +1821,11 @@
             }
             return;
           }
+          if (errBox) {
+            errBox.innerHTML = `⚠️ 雲端連線逾時或網路不穩，暫時無法取得成績。<br><span class="text-[11px] text-slate-500 font-normal mt-1 block">💡 請確認網路連線後重新整理，或再次掃描 QR Code。</span>`;
+            errBox.classList.remove('hidden');
+          }
+          return;
         }
       }
 
