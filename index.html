@@ -5121,7 +5121,7 @@
                 <div class="bg-white/95 rounded-lg border ${s.isExcluded ? 'border-amber-300/90' : 'border-amber-200/90'} ${padClass} flex flex-col items-center justify-center text-center shadow-2xs">
                   <span class="${fontName} font-bold text-slate-700 leading-tight">${s.name}</span>
                   <span class="${fontScore} font-black text-amber-800 tracking-tight leading-tight mt-0.5">${s.score}</span>
-                  ${s.isExcluded ? `<span class="inline-flex items-center justify-center text-[7.5px] font-bold text-amber-800 bg-amber-100/90 px-1 py-0.2 rounded mt-0.5 leading-none">${(s.classTestScore !== null && s.classTestScore !== undefined) ? `資${s.resourceScore ?? s.score}・班${s.classTestScore}` : '額外採計'}</span>` : (pCfg.showPr && s.pr ? `<span class="inline-flex items-center justify-center text-[8px] font-bold text-amber-700 bg-amber-100/80 px-1 py-0.2 rounded mt-0.5 leading-none">PR${s.pr}</span>` : '')}
+                  ${s.isExcluded ? `<span class="inline-block align-middle text-[7.5px] font-bold text-amber-800 bg-amber-100 px-1 py-0.5 rounded mt-0.5 leading-normal">${(s.classTestScore !== null && s.classTestScore !== undefined) ? `資${s.resourceScore ?? s.score}・班${s.classTestScore}` : '額外採計'}</span>` : (pCfg.showPr && s.pr ? `<span class="inline-block align-middle text-[8px] font-bold text-amber-700 bg-amber-100 px-1 py-0.5 rounded mt-0.5 leading-normal">PR${s.pr}</span>` : '')}
                 </div>
               `).join('')}
             </div>
@@ -5131,7 +5131,7 @@
 
       const schoolFont = isUltraCompact ? 'text-[10px]' : 'text-xs';
       const titleFont = isUltraCompact ? 'text-xs' : (isCompact ? 'text-xs md:text-sm' : 'text-sm md:text-base');
-      const examBadge = examData ? `<span class="inline-flex items-center justify-center text-[9px] font-bold text-amber-900 bg-amber-100/90 border border-amber-300 px-1.5 py-0.5 rounded leading-none shrink-0 align-middle">【${examData.sheetName || examData.examTitle}】</span>` : '';
+      const examBadge = examData ? `<span class="inline-block align-middle text-[9px] font-bold text-amber-900 bg-amber-100 border border-amber-300 px-1.5 py-0.5 rounded leading-normal shrink-0">【${examData.sheetName || examData.examTitle}】</span>` : '';
       const nameFont = isUltraCompact ? 'text-sm' : (isCompact ? 'text-sm md:text-base' : 'text-base');
       const footClass = isUltraCompact ? 'text-[11px] pt-1' : (isCompact ? 'text-[13px] pt-1' : 'text-[17px] pt-1.5');
 
@@ -5147,7 +5147,7 @@
               </div>
             </div>
             <div class="text-right shrink-0 ml-2">
-              <span class="inline-flex items-center justify-center text-[10px] font-bold bg-slate-100 text-slate-800 border border-slate-300 px-2 py-0.5 rounded leading-none">${st.className} 班</span>
+              <span class="inline-block align-middle text-[10px] font-bold bg-slate-100 text-slate-800 border border-slate-300 px-2 py-0.5 rounded leading-normal">${st.className} 班</span>
             </div>
           </div>
 
@@ -5164,17 +5164,15 @@
               ` : ''}
               
               ${pCfg.showToken ? `
-                <div class="inline-flex items-center justify-center text-[9.5px] px-2 py-0.5 text-amber-950 font-bold bg-amber-50 rounded-lg border border-amber-200/90 leading-none shadow-2xs mt-0.5">
-                  <span class="text-amber-700">代碼：</span>
-                  <span class="font-mono text-xs font-black tracking-wider text-amber-800">${st.token}</span>
+                <div class="inline-block align-middle text-[9.5px] px-2 py-0.5 text-amber-950 font-bold bg-amber-50 rounded-lg border border-amber-200 leading-normal mt-0.5">
+                  <span class="text-amber-700">代碼：</span><span class="font-mono text-xs font-black tracking-wider text-amber-800">${st.token}</span>
                 </div>
               ` : ''}
 
               ${pCfg.showShortUrl !== false ? `
                 <div class="pt-0.5" title="${getStudentShortUrlTitle(st, queryUrl)}">
-                  <div class="inline-flex items-center gap-1 text-[9px] font-mono font-bold text-amber-950 bg-amber-50/90 hover:bg-amber-100 px-1.5 py-0.5 rounded border border-amber-300/80 shadow-2xs leading-normal">
-                    <span class="text-[8.5px] text-amber-700 font-sans font-bold">🔗 查詢網址:</span>
-                    <span class="short-url-val font-mono font-black tracking-tight text-amber-900 select-all" data-token="${st.token}">${getStudentShortUrlDisplay(st, queryUrl)}</span>
+                  <div class="inline-block align-middle text-[9px] font-mono font-bold text-amber-950 bg-amber-50 hover:bg-amber-100 px-1.5 py-0.5 rounded border border-amber-300 leading-normal">
+                    <span class="text-[8.5px] text-amber-800 font-sans font-bold mr-1">🔗 查詢網址:</span><span class="short-url-val font-mono font-black tracking-tight text-amber-950 select-all" data-token="${st.token}">${getStudentShortUrlDisplay(st, queryUrl)}</span>
                   </div>
                 </div>
               ` : ''}
